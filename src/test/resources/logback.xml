@@ -1,0 +1,30 @@
+<configuration>
+
+    <property name="pattern" value="%d %p [%t] %c{20} %X{traceId:--} %m%n"/>
+
+    <appender name="STD_OUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${pattern}</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="cacher" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>/data/logs/cacher/cacher.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>/data/logs/cacher/cacher.log.%d{yyyy-MM-dd}</fileNamePattern>
+            <maxHistory>1</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${pattern}</pattern>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="STD_OUT"/>
+    </root>
+
+    <logger name="com.alibaba.cacher">
+        <appender-ref ref="cacher"/>
+    </logger>
+
+</configuration>
