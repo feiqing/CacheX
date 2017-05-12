@@ -25,7 +25,7 @@
         <cglib.version>3.2.0</cglib.version>
 
         <hession.version>4.0.38</hession.version>
-        <redis.cli.version>1.1.7-SNAPSHOT</redis.cli.version>
+        <tair.version>2.1.2</tair.version>
         <jedis.version>2.8.0</jedis.version>
         <memcached.version>2.0.0</memcached.version>
         <ehcache.version>3.0.0</ehcache.version>
@@ -89,6 +89,12 @@
         </dependency>
 
         <!-- optional: cache implements -->
+        <!-- tair -->
+        <dependency>
+            <groupId>com.taobao.tair</groupId>
+            <artifactId>tair-mc-client</artifactId>
+            <version>${tair.version}</version>
+        </dependency>
 
         <!-- redis -->
         <dependency>
