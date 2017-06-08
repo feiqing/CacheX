@@ -62,7 +62,7 @@ public class CacherAspect {
     private volatile Map<String, ICache> caches;
 
     public CacherAspect() {
-        this(Collections.singletonMap(DEFAULT, (ICache) new NoOpCache()));
+        this(Collections.singletonMap(DEFAULT, new NoOpCache()));
     }
 
     public CacherAspect(Map<String, ICache> caches) {

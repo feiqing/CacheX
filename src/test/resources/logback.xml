@@ -9,9 +9,9 @@
     </appender>
 
     <appender name="cacher" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>/data/logs/cacher/cacher.log</file>
+        <file>${user.dir}/logs/cacher/cacher.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>/data/logs/cacher/cacher.log.%d{yyyy-MM-dd}</fileNamePattern>
+            <fileNamePattern>${user.dir}/logs/cacher/cacher.log.%d{yyyy-MM-dd}</fileNamePattern>
             <maxHistory>1</maxHistory>
         </rollingPolicy>
         <encoder>
@@ -25,6 +25,7 @@
 
     <logger name="com.alibaba.cacher">
         <appender-ref ref="cacher"/>
+        <appender-ref ref="STD_OUT"/>
     </logger>
 
 </configuration>

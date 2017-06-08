@@ -8,7 +8,7 @@
 
     <groupId>com.alibaba.cacher</groupId>
     <artifactId>cacher</artifactId>
-    <version>0.4.1-SNAPSHOT</version>
+    <version>1.4.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>cacher</name>
@@ -25,6 +25,7 @@
         <cglib.version>3.2.0</cglib.version>
 
         <hession.version>4.0.38</hession.version>
+        <fastjson.version>1.2.32</fastjson.version>
         <tair.version>2.1.2</tair.version>
         <jedis.version>2.8.0</jedis.version>
         <memcached.version>2.0.0</memcached.version>
@@ -82,6 +83,12 @@
 
         <!-- optional: serialize -->
         <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>${fastjson.version}</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
             <groupId>com.caucho</groupId>
             <artifactId>hessian</artifactId>
             <version>${hession.version}</version>
@@ -94,6 +101,16 @@
             <groupId>com.taobao.tair</groupId>
             <artifactId>tair-mc-client</artifactId>
             <version>${tair.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- redis -->
@@ -172,8 +189,8 @@
                 <version>3.3</version>
                 <configuration>
                     <encoding>UTF-8</encoding>
-                    <source>1.7</source>
-                    <target>1.7</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
                 </configuration>
             </plugin>
             <plugin>

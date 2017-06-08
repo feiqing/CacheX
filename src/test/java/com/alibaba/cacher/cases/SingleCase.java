@@ -21,7 +21,7 @@ public class SingleCase extends TestBase {
         User user = service.singleKey(id, "ff-no-key", "no-key");
         user = service.singleKey(id, "ff-no-key", "ls");
 
-        Thread.sleep(10000000);
+        //Thread.sleep(10000000);
     }
 
     @Test

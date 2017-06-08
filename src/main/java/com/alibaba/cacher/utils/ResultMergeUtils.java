@@ -13,16 +13,7 @@ public class ResultMergeUtils {
                                Map idValueMap, Map<String, Object> keyValueMap)
             throws IllegalAccessException, InstantiationException {
 
-        //Arrays.asList()
-        Map mergedMap = null;
-        try {
-            if (returnType == Class.forName("java.util.Collections.EmptyMap")) {
-                mergedMap = new HashMap();
-            }
-
-                mergedMap = (Map) returnType.newInstance();
-        } catch (ClassNotFoundException e) {
-        }
+        Map mergedMap = (Map) returnType.newInstance();
 
         // keep maps order
         for (Map.Entry<String, Object> keyIdEntry : keyIdMap.entrySet()) {

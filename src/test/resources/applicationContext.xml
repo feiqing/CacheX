@@ -30,7 +30,7 @@
                     <entry key="vRedisPool" value-ref="vRedisPoolCache"/>
                     <entry key="vRedisCluster" value-ref="vRedisClusterCache"/>
                 -->
-                <entry key="redis" value-ref="redisCache"/>
+                <entry key="tair" value-ref="tair"/>
                 <!--<entry key="memcached" value-ref="memcachedCache"/>-->
             </map>
         </constructor-arg>
@@ -47,23 +47,33 @@
                      MapDB、
                      Ehcache等9款缓存实现.(注意: 开源版本没有提供VdianPool模式和VdianCluster模式实现)
      -->
-    <bean id="noOpCache" class="com.alibaba.cacher.support.cache.NoOpCache"/>
-    <bean id="jdkConcurrentMapCache" class="com.alibaba.cacher.support.cache.JdkConcurrentMapCache"/>
-    <bean id="guavaCache" class="com.alibaba.cacher.support.cache.GuavaCache">
-        <constructor-arg name="size" value="1000"/>
-        <constructor-arg name="expire" value="6000"/>
+    <bean id="tair" class="com.alibaba.cacher.support.cache.TairCache">
+        <constructor-arg name="configId" value="mdbcomm-daily"/>
+        <constructor-arg name="namespace" value="161"/>
+        <constructor-arg name="serializer">
+            <bean class="com.alibaba.cacher.support.serialize.Hessian2Serializer"/>
+        </constructor-arg>
+        <constructor-arg name="timeoutMS" value="1000000"/>
+        <constructor-arg name="compress" value="false"/>
+        <constructor-arg name="dynamicConfig" value="true"/>
     </bean>
-    <bean id="mapDBCache" class="com.alibaba.cacher.support.cache.MapDBCache">
-        <constructor-arg name="interval" value="1000000"/>
-        <constructor-arg name="maxSize" value="1000000"/>
-        <constructor-arg name="maxStoreSize" value="2"/>
-    </bean>
-    <bean id="ehCache" class="com.alibaba.cacher.support.cache.EhCache">
-        <constructor-arg name="heapEntries" value="20"/>
-        <constructor-arg name="offHeapMBSize" value="512"/>
-        <constructor-arg name="diskPath" value="/data/cache"/>
-        <constructor-arg name="diskGBSize" value="1"/>
-    </bean>
+    <!--<bean id="noOpCache" class="com.alibaba.cacher.support.cache.NoOpCache" lazy-init="true"/>-->
+    <!--<bean id="jdkConcurrentMapCache" class="com.alibaba.cacher.support.cache.JdkConcurrentMapCache" lazy-init="true"/>-->
+    <!--<bean id="guavaCache" class="com.alibaba.cacher.support.cache.GuavaCache" lazy-init="true">-->
+    <!--<constructor-arg name="size" value="1000"/>-->
+    <!--<constructor-arg name="expire" value="6000"/>-->
+    <!--</bean>-->
+    <!--<bean id="mapDBCache" class="com.alibaba.cacher.support.cache.MapDBCache" lazy-init="true">-->
+    <!--<constructor-arg name="interval" value="1000000"/>-->
+    <!--<constructor-arg name="maxSize" value="1000000"/>-->
+    <!--<constructor-arg name="maxStoreSize" value="2"/>-->
+    <!--</bean>-->
+    <!--<bean id="ehCache" class="com.alibaba.cacher.support.cache.EhCache" lazy-init="true">-->
+    <!--<constructor-arg name="heapEntries" value="20"/>-->
+    <!--<constructor-arg name="offHeapMBSize" value="512"/>-->
+    <!--<constructor-arg name="diskPath" value="/data/cache"/>-->
+    <!--<constructor-arg name="diskGBSize" value="1"/>-->
+    <!--</bean>-->
     <!--
         <bean id="vRedisPoolCache" class="com.vdian.cacher.support.cache.VRedisPoolCache">
             <constructor-arg name="namespace" value="ares"/>
@@ -72,19 +82,19 @@
             <constructor-arg name="namespace" value="feedcenter_cluster"/>
         </bean>
     -->
-    <bean id="redisCache" class="com.alibaba.cacher.support.cache.RedisClusterCache">
-        <constructor-arg name="connectString" value="10.1.101.60:6379,10.1.101.60:6380,10.1.101.60:6381"/>
-        <constructor-arg name="maxRedirections" value="3"/>
-        <constructor-arg name="maxTotal" value="3"/>
-        <constructor-arg name="serializer">
-            <bean class="com.alibaba.cacher.support.serialize.Hessian2Serializer"/>
-        </constructor-arg>
-        <constructor-arg name="timeout" value="200"/>
-        <constructor-arg name="waitMillis" value="20"/>
-    </bean>
-    <bean id="memcachedCache" class="com.alibaba.cacher.support.cache.MemcachedCache">
-        <constructor-arg name="ipPorts" value="10.1.101.60:11211"/>
-    </bean>
+    <!--<bean id="redisCache" class="com.alibaba.cacher.support.cache.RedisClusterCache" lazy-init="true">-->
+    <!--<constructor-arg name="connectString" value="10.1.101.60:6379,10.1.101.60:6380,10.1.101.60:6381"/>-->
+    <!--<constructor-arg name="maxRedirections" value="3"/>-->
+    <!--<constructor-arg name="maxTotal" value="3"/>-->
+    <!--<constructor-arg name="serializer">-->
+    <!--<bean class="com.alibaba.cacher.support.serialize.Hessian2Serializer"/>-->
+    <!--</constructor-arg>-->
+    <!--<constructor-arg name="timeout" value="200"/>-->
+    <!--<constructor-arg name="waitMillis" value="20"/>-->
+    <!--</bean>-->
+    <!--<bean id="memcachedCache" class="com.alibaba.cacher.support.cache.MemcachedCache" lazy-init="true">-->
+    <!--<constructor-arg name="ipPorts" value="10.1.101.60:11211"/>-->
+    <!--</bean>-->
 
     <context:component-scan base-package="com.alibaba.cacher.service.impl"/>
 </beans>
