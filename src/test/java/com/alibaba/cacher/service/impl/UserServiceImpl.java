@@ -1,7 +1,7 @@
 package com.alibaba.cacher.service.impl;
 
 
-import com.alibaba.cacher.Invalidate;
+import com.alibaba.cacher.Invalid;
 import com.alibaba.cacher.service.UserService;
 import com.alibaba.cacher.CacheKey;
 import com.alibaba.cacher.Cached;
@@ -33,7 +33,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Invalidate(cache = "levelDB", prefix = "pix")
+    @Invalid(cache = "levelDB", prefix = "pix")
     public void multiInvalid(@CacheKey(prefix = "app:") String apps, @CacheKey(prefix = "id:", multi = true) List<Integer> ids) {
         System.out.println("method: " + ids);
     }
@@ -52,7 +52,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Invalidate(cache = "redis", prefix = "prefix")
+    @Invalid(cache = "redis", prefix = "prefix")
     public void batchUpdateList(@CacheKey(prefix = "ids:", multi = true, expression = "id") List<User> users) {
         List<Integer> ids = new ArrayList<>(users.size());
         for (User user : users) {
@@ -67,12 +67,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Invalidate(cache = "redis")
+    @Invalid(cache = "redis")
     public void singleRemove(@CacheKey(prefix = "id:") int id, String name, Object non) {
     }
 
     @Override
-    @Invalidate(cache = "redis")
+    @Invalid(cache = "redis")
     public void updateUser(@CacheKey(prefix = "id:", expression = "id") User user, @CacheKey(prefix = "second:") String name, Object non) {
     }
 

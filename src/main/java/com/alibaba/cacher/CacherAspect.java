@@ -6,7 +6,7 @@ import com.alibaba.cacher.constant.Constant;
 import com.alibaba.cacher.domain.CacheKeyHolder;
 import com.alibaba.cacher.domain.MethodInfoHolder;
 import com.alibaba.cacher.domain.Pair;
-import com.alibaba.cacher.hitrate.HitRateMXBean;
+import com.alibaba.cacher.shooting.ShootingMXBean;
 import com.alibaba.cacher.manager.CacheManager;
 import com.alibaba.cacher.reader.CacheReader;
 import com.alibaba.cacher.support.cache.NoOpCache;
@@ -56,7 +56,7 @@ public class CacherAspect {
 
     private volatile boolean open;
 
-    private HitRateMXBean hitRateMXBean;
+    private ShootingMXBean shootingMXBean;
 
     private volatile Map<String, ICache> caches;
 
@@ -72,10 +72,10 @@ public class CacherAspect {
         this(caches, open, null);
     }
 
-    public CacherAspect(Map<String, ICache> caches, boolean open, HitRateMXBean hitRateMXBean) {
+    public CacherAspect(Map<String, ICache> caches, boolean open, ShootingMXBean shootingMXBean) {
         this.caches = initCaches(caches);
         this.open = open;
-        this.hitRateMXBean = hitRateMXBean;
+        this.shootingMXBean = shootingMXBean;
     }
 
     @PostConstruct
@@ -85,11 +85,11 @@ public class CacherAspect {
             InstanceAlreadyExistsException,
             MBeanRegistrationException, IOException {
 
-        if (this.hitRateMXBean != null) {
-            CacherInitUtil.registerBeanInstance(this.hitRateMXBean);
+        if (this.shootingMXBean != null) {
+            CacherInitUtil.registerBeanInstance(this.shootingMXBean);
             this.mBeanServer = ManagementFactory.getPlatformMBeanServer();
-            this.mBeanServer.registerMBean(this.hitRateMXBean,
-                    new ObjectName("com.alibaba.cacher:name=hit"));
+            this.mBeanServer.registerMBean(this.shootingMXBean,
+                    new ObjectName("com.alibaba.cacher:name=shooting"));
         }
 
         CacherInitUtil.beanInit(Constant.CACHER_BASE_PACKAGE, this);
@@ -123,31 +123,31 @@ public class CacherAspect {
         return result;
     }
 
-    @After("@annotation(com.alibaba.cacher.Invalidate)")
+    @After("@annotation(com.alibaba.cacher.Invalid)")
     public void removeCache(JoinPoint pjp) throws Throwable {
         Method method = CacherUtils.getMethod(pjp);
-        Invalidate invalidate = method.getAnnotation(Invalidate.class);
+        Invalid invalid = method.getAnnotation(Invalid.class);
 
-        if (CacherSwitcher.isSwitchOn(open, invalidate, method, pjp.getArgs())) {
+        if (CacherSwitcher.isSwitchOn(open, invalid, method, pjp.getArgs())) {
             long start = System.currentTimeMillis();
             Pair<CacheKeyHolder, MethodInfoHolder> pair = MethodInfoUtil.getMethodInfo(method);
             CacheKeyHolder holder = pair.getLeft();
 
             if (holder.isMulti()) {
-                Map[] keyIdPair = KeysCombineUtil.toMultiKey(holder, invalidate.separator(), pjp.getArgs());
+                Map[] keyIdPair = KeysCombineUtil.toMultiKey(holder, invalid.separator(), pjp.getArgs());
                 Set<String> keys = ((Map<String, Object>) keyIdPair[1]).keySet();
-                cacheManager.remove(invalidate.cache(), keys.toArray(new String[keys.size()]));
+                cacheManager.remove(invalid.cache(), keys.toArray(new String[keys.size()]));
 
                 LOGGER.info("multi cache clear, keys: {}", keys);
 
             } else {
-                String key = KeysCombineUtil.toSingleKey(pair.getLeft(), invalidate.separator(), pjp.getArgs());
-                cacheManager.remove(invalidate.cache(), key);
+                String key = KeysCombineUtil.toSingleKey(pair.getLeft(), invalid.separator(), pjp.getArgs());
+                cacheManager.remove(invalid.cache(), key);
 
                 LOGGER.info("single cache clear, key: {}", key);
             }
 
-            LOGGER.info("cacher [{}] clear cost [{}] ms", invalidate.cache(), System.currentTimeMillis() - start);
+            LOGGER.info("cacher [{}] clear cost [{}] ms", invalid.cache(), System.currentTimeMillis() - start);
         }
     }
 
@@ -177,7 +177,7 @@ public class CacherAspect {
             InstanceNotFoundException {
 
         if (this.mBeanServer != null
-                && this.hitRateMXBean != null) {
+                && this.shootingMXBean != null) {
             this.mBeanServer.unregisterMBean(new ObjectName("com.alibaba.cacher:name=hit"));
         }
     }

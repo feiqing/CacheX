@@ -1,6 +1,6 @@
-package com.alibaba.cacher.support.hitrate;
+package com.alibaba.cacher.support.shooting;
 
-import com.alibaba.cacher.hitrate.HitRateMXBean;
+import com.alibaba.cacher.shooting.ShootingMXBean;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author jifang
  * @since 2017/3/2 下午2:28.
  */
-public class MemoryHitRateMXBeanImpl implements HitRateMXBean {
+public class MemoryShootingMXBeanImpl implements ShootingMXBean {
 
     private ConcurrentMap<String, AtomicLong> hitMap = new ConcurrentHashMap<>();
 
@@ -35,8 +35,8 @@ public class MemoryHitRateMXBeanImpl implements HitRateMXBean {
     }
 
     @Override
-    public Map<String, RateDO> getHitRate() {
-        Map<String, RateDO> result = new LinkedHashMap<>();
+    public Map<String, ShootingDO> getShooting() {
+        Map<String, ShootingDO> result = new LinkedHashMap<>();
 
         AtomicLong totalHit = new AtomicLong(0);
         AtomicLong totalRequire = new AtomicLong(0);
@@ -47,11 +47,11 @@ public class MemoryHitRateMXBeanImpl implements HitRateMXBean {
             totalHit.addAndGet(hit);
             totalRequire.addAndGet(require);
 
-            result.put(pattern, RateDO.newInstance(hit, require));
+            result.put(pattern, ShootingDO.newInstance(hit, require));
         });
 
         // 全局命中率
-        result.put(getSummaryName(), RateDO.newInstance(totalHit.get(), totalRequire.get()));
+        result.put(getSummaryName(), ShootingDO.newInstance(totalHit.get(), totalRequire.get()));
 
         return result;
     }

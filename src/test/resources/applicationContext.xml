@@ -34,7 +34,7 @@
                 <!--<entry key="memcached" value-ref="memcachedCache"/>-->
             </map>
         </constructor-arg>
-        <constructor-arg name="hitRateMXBean" ref="derbyHitRateMXBean">
+        <constructor-arg name="shootingMXBean" ref="derbyHitRateMXBean">
         </constructor-arg>
     </bean>
 
@@ -99,7 +99,7 @@
     <!--</bean>-->
 
     <bean name="levelDB" class="com.alibaba.cacher.support.cache.LevelDBCache"/>
-    <bean name="derbyHitRateMXBean" class="com.alibaba.cacher.support.hitrate.DerbyHitRateMXBeanImpl"/>
+    <bean name="derbyHitRateMXBean" class="com.alibaba.cacher.support.shooting.DerbyShootingMXBeanImpl"/>
 
     <context:component-scan base-package="com.alibaba.cacher.service.impl"/>
 </beans>

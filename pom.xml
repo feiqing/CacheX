@@ -102,7 +102,7 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- optional: hit rate -->
+        <!-- optional: hit shooting -->
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>

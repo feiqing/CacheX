@@ -1,7 +1,7 @@
-package com.alibaba.cacher.hitrate;
+package com.alibaba.cacher.shooting;
 
-import com.alibaba.cacher.support.hitrate.DerbyHitRateMXBeanImpl;
-import com.alibaba.cacher.support.hitrate.H2HitRateMXBeanImpl;
+import com.alibaba.cacher.support.shooting.DerbyShootingMXBeanImpl;
+import com.alibaba.cacher.support.shooting.H2ShootingMXBeanImpl;
 import org.junit.Test;
 
 import javax.management.*;
@@ -15,7 +15,7 @@ public class MxBeanTest {
 
     @Test
     public void test() throws MalformedObjectNameException, NotCompliantMBeanException, InstanceAlreadyExistsException, MBeanRegistrationException, InterruptedException {
-        HitRateMXBean mxBean = new DerbyHitRateMXBeanImpl();
+        ShootingMXBean mxBean = new DerbyShootingMXBeanImpl();
 
         ManagementFactory.getPlatformMBeanServer().registerMBean(mxBean, new ObjectName("com.alibaba.cacher:name=hit"));
         mxBean.hitIncr("nihao", 1);
@@ -30,7 +30,7 @@ public class MxBeanTest {
 
     @Test
     public void testH2() throws InterruptedException, MalformedObjectNameException, NotCompliantMBeanException, InstanceAlreadyExistsException, MBeanRegistrationException {
-        HitRateMXBean mxBean = new H2HitRateMXBeanImpl();
+        ShootingMXBean mxBean = new H2ShootingMXBeanImpl();
 
         ManagementFactory.getPlatformMBeanServer().registerMBean(mxBean, new ObjectName("com.alibaba.cacher:name=hit"));
         mxBean.hitIncr("nihao", 1);

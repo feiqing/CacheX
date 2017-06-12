@@ -6,7 +6,7 @@ import com.alibaba.cacher.config.Singleton;
 import com.alibaba.cacher.domain.BatchReadResult;
 import com.alibaba.cacher.domain.CacheKeyHolder;
 import com.alibaba.cacher.domain.MethodInfoHolder;
-import com.alibaba.cacher.hitrate.HitRateMXBean;
+import com.alibaba.cacher.shooting.ShootingMXBean;
 import com.alibaba.cacher.manager.CacheManager;
 import com.alibaba.cacher.utils.*;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -29,7 +29,7 @@ public class MultiCacheReader implements CacheReader {
     private CacheManager cacheManager;
 
     @Inject(optional = true)
-    private HitRateMXBean hitRateMXBean;
+    private ShootingMXBean shootingMXBean;
 
     @Override
     public Object read(CacheKeyHolder holder, Cached cached, ProceedingJoinPoint pjp, MethodInfoHolder ret) throws Throwable {
@@ -46,7 +46,7 @@ public class MultiCacheReader implements CacheReader {
         doRecord(batchReadResult, keyPattern);
 
         Object result;
-        // have miss keys : part hitrate || all not hitrate
+        // have miss keys : part shooting || all not shooting
         if (batchReadResult.getMissKeys().size() > 0) {
             result = handlePartHit(pjp, batchReadResult, holder, ret, cached, pair);
         }
@@ -60,16 +60,16 @@ public class MultiCacheReader implements CacheReader {
     }
 
     private void doRecord(BatchReadResult batchReadResult, String keyPattern) {
-        if (this.hitRateMXBean != null) {
+        if (this.shootingMXBean != null) {
             Set<String> missKeys = batchReadResult.getMissKeys();
 
             int hitCount = batchReadResult.getHitKeyValueMap().size();
             int totalCount = hitCount + missKeys.size();
 
-            this.hitRateMXBean.hitIncr(keyPattern, hitCount);
-            this.hitRateMXBean.requireIncr(keyPattern, totalCount);
+            this.shootingMXBean.hitIncr(keyPattern, hitCount);
+            this.shootingMXBean.requireIncr(keyPattern, totalCount);
 
-            LOGGER.info("multi cache hit rate: {}/{}, missed keys: {}",
+            LOGGER.info("multi cache hit shooting: {}/{}, missed keys: {}",
                     hitCount, totalCount, missKeys);
         }
     }
@@ -114,7 +114,7 @@ public class MultiCacheReader implements CacheReader {
                 result = ResultMergeUtils.collectionMerge(key_id.keySet(), returnType, keyValueMap, hitKeyValueMap);
             }
         } else {
-            // read as full hitrate
+            // read as full shooting
             result = handleFullHit(pjp, hitKeyValueMap, ret, key_id);
         }
 
@@ -128,7 +128,7 @@ public class MultiCacheReader implements CacheReader {
         Object result;
         Class<?> returnType = ret.getType();
 
-        // when method return type not cached. case: full hitrate when application restart
+        // when method return type not cached. case: full shooting when application restart
         if (returnType == null) {
             result = pjp.proceed();
             // catch return type for next time

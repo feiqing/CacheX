@@ -1,4 +1,4 @@
-package com.alibaba.cacher.support.hitrate;
+package com.alibaba.cacher.support.shooting;
 
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -13,13 +13,13 @@ import java.util.stream.Stream;
  * @author jifang.zjf
  * @since 2017/6/8 下午9:41.
  */
-public class H2HitRateMXBeanImpl extends AbstractDBHitRateMXBean {
+public class H2ShootingMXBeanImpl extends AbstractDBShootingMXBean {
 
-    public H2HitRateMXBeanImpl() {
+    public H2ShootingMXBeanImpl() {
         this(System.getProperty("user.home") + "/.h2/cacher");
     }
 
-    public H2HitRateMXBeanImpl(String dbPath) {
+    public H2ShootingMXBeanImpl(String dbPath) {
         super(dbPath);
     }
 
@@ -46,9 +46,9 @@ public class H2HitRateMXBeanImpl extends AbstractDBHitRateMXBean {
     }
 
     @Override
-    protected Stream<DataDO> processMapResults(List<Map<String, Object>> mapResults) {
+    protected Stream<DataDO> transferResults(List<Map<String, Object>> mapResults) {
         return mapResults.stream().map((map) -> {
-            AbstractDBHitRateMXBean.DataDO dataDO = new AbstractDBHitRateMXBean.DataDO();
+            AbstractDBShootingMXBean.DataDO dataDO = new AbstractDBShootingMXBean.DataDO();
             dataDO.setPattern((String) map.get("PATTERN"));
             dataDO.setHitCount((long) map.get("HIT_COUNT"));
             dataDO.setRequireCount((long) map.get("REQUIRE_COUNT"));

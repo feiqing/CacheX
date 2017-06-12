@@ -1,19 +1,16 @@
-package com.alibaba.cacher.support.hitrate;
+package com.alibaba.cacher.support.shooting;
 
-import com.alibaba.cacher.hitrate.HitRateMXBean;
+import com.alibaba.cacher.shooting.ShootingMXBean;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.yaml.snakeyaml.Yaml;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.io.InputStream;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.BinaryOperator;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -22,7 +19,7 @@ import java.util.stream.Stream;
  * @author jifang.zjf
  * @since 2017/6/12 下午12:55.
  */
-public abstract class AbstractDBHitRateMXBean implements HitRateMXBean {
+public abstract class AbstractDBShootingMXBean implements ShootingMXBean {
 
     private static final long _5S = 5 * 1000;
 
@@ -36,14 +33,13 @@ public abstract class AbstractDBHitRateMXBean implements HitRateMXBean {
 
     private JdbcOperations jdbcOperations;
 
-    private Map<String, String> configs;
-
+    private Properties configs;
 
     /**
      * 1. create JdbcOperations
-     * 2. init db(create table)
+     * 2. init db(like: load sql script, create table, init table...)
      *
-     * @param dbPath
+     * @param dbPath :EmbeddedDatabase file temporary storage directory.
      * @return
      */
     protected abstract Supplier<JdbcOperations> operationsSupplier(String dbPath);
@@ -51,14 +47,15 @@ public abstract class AbstractDBHitRateMXBean implements HitRateMXBean {
     /**
      * convert DB Map Result to DataDO(Stream)
      *
-     * @param mapResults
+     * @param mapResults: {@code List<Map<String, Object>>} result from query DB.
      * @return
      */
-    protected abstract Stream<DataDO> processMapResults(List<Map<String, Object>> mapResults);
+    protected abstract Stream<DataDO> transferResults(List<Map<String, Object>> mapResults);
 
-    @SuppressWarnings("unchecked")
-    public AbstractDBHitRateMXBean(String dbPath) {
-        this.configs = (Map<String, String>) new Yaml().load(ClassLoader.getSystemResourceAsStream("sql.yaml"));
+    public AbstractDBShootingMXBean(String dbPath) {
+        InputStream yamlStream = ClassLoader.getSystemResourceAsStream("shooting_sql.yaml");
+        this.configs = new Yaml().loadAs(yamlStream, Properties.class);
+
         this.jdbcOperations = operationsSupplier(dbPath).get();
     }
 
@@ -78,35 +75,51 @@ public abstract class AbstractDBHitRateMXBean implements HitRateMXBean {
         requireMapTS.computeIfAbsent(pattern,
                 (k) -> new AtomicLong(0L))
                 .addAndGet(count);
+
         if (isNeedPersistent()) {
             countAddCas("require_count", pattern, count);
         }
     }
 
+    private boolean isNeedPersistent() {
+        boolean result = false;
+
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastTime >= _5S) {
+            this.lastTime = currentTime;
+            result = true;
+        }
+
+        return result;
+    }
+
     @Override
-    public Map<String, RateDO> getHitRate() {
+    public Map<String, ShootingDO> getShooting() {
         List<DataDO> dataDOS = queryAll();
-        AtomicLong totalHit = new AtomicLong(0);
-        AtomicLong totalRequire = new AtomicLong(0);
+        AtomicLong statisticsHit = new AtomicLong(0);
+        AtomicLong statisticsRequired = new AtomicLong(0);
 
-        Map<String, RateDO> result = dataDOS.stream().collect(Collectors.toMap((dataDO) -> dataDO.pattern, (dataDO) -> {
-            totalHit.addAndGet(dataDO.hitCount);
-            totalRequire.addAndGet(dataDO.requireCount);
-            return RateDO.newInstance(dataDO.hitCount, dataDO.requireCount);
-        }, DataDO.mergeFunction, LinkedHashMap::new));
+        // 汇总各pattern命中率
+        Map<String, ShootingDO> result = dataDOS.stream().collect(Collectors.toMap(DataDO::getPattern, (dataDO) -> {
+            statisticsHit.addAndGet(dataDO.hitCount);
+            statisticsRequired.addAndGet(dataDO.requireCount);
+            return ShootingDO.newInstance(dataDO.hitCount, dataDO.requireCount);
+        }, ShootingDO::mergeShootingDO, LinkedHashMap::new));
 
-        result.put(getSummaryName(), RateDO.newInstance(totalHit.get(), totalRequire.get()));
+        // 汇总全局命中率
+        result.put(getSummaryName(), ShootingDO.newInstance(statisticsHit.get(), statisticsRequired.get()));
+
         return result;
     }
 
     @Override
     public void reset(String pattern) {
-        jdbcOperations.update(configs.get("delete"), pattern);
+        jdbcOperations.update(configs.getProperty("delete"), pattern);
     }
 
     @Override
     public void resetAll() {
-        jdbcOperations.update(configs.get("truncate"));
+        jdbcOperations.update(configs.getProperty("truncate"));
     }
 
     private void countAddCas(String column, String pattern, long count) {
@@ -136,27 +149,35 @@ public abstract class AbstractDBHitRateMXBean implements HitRateMXBean {
     }
 
     private Optional<DataDO> queryObject(String pattern) {
-        List<Map<String, Object>> mapResults = jdbcOperations.queryForList(configs.get("select"), pattern);
+        String selectSql = configs.getProperty("select");
+        List<Map<String, Object>> mapResults = jdbcOperations.queryForList(selectSql, pattern);
 
-        return processMapResults(mapResults).findFirst();
+        return transferResults(mapResults).findFirst();
     }
 
     private List<DataDO> queryAll() {
-        List<Map<String, Object>> mapResults = jdbcOperations.queryForList(configs.get("selectAll"));
-        return processMapResults(mapResults).collect(Collectors.toList());
+        String selectAllQuery = configs.getProperty("selectAll");
+        List<Map<String, Object>> mapResults = jdbcOperations.queryForList(selectAllQuery);
+
+        return transferResults(mapResults).collect(Collectors.toList());
     }
 
-    private void insert(String column, String pattern, long count) {
-        jdbcOperations.update(String.format(configs.get("insert"), column), pattern, count);
+    private int insert(String column, String pattern, long count) {
+        String insertSql = String.format(configs.getProperty("insert"), column);
+
+        return jdbcOperations.update(insertSql, pattern, count);
     }
 
     private int update(String column, String pattern, long count, long version) {
-        return jdbcOperations.update(String.format(configs.get("update"), column), count, pattern, version);
+        String updateSql = String.format(configs.getProperty("update"), column);
+
+        return jdbcOperations.update(updateSql, count, pattern, version);
     }
 
-    private long getObjectCount(DataDO data, String column, long coutOffset) {
+    private long getObjectCount(DataDO data, String column, long countOffset) {
         long lastCount = column.equals("hit_count") ? data.hitCount : data.requireCount;
-        return lastCount + coutOffset;
+
+        return lastCount + countOffset;
     }
 
     protected static final class DataDO {
@@ -173,6 +194,10 @@ public abstract class AbstractDBHitRateMXBean implements HitRateMXBean {
             this.pattern = pattern;
         }
 
+        public String getPattern() {
+            return pattern;
+        }
+
         public void setHitCount(long hitCount) {
             this.hitCount = hitCount;
         }
@@ -184,21 +209,5 @@ public abstract class AbstractDBHitRateMXBean implements HitRateMXBean {
         public void setVersion(long version) {
             this.version = version;
         }
-
-        private static final BinaryOperator<RateDO> mergeFunction = (u, v) -> {
-            throw new IllegalStateException(String.format("Duplicate key %s", u));
-        };
-    }
-
-    private boolean isNeedPersistent() {
-        boolean result = false;
-
-        long currentTime = System.currentTimeMillis();
-        if (currentTime - lastTime >= _5S) {
-            this.lastTime = currentTime;
-            result = true;
-        }
-
-        return result;
     }
 }

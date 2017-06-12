@@ -2,7 +2,7 @@ package com.alibaba.cacher.utils;
 
 import com.alibaba.cacher.CacheKey;
 import com.alibaba.cacher.Cached;
-import com.alibaba.cacher.Invalidate;
+import com.alibaba.cacher.Invalid;
 import com.alibaba.cacher.domain.CacheKeyHolder;
 import com.alibaba.cacher.domain.MethodInfoHolder;
 import com.alibaba.cacher.domain.Pair;
@@ -49,7 +49,7 @@ public class MethodInfoUtil {
         if (method.isAnnotationPresent(Cached.class)) {
             scanCached(builder, method.getAnnotation(Cached.class));
         } else {
-            scanCached(builder, method.getAnnotation(Invalidate.class));
+            scanCached(builder, method.getAnnotation(Invalid.class));
         }
 
         return builder.build();
@@ -60,8 +60,8 @@ public class MethodInfoUtil {
         return builder.setPrefix(cached.prefix());
     }
 
-    private static CacheKeyHolder.Builder scanCached(CacheKeyHolder.Builder builder, Invalidate invalidate) {
-        return builder.setPrefix(invalidate.prefix());
+    private static CacheKeyHolder.Builder scanCached(CacheKeyHolder.Builder builder, Invalid invalid) {
+        return builder.setPrefix(invalid.prefix());
     }
 
     private static CacheKeyHolder.Builder scanCacheKeys(CacheKeyHolder.Builder builder, Annotation[][] pAnnotations) {

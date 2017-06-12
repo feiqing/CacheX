@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
  */
 @Target(value = ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Invalidate {
+public @interface Invalid {
 
     /**
      * @return as {@code @Cached}

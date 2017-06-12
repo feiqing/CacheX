@@ -5,7 +5,7 @@ import com.alibaba.cacher.config.Inject;
 import com.alibaba.cacher.config.Singleton;
 import com.alibaba.cacher.domain.CacheKeyHolder;
 import com.alibaba.cacher.domain.MethodInfoHolder;
-import com.alibaba.cacher.hitrate.HitRateMXBean;
+import com.alibaba.cacher.shooting.ShootingMXBean;
 import com.alibaba.cacher.manager.CacheManager;
 import com.alibaba.cacher.utils.KeyPatternsCombineUtil;
 import com.alibaba.cacher.utils.KeysCombineUtil;
@@ -22,7 +22,7 @@ public class SingleCacheReader implements CacheReader {
     private CacheManager cacheManager;
 
     @Inject(optional = true)
-    private HitRateMXBean hitRateMXBean;
+    private ShootingMXBean shootingMXBean;
 
     @Override
     public Object read(CacheKeyHolder holder, Cached cached, ProceedingJoinPoint pjp, MethodInfoHolder ret) throws Throwable {
@@ -33,7 +33,7 @@ public class SingleCacheReader implements CacheReader {
         Object result = cacheManager.readSingle(cached.cache(), key);
 
         doRecord(result, key, keyPattern);
-        // not hitrate
+        // not shooting
         if (result == null) {
             // write cache
             result = pjp.proceed();
@@ -44,17 +44,17 @@ public class SingleCacheReader implements CacheReader {
     }
 
     private void doRecord(Object result, String key, String keyPattern) {
-        if (this.hitRateMXBean != null) {
+        if (this.shootingMXBean != null) {
             String rate;
             if (result == null) {
                 rate = "0/1";
             } else {
                 rate = "1/1";
-                this.hitRateMXBean.hitIncr(keyPattern, 1);
+                this.shootingMXBean.hitIncr(keyPattern, 1);
             }
-            this.hitRateMXBean.requireIncr(keyPattern, 1);
+            this.shootingMXBean.requireIncr(keyPattern, 1);
 
-            LOGGER.info("single cache hit rate: {}, key: {}", rate, key);
+            LOGGER.info("single cache hit shooting: {}, key: {}", rate, key);
         }
     }
 }

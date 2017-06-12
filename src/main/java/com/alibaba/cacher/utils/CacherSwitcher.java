@@ -1,6 +1,6 @@
 package com.alibaba.cacher.utils;
 
-import com.alibaba.cacher.Invalidate;
+import com.alibaba.cacher.Invalid;
 import com.google.common.base.Strings;
 import com.alibaba.cacher.Cached;
 import com.alibaba.cacher.enums.Expire;
@@ -30,9 +30,9 @@ public class CacherSwitcher {
     }
 
     public static boolean isSwitchOn(boolean openStat,
-                                     Invalidate invalidate,
+                                     Invalid invalid,
                                      Method method, Object[] args) {
-        return isInnerSwitchOn(openStat, Expire.FOREVER, invalidate.condition(), method, args);
+        return isInnerSwitchOn(openStat, Expire.FOREVER, invalid.condition(), method, args);
     }
 
     private static boolean isInnerSwitchOn(boolean openStat,

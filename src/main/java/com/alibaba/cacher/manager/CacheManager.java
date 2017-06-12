@@ -66,7 +66,7 @@ public class CacheManager {
 
                 Map<String, Object> fromCacheMap = getCacheImpl(cache).read(keys);
 
-                // collect not nit keys, keep order when full hitrate
+                // collect not nit keys, keep order when full shooting
                 Map<String, Object> hitValueMap = new LinkedHashMap<>();
                 Set<String> notHitKeys = new LinkedHashSet<>();
                 for (String key : keys) {

@@ -1,4 +1,4 @@
-package com.alibaba.cacher.support.hitrate;
+package com.alibaba.cacher.support.shooting;
 
 import com.alibaba.cacher.exception.CacherException;
 import com.google.common.base.Splitter;
@@ -28,9 +28,9 @@ import java.util.stream.Stream;
  * @author jifang.zjf
  * @since 2017/6/9 下午12:35.
  */
-public class DerbyHitRateMXBeanImpl extends AbstractDBHitRateMXBean {
+public class DerbyShootingMXBeanImpl extends AbstractDBShootingMXBean {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DerbyHitRateMXBeanImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DerbyShootingMXBeanImpl.class);
 
     private static final String DERBY_JAR_PATTERN = "%s/../db/lib/derby.jar";
 
@@ -43,11 +43,11 @@ public class DerbyHitRateMXBeanImpl extends AbstractDBHitRateMXBean {
     private static final String DERBY_POM_JAR_REGEX = ".*/derby-([\\d\\.]+)\\.jar";
 
 
-    public DerbyHitRateMXBeanImpl() {
+    public DerbyShootingMXBeanImpl() {
         this(System.getProperty("user.home") + "/.derby");
     }
 
-    public DerbyHitRateMXBeanImpl(String derbyFilePath) {
+    public DerbyShootingMXBeanImpl(String derbyFilePath) {
         super(derbyFilePath);
     }
 
@@ -74,7 +74,7 @@ public class DerbyHitRateMXBeanImpl extends AbstractDBHitRateMXBean {
     }
 
     @Override
-    protected Stream<AbstractDBHitRateMXBean.DataDO> processMapResults(List<Map<String, Object>> mapResults) {
+    protected Stream<AbstractDBShootingMXBean.DataDO> transferResults(List<Map<String, Object>> mapResults) {
         return mapResults.stream().map((map) -> {
             DataDO data = new DataDO();
             data.setPattern((String) map.get("PATTERN"));
