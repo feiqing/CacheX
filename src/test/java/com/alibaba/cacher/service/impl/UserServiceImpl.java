@@ -40,7 +40,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Cached(cache = "redis", prefix = "prefix")
-    public List<User> returnList(@CacheKey(prefix = "ids:", multi = true, identifier = "id") List<Integer> ids, String name, Object non) {
+    public List<User> returnList(@CacheKey(prefix = "ids:", multi = true, id = "id") List<Integer> ids, String name, Object non) {
         System.out.println("method:" + ids);
         List<User> list = new LinkedList<>();
         for (int id : ids) {
@@ -53,7 +53,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Invalid(cache = "redis", prefix = "prefix")
-    public void batchUpdateList(@CacheKey(prefix = "ids:", multi = true, expression = "id") List<User> users) {
+    public void batchUpdateList(@CacheKey(prefix = "ids:", multi = true, spel = "id") List<User> users) {
         List<Integer> ids = new ArrayList<>(users.size());
         for (User user : users) {
             ids.add(user.getId());
@@ -73,7 +73,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Invalid(cache = "redis")
-    public void updateUser(@CacheKey(prefix = "id:", expression = "id") User user, @CacheKey(prefix = "second:") String name, Object non) {
+    public void updateUser(@CacheKey(prefix = "id:", spel = "id") User user, @CacheKey(prefix = "second:") String name, Object non) {
+    }
+
+    @Override
+    @Cached(cache = "levelDB")
+    public boolean spelCompose(@CacheKey(spel="'id:'+id+'-name:'+name+'-address:'+getAddress()+'-time:'+getBirthday()") User user) {
+        return false;
     }
 
     /**
@@ -99,7 +105,7 @@ public class UserServiceImpl implements UserService {
 
     @Cached
     @Override
-    public Map<Integer, Object> wrongIdentifier(@CacheKey(multi = true, identifier = "id") List<Integer> ids) {
+    public Map<Integer, Object> wrongIdentifier(@CacheKey(multi = true, id = "id") List<Integer> ids) {
         return null;
     }
 
@@ -111,7 +117,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Cached
-    public List<User> correctIdentifier(@CacheKey(multi = true, identifier = "id", prefix = "id:") List<Integer> ids) {
+    public List<User> correctIdentifier(@CacheKey(multi = true, id = "id", prefix = "id:") List<Integer> ids) {
         List<User> users = new ArrayList<>(2);
         for (int id : ids) {
             users.add(new User(id, "name" + id, new Date(), id, "zj" + id));

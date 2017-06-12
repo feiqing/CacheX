@@ -32,6 +32,8 @@ public interface UserService {
 
     void updateUser(User user, String name, Object non);
 
+    boolean spelCompose(User user);
+
     /**
      * ops
      */

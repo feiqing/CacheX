@@ -28,12 +28,12 @@ public class MethodUtils {
                     throw new CacherException("multi need a collection instance param");
                 }
 
-                if (cacheKey.multi() && isInvalidResult(isCollectionReturn, cacheKey.identifier())) {
-                    throw new CacherException("multi cache && collection method return need a result identifier");
+                if (cacheKey.multi() && isInvalidResult(isCollectionReturn, cacheKey.id())) {
+                    throw new CacherException("multi cache && collection method return need a result id");
                 }
 
-                if (isInvalidIdentifier(isCollectionReturn, cacheKey.identifier())) {
-                    throw new CacherException("identifier method a collection return method");
+                if (isInvalidIdentifier(isCollectionReturn, cacheKey.id())) {
+                    throw new CacherException("id method a collection return method");
                 }
             }
         }

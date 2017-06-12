@@ -33,7 +33,7 @@ public class KeysCombineUtil {
             sb.append(cacheKey.prefix());
 
             // append true arg value (like: "123")
-            Object argValue = CacherUtils.getExpressionValue(cacheKey.expression(), args[index]);
+            Object argValue = CacherUtils.getExpressionValue(cacheKey.spel(), args[index]);
             sb.append(argValue);
         }
 
@@ -68,7 +68,7 @@ public class KeysCombineUtil {
 
                     // append true arg value
                     Object argValue = (index == multiIndex ? multiArgVal : args[index]);
-                    argValue = CacherUtils.getExpressionValue(cacheKey.expression(), argValue);
+                    argValue = CacherUtils.getExpressionValue(cacheKey.spel(), argValue);
                     sb.append(argValue);
                 }
 

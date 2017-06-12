@@ -78,7 +78,7 @@ public class MethodInfoUtil {
                     cacheKeyMap.put(pIndex, cacheKey);
                     if (cacheKey.multi()) {
                         multiIndex = pIndex;
-                        identifier = cacheKey.identifier();
+                        identifier = cacheKey.id();
                     }
                 }
             }

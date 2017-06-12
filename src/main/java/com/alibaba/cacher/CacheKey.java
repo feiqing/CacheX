@@ -18,7 +18,7 @@ public @interface CacheKey {
     /**
      * @return use a part of param as a cache key part
      */
-    String expression() default "";
+    String spel() default "";
 
     /**
      * @return used when param is Collection instance,
@@ -30,5 +30,5 @@ public @interface CacheKey {
      * @return used when multi is true and method return Collection instance,
      * the method result is connected with that param
      */
-    String identifier() default "";
+    String id() default "";
 }

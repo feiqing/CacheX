@@ -32,7 +32,7 @@ public @interface Cached {
 
     /**
      * @return use <b>SpEL</b>,
-     * when this expression is {@code true}, this {@Code Method} will go through by cache
+     * when this spel is {@code true}, this {@Code Method} will go through by cache
      * @since 0.3
      */
     String condition() default "";

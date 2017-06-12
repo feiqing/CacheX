@@ -67,6 +67,7 @@ public abstract class AbstractDBShootingMXBean implements ShootingMXBean {
 
         if (isNeedPersistent()) {
             countAddCas("hit_count", pattern, count);
+            hitMapTS.clear();
         }
     }
 
@@ -78,6 +79,7 @@ public abstract class AbstractDBShootingMXBean implements ShootingMXBean {
 
         if (isNeedPersistent()) {
             countAddCas("require_count", pattern, count);
+            requireMapTS.clear();
         }
     }
 

@@ -6,6 +6,8 @@ import com.alibaba.cacher.cases.base.TestBase;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Date;
+
 /**
  * @author jifang
  * @since 16/7/20 上午10:51.
@@ -14,6 +16,12 @@ public class SingleCase extends TestBase {
 
     @Autowired
     private UserService service;
+
+    @Test
+    public void testSpEL() {
+        User user = new User(1, "feiqing", new Date(), 1, "hangz");
+        service.spelCompose(user);
+    }
 
     @Test
     public void testSingleKey() throws InterruptedException {
