@@ -11,6 +11,8 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Inject {
 
+    boolean optional() default false;
+
     String qualifierName() default "";
 
     Class<?> qualifierClass() default Object.class;

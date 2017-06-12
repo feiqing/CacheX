@@ -66,7 +66,7 @@ public class CacheManager {
 
                 Map<String, Object> fromCacheMap = getCacheImpl(cache).read(keys);
 
-                // collect not nit keys, keep order when full hit
+                // collect not nit keys, keep order when full hitrate
                 Map<String, Object> hitValueMap = new LinkedHashMap<>();
                 Set<String> notHitKeys = new LinkedHashSet<>();
                 for (String key : keys) {
@@ -127,18 +127,17 @@ public class CacheManager {
         if (Strings.isNullOrEmpty(cacheName)) {
             cache = this.defaultCacheImpl.getRight();
         } else {
-            cache = this.iCachePool.get(cacheName);
-            if (cache == null) {
+            cache = this.iCachePool.computeIfAbsent(cacheName, (key) -> {
                 String msg = String.format("no ICache implementation named [%s], " +
                                 "please check the CacherAspect.caches param config correct",
-                        cacheName);
+                        key);
 
-                CacherException e = new CacherException(msg);
-                ROOT_LOGGER.error("wrong cache name {}", cacheName, e);
-                CACHER_LOGGER.error("wrong cache name {}", cacheName, e);
+                CacherException exception = new CacherException(msg);
+                ROOT_LOGGER.error("wrong cache name {}", key, exception);
+                CACHER_LOGGER.error("wrong cache name {}", key, exception);
 
-                throw e;
-            }
+                throw exception;
+            });
         }
 
         return cache;

@@ -3,7 +3,8 @@ package com.alibaba.cacher.utils;
 import com.alibaba.cacher.config.Inject;
 import com.alibaba.cacher.config.Singleton;
 import com.alibaba.cacher.exception.CacherException;
-import com.alibaba.cacher.config.BeanInitor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -17,6 +18,7 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -24,29 +26,51 @@ import java.util.jar.JarFile;
  * @author jifang
  * @since 2016/10/27 上午9:38.
  */
+@SuppressWarnings("unchecked")
 public class CacherInitUtil {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger("com.alibaba.cacher");
 
     private static final String CLASS_SUFFIX = ".class";
     private static final String FILE_PROTOCOL = "file";
     private static final String JAR_PROTOCOL = "jar";
 
-    private static Map<String, Object> nameBeanMap = new ConcurrentHashMap<>();
+    private static ConcurrentMap<String, Object> nameBeanMap = new ConcurrentHashMap<>();
 
-    private static Map<Class<?>, Object> classBeanMap = new ConcurrentHashMap<>();
+    private static ConcurrentMap<Class<?>, Object> classBeanMap = new ConcurrentHashMap<>();
 
-    @SuppressWarnings("unchecked")
     public static <T> T getBeanInstance(Class<T> clazz) {
-        return (T) classBeanMap.get(clazz);
+        Object bean = classBeanMap.get(clazz);
+        if (bean == null) {
+            for (Object beanInstance : classBeanMap.values()) {
+                if (clazz.isAssignableFrom(beanInstance.getClass())) {
+                    bean = beanInstance;
+                    break;
+                }
+            }
+        }
+        return (T) bean;
     }
+
+    public static <T> T getBeanInstance(String beanId) {
+        return (T) nameBeanMap.get(beanId);
+    }
+
+    public static void registerBeanInstance(Object bean) {
+        Class<?> clazz = bean.getClass();
+        classBeanMap.put(clazz, bean);
+        nameBeanMap.put(getBeanId(clazz), bean);
+    }
+
 
     public static void beanInit(String packageName, Object rootBean) throws IOException {
         Class<?> rootBeanClass = rootBean.getClass();
         Set<Class<?>> classes = packageScan(packageName);
 
         savePackageBeanInstance(classes, rootBeanClass, rootBean);
-        saveConfigJavaBeanInstance(BeanInitor.class);
+        //saveConfigJavaBeanInstance(BeanInitor.class);
 
-        injectBeanFiled();
+        injectBeanField();
     }
 
     private static void saveConfigJavaBeanInstance(Class<?> configClass) {
@@ -71,11 +95,9 @@ public class CacherInitUtil {
         for (Class<?> clazz : classes) {
 
             Object beanInstance = newBeanInstance(clazz, rootBeanClass, rootBean);
+            String beanId = getBeanId(clazz);
 
-            String name = clazz.getSimpleName();
-            name = (name.substring(0, 1).toLowerCase() + name.substring(1));
-
-            nameBeanMap.put(name, beanInstance);
+            nameBeanMap.put(beanId, beanInstance);
             classBeanMap.put(clazz, beanInstance);
         }
 
@@ -98,17 +120,17 @@ public class CacherInitUtil {
         return beanInstance;
     }
 
-    private static void injectBeanFiled() {
+    private static void injectBeanField() {
         for (Map.Entry<Class<?>, Object> entry : classBeanMap.entrySet()) {
             Object beanInstance = entry.getValue();
 
             Field[] fields = entry.getKey().getDeclaredFields();
 
-            injectFiled(nameBeanMap, classBeanMap, beanInstance, fields);
+            injectField(beanInstance, fields);
         }
     }
 
-    private static void injectFiled(Map<String, Object> nameBeanMap, Map<Class<?>, Object> classBeanMap, Object beanInstance, Field[] fields) {
+    private static void injectField(Object beanInstance, Field[] fields) {
         for (Field field : fields) {
             if (!Modifier.isStatic(field.getModifiers())
                     && !Modifier.isFinal(field.getModifiers())
@@ -116,27 +138,36 @@ public class CacherInitUtil {
 
                 Inject inject = field.getAnnotation(Inject.class);
                 if (inject != null) {
-                    Class<?> filedClass = field.getType();
+                    Class<?> filedType = field.getType();
 
-                    Object filedBeanInstance = classBeanMap.get(filedClass);
-                    if (filedBeanInstance == null) {
-                        filedBeanInstance = classBeanMap.get(inject.qualifierClass());
+
+                    Object bean = nameBeanMap.get(inject.qualifierName());
+                    if (bean == null) {
+                        bean = nameBeanMap.get(field.getName());
                     }
-                    if (filedBeanInstance == null) {
-                        filedBeanInstance = nameBeanMap.get(field.getName());
+                    if (bean == null) {
+                        bean = classBeanMap.get(inject.qualifierClass());
                     }
-                    if (filedBeanInstance == null) {
-                        filedBeanInstance = nameBeanMap.get(inject.qualifierName());
-                    }
-                    if (filedBeanInstance == null) {
-                        throw new CacherException("shit, my fucking wrong!!! " + field.getName());
+                    if (bean == null) {
+                        bean = getBeanInstance(filedType);
                     }
 
-                    field.setAccessible(true);
-                    try {
-                        field.set(beanInstance, filedBeanInstance);
-                    } catch (IllegalAccessException ignored) {
-                        // no chance
+                    if (bean == null) {
+                        if (inject.optional()) {
+                            LOGGER.warn("field {}.{} not injected, because no related bean instance",
+                                    field.getDeclaringClass().getName(),
+                                    field.getName());
+                        } else {
+                            throw new CacherException("field " + field.getDeclaringClass().getName()
+                                    + "." + field.getName() + " inject error, because no related bean instance");
+                        }
+                    } else {
+                        field.setAccessible(true);
+                        try {
+                            field.set(beanInstance, bean);
+                        } catch (IllegalAccessException ignored) {
+                            // no chance
+                        }
                     }
                 }
             }
@@ -222,5 +253,10 @@ public class CacherInitUtil {
         } catch (ClassNotFoundException ignored) {
             // no chance
         }
+    }
+
+    private static String getBeanId(Class<?> clazz) {
+        String beanId = clazz.getSimpleName();
+        return (beanId.substring(0, 1).toLowerCase() + beanId.substring(1));
     }
 }

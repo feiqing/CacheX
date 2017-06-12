@@ -7,7 +7,6 @@ import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.taobao.tair.DataEntry;
 import com.taobao.tair.Result;
 import com.taobao.tair.ResultCode;
-import com.taobao.tair.etc.KeyValuePack;
 import com.taobao.tair.impl.mc.MultiClusterTairManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -123,28 +122,6 @@ public class TairCache implements ICache {
             write(entry.getKey(), entry.getValue(), expire);
         });
     }
-
-    public void writeTmp(Map<String, Object> keyValueMap, long expire) {
-        List<KeyValuePack> packs = new ArrayList<>(keyValueMap.size());
-
-        short version = 0;  // 强制刷新
-        int expireInt = (int) expire;
-        keyValueMap.forEach((key, value) -> {
-            packs.add(
-                    new KeyValuePack(key, getSerializableObj(value), version, expireInt)
-            );
-        });
-
-//        packs.parallelStream().forEach((pack) ->
-//        {
-//            tairManager.put()
-//        });
-        ResultCode resultCode = tairManager.mput(namespace, packs, compress);
-        if (!resultCode.isSuccess()) {
-            LOGGER.error("tair mput error, code: {}, message: {}", resultCode.getCode(), resultCode.getMessage());
-        }
-    }
-
 
     @Override
     public void remove(String... keys) {

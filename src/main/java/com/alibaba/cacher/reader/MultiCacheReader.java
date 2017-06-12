@@ -1,14 +1,14 @@
 package com.alibaba.cacher.reader;
 
-import com.alibaba.cacher.config.Inject;
-import com.alibaba.cacher.constant.Constant;
-import com.alibaba.cacher.utils.*;
 import com.alibaba.cacher.Cached;
+import com.alibaba.cacher.config.Inject;
 import com.alibaba.cacher.config.Singleton;
 import com.alibaba.cacher.domain.BatchReadResult;
 import com.alibaba.cacher.domain.CacheKeyHolder;
 import com.alibaba.cacher.domain.MethodInfoHolder;
+import com.alibaba.cacher.hitrate.HitRateMXBean;
 import com.alibaba.cacher.manager.CacheManager;
+import com.alibaba.cacher.utils.*;
 import org.aspectj.lang.ProceedingJoinPoint;
 
 import java.lang.reflect.InvocationTargetException;
@@ -16,9 +16,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
-
-import static com.alibaba.cacher.jmx.RecordMXBean.HIT_COUNT_MAP;
-import static com.alibaba.cacher.jmx.RecordMXBean.REQUIRE_COUNT_MAP;
 
 /**
  * @author jifang
@@ -30,6 +27,9 @@ public class MultiCacheReader implements CacheReader {
 
     @Inject
     private CacheManager cacheManager;
+
+    @Inject(optional = true)
+    private HitRateMXBean hitRateMXBean;
 
     @Override
     public Object read(CacheKeyHolder holder, Cached cached, ProceedingJoinPoint pjp, MethodInfoHolder ret) throws Throwable {
@@ -46,7 +46,7 @@ public class MultiCacheReader implements CacheReader {
         doRecord(batchReadResult, keyPattern);
 
         Object result;
-        // have miss keys : part hit || all not hit
+        // have miss keys : part hitrate || all not hitrate
         if (batchReadResult.getMissKeys().size() > 0) {
             result = handlePartHit(pjp, batchReadResult, holder, ret, cached, pair);
         }
@@ -60,19 +60,18 @@ public class MultiCacheReader implements CacheReader {
     }
 
     private void doRecord(BatchReadResult batchReadResult, String keyPattern) {
-        Set<String> missKeys = batchReadResult.getMissKeys();
+        if (this.hitRateMXBean != null) {
+            Set<String> missKeys = batchReadResult.getMissKeys();
 
-        int hitCount = batchReadResult.getHitKeyValueMap().size();
-        int totalCount = hitCount + missKeys.size();
+            int hitCount = batchReadResult.getHitKeyValueMap().size();
+            int totalCount = hitCount + missKeys.size();
 
-        HIT_COUNT_MAP.get(Constant.TOTAL_KEY).addAndGet(hitCount);
-        HIT_COUNT_MAP.get(keyPattern).addAndGet(hitCount);
+            this.hitRateMXBean.hitIncr(keyPattern, hitCount);
+            this.hitRateMXBean.requireIncr(keyPattern, totalCount);
 
-        REQUIRE_COUNT_MAP.get(Constant.TOTAL_KEY).addAndGet(totalCount);
-        REQUIRE_COUNT_MAP.get(keyPattern).addAndGet(totalCount);
-
-        LOGGER.info("multi cache hit rate: {}/{}, missed keys: {}",
-                hitCount, totalCount, missKeys);
+            LOGGER.info("multi cache hit rate: {}/{}, missed keys: {}",
+                    hitCount, totalCount, missKeys);
+        }
     }
 
     private Object handlePartHit(ProceedingJoinPoint pjp, BatchReadResult batchReadResult,
@@ -115,7 +114,7 @@ public class MultiCacheReader implements CacheReader {
                 result = ResultMergeUtils.collectionMerge(key_id.keySet(), returnType, keyValueMap, hitKeyValueMap);
             }
         } else {
-            // read as full hit
+            // read as full hitrate
             result = handleFullHit(pjp, hitKeyValueMap, ret, key_id);
         }
 
@@ -129,7 +128,7 @@ public class MultiCacheReader implements CacheReader {
         Object result;
         Class<?> returnType = ret.getType();
 
-        // when method return type not cached. case: full hit when application restart
+        // when method return type not cached. case: full hitrate when application restart
         if (returnType == null) {
             result = pjp.proceed();
             // catch return type for next time

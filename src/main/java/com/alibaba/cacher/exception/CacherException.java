@@ -13,4 +13,8 @@ public class CacherException extends RuntimeException {
     public CacherException(Throwable cause) {
         super(cause);
     }
+
+    public CacherException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

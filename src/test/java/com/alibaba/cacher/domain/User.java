@@ -1,12 +1,13 @@
 package com.alibaba.cacher.domain;
 
+import java.io.Serializable;
 import java.util.Date;
 
 /**
  * @author jifang.
  * @since 2016/5/26 11:16.
  */
-public class User  {
+public class User implements Serializable {
 
     private static final long serialVersionUID = -1843332169074089984L;
 

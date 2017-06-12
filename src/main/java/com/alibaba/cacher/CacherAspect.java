@@ -3,16 +3,15 @@ package com.alibaba.cacher;
 import com.alibaba.cacher.config.Inject;
 import com.alibaba.cacher.config.Singleton;
 import com.alibaba.cacher.constant.Constant;
+import com.alibaba.cacher.domain.CacheKeyHolder;
 import com.alibaba.cacher.domain.MethodInfoHolder;
 import com.alibaba.cacher.domain.Pair;
-import com.alibaba.cacher.jmx.RecordMXBean;
+import com.alibaba.cacher.hitrate.HitRateMXBean;
+import com.alibaba.cacher.manager.CacheManager;
 import com.alibaba.cacher.reader.CacheReader;
+import com.alibaba.cacher.support.cache.NoOpCache;
 import com.alibaba.cacher.utils.*;
 import com.google.common.base.Preconditions;
-import com.alibaba.cacher.domain.CacheKeyHolder;
-import com.alibaba.cacher.jmx.RecordMXBeanImpl;
-import com.alibaba.cacher.manager.CacheManager;
-import com.alibaba.cacher.support.cache.NoOpCache;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.After;
@@ -25,6 +24,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.management.*;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.Map;
@@ -52,12 +52,11 @@ public class CacherAspect {
     @Inject
     private CacheManager cacheManager;
 
-    @Inject
     private MBeanServer mBeanServer;
 
     private volatile boolean open;
 
-    private volatile boolean jmxSupport;
+    private HitRateMXBean hitRateMXBean;
 
     private volatile Map<String, ICache> caches;
 
@@ -70,28 +69,31 @@ public class CacherAspect {
     }
 
     public CacherAspect(Map<String, ICache> caches, boolean open) {
-        this(caches, open, true);
+        this(caches, open, null);
     }
 
-    public CacherAspect(Map<String, ICache> caches, boolean open, boolean jmxSupport) {
+    public CacherAspect(Map<String, ICache> caches, boolean open, HitRateMXBean hitRateMXBean) {
         this.caches = initCaches(caches);
         this.open = open;
-        this.jmxSupport = jmxSupport;
+        this.hitRateMXBean = hitRateMXBean;
     }
 
     @PostConstruct
-    public void setUp()
+    public void init()
             throws MalformedObjectNameException,
             NotCompliantMBeanException,
             InstanceAlreadyExistsException,
             MBeanRegistrationException, IOException {
+
+        if (this.hitRateMXBean != null) {
+            CacherInitUtil.registerBeanInstance(this.hitRateMXBean);
+            this.mBeanServer = ManagementFactory.getPlatformMBeanServer();
+            this.mBeanServer.registerMBean(this.hitRateMXBean,
+                    new ObjectName("com.alibaba.cacher:name=hit"));
+        }
+
         CacherInitUtil.beanInit(Constant.CACHER_BASE_PACKAGE, this);
         this.cacheManager.setICachePool(this.caches);
-
-        if (this.jmxSupport) {
-            RecordMXBean mxBean = CacherInitUtil.getBeanInstance(RecordMXBeanImpl.class);
-            mBeanServer.registerMBean(mxBean, new ObjectName("com.alibaba.cacher:name=HitRate"));
-        }
     }
 
     @Around("@annotation(com.alibaba.cacher.Cached)")
@@ -174,8 +176,9 @@ public class CacherAspect {
             MBeanRegistrationException,
             InstanceNotFoundException {
 
-        if (this.jmxSupport && this.mBeanServer != null) {
-            this.mBeanServer.unregisterMBean(new ObjectName("com.vdian.cacher:name=HitRate"));
+        if (this.mBeanServer != null
+                && this.hitRateMXBean != null) {
+            this.mBeanServer.unregisterMBean(new ObjectName("com.alibaba.cacher:name=hit"));
         }
     }
 }

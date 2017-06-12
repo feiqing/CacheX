@@ -9,7 +9,7 @@
     </appender>
 
     <appender name="cacher" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${user.dir}/logs/cacher/cacher.log</file>
+        <file>${user.home}/logs/cacher/cacher.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>${user.dir}/logs/cacher/cacher.log.%d{yyyy-MM-dd}</fileNamePattern>
             <maxHistory>1</maxHistory>
