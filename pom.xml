@@ -27,6 +27,7 @@
         <h2.version>1.4.195</h2.version>
         <derby.version>10.11.1.1</derby.version>
         <yaml.version>1.18</yaml.version>
+        <zk.version>2.11.0</zk.version>
 
         <hession.version>4.0.38</hession.version>
         <fastjson.version>1.2.32</fastjson.version>
@@ -132,6 +133,12 @@
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
             <version>${yaml.version}</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-recipes</artifactId>
+            <version>${zk.version}</version>
             <optional>true</optional>
         </dependency>
 

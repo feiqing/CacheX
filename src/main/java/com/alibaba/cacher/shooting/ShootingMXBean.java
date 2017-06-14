@@ -23,6 +23,7 @@ public interface ShootingMXBean {
     void resetAll();
 
     class ShootingDO {
+
         private long hit;
 
         private long required;

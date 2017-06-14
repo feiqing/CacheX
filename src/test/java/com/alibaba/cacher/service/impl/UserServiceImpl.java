@@ -39,7 +39,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Cached(cache = "redis", prefix = "prefix")
+    @Cached(cache = "redis")
     public List<User> returnList(@CacheKey(prefix = "ids:", multi = true, id = "id") List<Integer> ids, String name, Object non) {
         System.out.println("method:" + ids);
         List<User> list = new LinkedList<>();
