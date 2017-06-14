@@ -42,7 +42,6 @@ public class DerbyShootingMXBeanImpl extends AbstractDBShootingMXBean {
 
     private static final String DERBY_POM_JAR_REGEX = ".*/derby-([\\d\\.]+)\\.jar";
 
-
     public DerbyShootingMXBeanImpl() {
         this(System.getProperty("user.home") + "/.derby");
     }

@@ -50,16 +50,16 @@
                      MapDB、
                      Ehcache等9款缓存实现.(注意: 开源版本没有提供VdianPool模式和VdianCluster模式实现)
      -->
-    <!--<bean id="tair" class="com.alibaba.cacher.support.cache.TairCache">
+    <bean id="tair" class="com.alibaba.cacher.support.cache.TairCache">
         <constructor-arg name="configId" value="mdbcomm-daily"/>
-        <constructor-arg name="namespace" value="161"/>
+        <constructor-arg name="namespace" value="180"/>
         <constructor-arg name="serializer">
             <bean class="com.alibaba.cacher.support.serialize.Hessian2Serializer"/>
         </constructor-arg>
         <constructor-arg name="timeoutMS" value="1000000"/>
         <constructor-arg name="compress" value="false"/>
         <constructor-arg name="dynamicConfig" value="true"/>
-    </bean>-->
+    </bean>
     <!--<bean id="noOpCache" class="com.alibaba.cacher.support.cache.NoOpCache" lazy-init="true"/>-->
     <!--<bean id="jdkConcurrentMapCache" class="com.alibaba.cacher.support.cache.JdkConcurrentMapCache" lazy-init="true"/>-->
     <!--<bean id="guavaCache" class="com.alibaba.cacher.support.cache.GuavaCache" lazy-init="true">-->
