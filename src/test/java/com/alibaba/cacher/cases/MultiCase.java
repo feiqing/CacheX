@@ -1,9 +1,9 @@
 package com.alibaba.cacher.cases;
 
+import com.alibaba.cacher.cases.base.TestBase;
 import com.alibaba.cacher.domain.User;
 import com.alibaba.cacher.service.UserService;
 import com.google.common.collect.Lists;
-import com.alibaba.cacher.cases.base.TestBase;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author jifang
@@ -34,6 +36,25 @@ public class MultiCase extends TestBase {
         System.out.println(map);
 
         //Thread.sleep(10000000);
+    }
+
+    @Test
+    public void testRandomGet() {
+        for (int i = 0; i < 1000; ++i) {
+            List<Integer> ids = Stream.generate(this::nextRandom).limit(nextLitterRandom()).collect(Collectors.toList());
+            service.returnList(ids, "name", new Object());
+            service.returnMap("app", ids, new Object());
+
+            //Utils.delay(10000);
+        }
+    }
+
+    private int nextRandom() {
+        return (int) (Math.random() * 1000);
+    }
+
+    private int nextLitterRandom() {
+        return (int) (Math.random() * 100);
     }
 
     @Test

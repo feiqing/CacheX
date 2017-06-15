@@ -4,6 +4,7 @@ package com.alibaba.cacher.service.impl;
 import com.alibaba.cacher.CacheKey;
 import com.alibaba.cacher.Cached;
 import com.alibaba.cacher.Invalid;
+import com.alibaba.cacher.Utils;
 import com.alibaba.cacher.domain.User;
 import com.alibaba.cacher.enums.Expire;
 import com.alibaba.cacher.service.UserService;
@@ -40,9 +41,9 @@ public class UserServiceImpl implements UserService {
     @Override
     @Cached(prefix = "list")
     public List<User> returnList(@CacheKey(prefix = "ids:", multi = true, id = "id") List<Integer> ids, String name, Object non) {
-        System.out.println("method:" + ids);
         List<User> list = new LinkedList<>();
         for (int id : ids) {
+            Utils.delay(5);
             User user = new User(id, name, new Date(), id, non.toString());
             list.add(user);
         }

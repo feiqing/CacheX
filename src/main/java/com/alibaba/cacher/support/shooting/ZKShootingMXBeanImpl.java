@@ -11,6 +11,7 @@ import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.PreDestroy;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -84,18 +85,6 @@ public class ZKShootingMXBeanImpl implements ShootingMXBean {
         }).scheduleAtFixedRate(this::execute, uploadingMs, uploadingMs, TimeUnit.MILLISECONDS);
     }
 
-    private String processProductName(String productName) {
-        if (!productName.startsWith("/")) {
-            productName = "/" + productName;
-        }
-
-        if (!productName.endsWith("/")) {
-            productName = productName + "/";
-        }
-
-        return productName;
-    }
-
     private void execute() {
         Map<String, AtomicLong> hitMapTS = new HashMap<>(hitMap);
         hitMap.clear();
@@ -121,21 +110,6 @@ public class ZKShootingMXBeanImpl implements ShootingMXBean {
         });
     }
 
-    private class AtomicLongInitFunction implements Function<String, DistributedAtomicLong> {
-
-        private String pathDirPrefix;
-
-        public AtomicLongInitFunction(String pathDirPrefix) {
-            this.pathDirPrefix = pathDirPrefix;
-        }
-
-        @Override
-        public DistributedAtomicLong apply(String pattern) {
-            String counterPath = String.format("%s/%s", pathDirPrefix, pattern);
-            return new DistributedAtomicLong(client, counterPath, new RetryNTimes(10, 10));
-        }
-    }
-
     @Override
     public void hitIncr(String pattern, int count) {
         hitMap.computeIfAbsent(pattern,
@@ -158,8 +132,8 @@ public class ZKShootingMXBeanImpl implements ShootingMXBean {
         AtomicLong totalRequire = new AtomicLong(0L);
         this.requireCounterMap.forEach((key, requireCounter) -> {
             try {
-                long require = getValue(requireCounter.get()) + getValue(this.requireMap.get(key));
-                long hit = getValue(hitCounterMap.get(key)) + getValue(this.hitCounterMap.get(key));
+                long require = getValue(requireCounter.get());
+                long hit = getValue(hitCounterMap.get(key));
 
                 totalRequire.addAndGet(require);
                 totalHit.addAndGet(hit);
@@ -173,6 +147,30 @@ public class ZKShootingMXBeanImpl implements ShootingMXBean {
         result.put(getSummaryName(), ShootingDO.newInstance(totalHit.get(), totalRequire.get()));
 
         return result;
+    }
+
+    @Override
+    public void reset(String pattern) {
+        hitCounterMap.computeIfPresent(pattern, resetFunction);
+        requireCounterMap.computeIfPresent(pattern, resetFunction);
+    }
+
+    @Override
+    public void resetAll() {
+        hitCounterMap.forEach(this::doReset);
+        requireCounterMap.forEach(this::doReset);
+    }
+
+    private String processProductName(String productName) {
+        if (!productName.startsWith("/")) {
+            productName = "/" + productName;
+        }
+
+        if (!productName.endsWith("/")) {
+            productName = productName + "/";
+        }
+
+        return productName;
     }
 
     private long getValue(Object value) throws Exception {
@@ -190,22 +188,6 @@ public class ZKShootingMXBeanImpl implements ShootingMXBean {
         return result;
     }
 
-    @Override
-    public void reset(String pattern) {
-        hitMap.remove(pattern);
-        requireMap.remove(pattern);
-        hitCounterMap.computeIfPresent(pattern, resetFunction);
-        hitCounterMap.computeIfPresent(pattern, resetFunction);
-    }
-
-    @Override
-    public void resetAll() {
-        hitMap.clear();
-        requireMap.clear();
-        hitCounterMap.forEach(this::doReset);
-        requireCounterMap.forEach(this::doReset);
-    }
-
     private BiFunction<String, DistributedAtomicLong, DistributedAtomicLong> resetFunction = (pattern, counter) -> {
         doReset(pattern, counter);
         return null;
@@ -216,6 +198,32 @@ public class ZKShootingMXBeanImpl implements ShootingMXBean {
             counter.forceSet(0L);
         } catch (Exception e) {
             LOGGER.error("reset zk pattern: {} counter value error", pattern, e);
+        }
+    }
+
+    private class AtomicLongInitFunction implements Function<String, DistributedAtomicLong> {
+
+        private String pathDirPrefix;
+
+        public AtomicLongInitFunction(String pathDirPrefix) {
+            this.pathDirPrefix = pathDirPrefix;
+        }
+
+        @Override
+        public DistributedAtomicLong apply(String pattern) {
+            String counterPath = String.format("%s/%s", pathDirPrefix, pattern);
+            return new DistributedAtomicLong(client, counterPath, new RetryNTimes(10, 10));
+        }
+    }
+
+    @PreDestroy
+    public void tearDown() {
+        while (hitMap.size() > 0 || this.requireMap.size() > 0) {
+            LOGGER.warn("shooting temporary store map is not empty: [{}]-[{}], waiting...", hitMap.size(), requireMap.size());
+            try {
+                TimeUnit.SECONDS.sleep(1);
+            } catch (InterruptedException ignored) {
+            }
         }
     }
 }

@@ -59,21 +59,6 @@ public class MultiCacheReader implements CacheReader {
         return result;
     }
 
-    private void doRecord(BatchReadResult batchReadResult, String keyPattern) {
-        if (this.shootingMXBean != null) {
-            Set<String> missKeys = batchReadResult.getMissKeys();
-
-            int hitCount = batchReadResult.getHitKeyValueMap().size();
-            int totalCount = hitCount + missKeys.size();
-
-            this.shootingMXBean.hitIncr(keyPattern, hitCount);
-            this.shootingMXBean.requireIncr(keyPattern, totalCount);
-
-            LOGGER.info("multi cache hit shooting: {}/{}, missed keys: {}",
-                    hitCount, totalCount, missKeys);
-        }
-    }
-
     private Object handlePartHit(ProceedingJoinPoint pjp, BatchReadResult batchReadResult,
                                  CacheKeyHolder rule, MethodInfoHolder ret, Cached cached,
                                  Map[] pair) throws Throwable {
@@ -86,7 +71,15 @@ public class MultiCacheReader implements CacheReader {
 
         // invoke method use missed keys
         Object[] missArgs = toMissArgs(missKeys, key_id, pjp.getArgs(), rule.getMultiIndex());
+        long start = 0;
+        if (LOGGER.isDebugEnabled()) {
+            start = System.currentTimeMillis();
+        }
         Object proceed = pjp.proceed(missArgs);
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("method invoke total cost [{}] ms", (System.currentTimeMillis() - start));
+        }
 
         Object result;
         if (proceed != null) {
@@ -130,7 +123,16 @@ public class MultiCacheReader implements CacheReader {
 
         // when method return type not cached. case: full shooting when application restart
         if (returnType == null) {
+
+            long start = 0;
+            if (LOGGER.isDebugEnabled()) {
+                start = System.currentTimeMillis();
+            }
             result = pjp.proceed();
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("method invoke total cost [{}] ms", (System.currentTimeMillis() - start));
+            }
+
             // catch return type for next time
             if (result != null) {
                 ret.setType(result.getClass());
@@ -164,5 +166,20 @@ public class MultiCacheReader implements CacheReader {
         args[batchIndex] = batchArgClass.getConstructor(Collection.class).newInstance(missIds);
 
         return args;
+    }
+
+    private void doRecord(BatchReadResult batchReadResult, String keyPattern) {
+        if (this.shootingMXBean != null) {
+            Set<String> missKeys = batchReadResult.getMissKeys();
+
+            int hitCount = batchReadResult.getHitKeyValueMap().size();
+            int totalCount = hitCount + missKeys.size();
+
+            this.shootingMXBean.hitIncr(keyPattern, hitCount);
+            this.shootingMXBean.requireIncr(keyPattern, totalCount);
+
+            LOGGER.info("multi cache hit shooting: {}/{}, missed keys: {}",
+                    hitCount, totalCount, missKeys);
+        }
     }
 }
