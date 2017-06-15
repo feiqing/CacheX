@@ -122,13 +122,14 @@
             <version>${spring.version}</version>
             <optional>true</optional>
         </dependency>
-        <!-- 默认加载$JAVA_HOME/db/lib/derby.jar驱动包 -->
+        <!-- 默认加载$JAVA_HOME/db/lib/derby.jar驱动包
         <dependency>
             <groupId>org.apache.derby</groupId>
             <artifactId>derby</artifactId>
             <version>${derby.version}</version>
             <optional>true</optional>
         </dependency>
+        -->
         <dependency>
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>

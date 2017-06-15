@@ -23,7 +23,9 @@ public abstract class AbstractDBShootingMXBean implements ShootingMXBean {
 
     private static final long _5S = 5 * 1000;
 
-    private long lastTime = System.currentTimeMillis();
+    private long hitLastTime = System.currentTimeMillis() - _5S;
+
+    private long requireLastTime = System.currentTimeMillis() - _5S;
 
     private ConcurrentMap<String, AtomicLong> hitMapTS = new ConcurrentHashMap<>();
 
@@ -65,9 +67,12 @@ public abstract class AbstractDBShootingMXBean implements ShootingMXBean {
                 (k) -> new AtomicLong(0L))
                 .addAndGet(count);
 
-        if (isNeedPersistent()) {
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - hitLastTime >= _5S) {
             countAddCas("hit_count", pattern, count);
             hitMapTS.clear();
+
+            hitLastTime = currentTime;
         }
     }
 
@@ -77,22 +82,13 @@ public abstract class AbstractDBShootingMXBean implements ShootingMXBean {
                 (k) -> new AtomicLong(0L))
                 .addAndGet(count);
 
-        if (isNeedPersistent()) {
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - requireLastTime >= _5S) {
             countAddCas("require_count", pattern, count);
             requireMapTS.clear();
+
+            requireLastTime = currentTime;
         }
-    }
-
-    private boolean isNeedPersistent() {
-        boolean result = false;
-
-        long currentTime = System.currentTimeMillis();
-        if (currentTime - lastTime >= _5S) {
-            this.lastTime = currentTime;
-            result = true;
-        }
-
-        return result;
     }
 
     @Override

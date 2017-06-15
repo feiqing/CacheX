@@ -1,5 +1,6 @@
 package com.alibaba.cacher.cases;
 
+import com.alibaba.cacher.Utils;
 import com.alibaba.cacher.cases.base.TestBase;
 import com.alibaba.cacher.domain.User;
 import com.alibaba.cacher.service.UserService;
@@ -45,7 +46,7 @@ public class MultiCase extends TestBase {
             service.returnList(ids, "name", new Object());
             service.returnMap("app", ids, new Object());
 
-            //Utils.delay(10000);
+            Utils.delay(10000);
         }
     }
 
