@@ -1,8 +1,8 @@
 package com.alibaba.cacher.cases;
 
+import com.alibaba.cacher.cases.base.TestBase;
 import com.alibaba.cacher.domain.User;
 import com.alibaba.cacher.service.UserService;
-import com.alibaba.cacher.cases.base.TestBase;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -16,12 +16,6 @@ public class SingleCase extends TestBase {
 
     @Autowired
     private UserService service;
-
-    @Test
-    public void testSpEL() {
-        User user = new User(1, "feiqing", new Date(), 1, "hangz");
-        service.spelCompose(user);
-    }
 
     @Test
     public void testSingleKey() throws InterruptedException {
@@ -45,5 +39,11 @@ public class SingleCase extends TestBase {
         user.setId(1);
         String name = "fq";
         service.updateUser(user, name, "not");
+    }
+
+    @Test
+    public void testSpEL() {
+        User user = new User(1, "feiqing", new Date(), 1, "hangz");
+        service.spelCompose(user);
     }
 }

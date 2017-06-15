@@ -24,7 +24,7 @@ public class MultiCase extends TestBase {
     @Test
     public void testReturnMap() throws InterruptedException {
         List<Integer> ids = new LinkedList<>();
-        for (int i = 1000; i < 1100; ++i) {
+        for (int i = 0; i < 20; ++i) {
             ids.add(i);
         }
         Map<Integer, User> map = service.returnMap("name", ids, "ok");
@@ -39,7 +39,7 @@ public class MultiCase extends TestBase {
     @Test
     public void multiInvalidate() {
         List<Integer> ids = new LinkedList<>();
-        for (int i = 1000; i < 1050; ++i) {
+        for (int i = 0; i < 2; ++i) {
             ids.add(i);
         }
         service.multiInvalid("name", ids);

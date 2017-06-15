@@ -41,7 +41,7 @@ public class LevelDBCache implements ICache {
     }
 
     public LevelDBCache(IObjectSerializer serializer) throws IOException {
-        this("~/LevelDBCache/", serializer);
+        this(System.getProperty("user.home") + "/.levelDB/", serializer);
     }
 
     public LevelDBCache(String levelFilePath, IObjectSerializer serializer) throws IOException {

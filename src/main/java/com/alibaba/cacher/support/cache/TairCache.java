@@ -1,9 +1,7 @@
 package com.alibaba.cacher.support.cache;
 
 import com.alibaba.cacher.ICache;
-import com.alibaba.cacher.IObjectSerializer;
 import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.taobao.tair.DataEntry;
 import com.taobao.tair.Result;
 import com.taobao.tair.ResultCode;
@@ -29,39 +27,17 @@ public class TairCache implements ICache {
 
     private int namespace;
 
-    private boolean compress;
-
-    SerializerFeature[] features = new SerializerFeature[]{
-            SerializerFeature.WriteClassName,
-            SerializerFeature.SkipTransientField,
-            SerializerFeature.DisableCircularReferenceDetect
-    };
-
-    // 当value都实现了Serializable接口可指定serializer为null;
-    private IObjectSerializer serializer;
-
     public TairCache(String configId, int namespace) {
-        this(configId, null, namespace);
+        this(configId, namespace, true, 500);
     }
 
-    public TairCache(String configId, IObjectSerializer serializer, int namespace) {
-        this(configId, namespace, false, serializer, true, -1);
-    }
-
-    public TairCache(String configId, int namespace, boolean compress, IObjectSerializer serializer, boolean dynamicConfig, int timeoutMS) {
-        tairManager = new MultiClusterTairManager();
+    public TairCache(String configId, int namespace, boolean dynamicConfig, int timeoutMS) {
+        this.namespace = namespace;
+        this.tairManager = new MultiClusterTairManager();
         tairManager.setConfigID(configId);
         tairManager.setDynamicConfig(dynamicConfig);
+        tairManager.setTimeout(timeoutMS);
         tairManager.init();
-        if (timeoutMS != -1) {
-            tairManager.setTimeout(timeoutMS);
-        }
-        if (serializer != null) {
-            this.serializer = serializer;
-        }
-
-        this.namespace = namespace;
-        this.compress = compress;
     }
 
     @Override
@@ -97,7 +73,7 @@ public class TairCache implements ICache {
         List<DataEntry> entries;
         if ((entries = results.getValue()) != null) {
             resultMap = new HashMap<>(entries.size());
-            Consumer<DataEntry> consumer = (DataEntry entry) -> {
+            Consumer<DataEntry> consumer = (entry) -> {
                 resultMap.put((String) entry.getKey(), getDeserializeObj(entry.getValue()));
             };
 
@@ -155,15 +131,12 @@ public class TairCache implements ICache {
     }
 
 
-    private boolean isNullOrEmpty(Collection collection) {
-        return collection == null || collection.isEmpty();
-    }
-
     private static final class SerializableWrapper implements Serializable {
+
         private static final long serialVersionUID = 5180629139416743231L;
 
         private String json;
+
         private Class<?> type;
     }
-
 }

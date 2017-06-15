@@ -30,12 +30,16 @@
                     <entry key="vRedisPool" value-ref="vRedisPoolCache"/>
                     <entry key="vRedisCluster" value-ref="vRedisClusterCache"/>
                 -->
+                <entry key="tair" value-ref="tair"/>
                 <entry key="levelDB" value-ref="levelDB"/>
                 <!--<entry key="memcached" value-ref="memcachedCache"/>-->
             </map>
         </constructor-arg>
         <constructor-arg name="shootingMXBean">
-            <bean class="com.alibaba.cacher.support.shooting.H2ShootingMXBeanImpl"/>
+            <bean class="com.alibaba.cacher.support.shooting.ZKShootingMXBeanImpl">
+                <constructor-arg name="productName" value="cacher-tester"/>
+                <constructor-arg name="zkServers" value="139.129.9.166:2181"/>
+            </bean>
         </constructor-arg>
     </bean>
 
@@ -49,16 +53,10 @@
                      JdkConcurrentHashMap、
                      MapDB、
                      Ehcache等9款缓存实现.(注意: 开源版本没有提供VdianPool模式和VdianCluster模式实现)
-     -->
+-->
     <bean id="tair" class="com.alibaba.cacher.support.cache.TairCache">
         <constructor-arg name="configId" value="mdbcomm-daily"/>
         <constructor-arg name="namespace" value="180"/>
-        <constructor-arg name="serializer">
-            <bean class="com.alibaba.cacher.support.serialize.Hessian2Serializer"/>
-        </constructor-arg>
-        <constructor-arg name="timeoutMS" value="1000000"/>
-        <constructor-arg name="compress" value="false"/>
-        <constructor-arg name="dynamicConfig" value="true"/>
     </bean>
     <!--<bean id="noOpCache" class="com.alibaba.cacher.support.cache.NoOpCache" lazy-init="true"/>-->
     <!--<bean id="jdkConcurrentMapCache" class="com.alibaba.cacher.support.cache.JdkConcurrentMapCache" lazy-init="true"/>-->

@@ -1,16 +1,16 @@
 package com.alibaba.cacher;
 
 import com.alibaba.cacher.enums.Expire;
+import com.alibaba.cacher.support.annotation.Cacheds;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
  * @author jifang
  * @since 2016/11/2 下午2:22.
  */
+@Documented
+@Repeatable(Cacheds.class)
 @Target(value = ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Cached {
@@ -20,7 +20,7 @@ public @interface Cached {
      * default the first {@code caches} config in {@code CacherAspect}
      * @since 0.3
      */
-    String cache() default "default";
+    String cache() default "";
 
     /**
      * @return Specifies the start prefix on every key,

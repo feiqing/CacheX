@@ -1,12 +1,12 @@
 package com.alibaba.cacher.service.impl;
 
 
-import com.alibaba.cacher.Invalid;
-import com.alibaba.cacher.service.UserService;
 import com.alibaba.cacher.CacheKey;
 import com.alibaba.cacher.Cached;
+import com.alibaba.cacher.Invalid;
 import com.alibaba.cacher.domain.User;
 import com.alibaba.cacher.enums.Expire;
+import com.alibaba.cacher.service.UserService;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -22,7 +22,7 @@ public class UserServiceImpl implements UserService {
      * multi
      ***/
     @Override
-    @Cached(cache = "levelDB", prefix = "pix", expire = Expire.FIVE_MIN)
+    @Cached(prefix = "map", expire = Expire.FIVE_MIN)
     public Map<Integer, User> returnMap(@CacheKey(prefix = "app:") String app, @CacheKey(prefix = "id:", multi = true) List<Integer> ids, Object noKey) {
         System.out.println("method: " + ids);
         Map<Integer, User> map = new TreeMap<>();
@@ -33,13 +33,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Invalid(cache = "levelDB", prefix = "pix")
+    @Invalid(prefix = "map")
     public void multiInvalid(@CacheKey(prefix = "app:") String apps, @CacheKey(prefix = "id:", multi = true) List<Integer> ids) {
         System.out.println("method: " + ids);
     }
 
     @Override
-    @Cached(cache = "redis")
+    @Cached(prefix = "list")
     public List<User> returnList(@CacheKey(prefix = "ids:", multi = true, id = "id") List<Integer> ids, String name, Object non) {
         System.out.println("method:" + ids);
         List<User> list = new LinkedList<>();
@@ -52,7 +52,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Invalid(cache = "redis", prefix = "prefix")
+    @Invalid(prefix = "list")
     public void batchUpdateList(@CacheKey(prefix = "ids:", multi = true, spel = "id") List<User> users) {
         List<Integer> ids = new ArrayList<>(users.size());
         for (User user : users) {
@@ -61,24 +61,28 @@ public class UserServiceImpl implements UserService {
         System.out.println("method:" + ids);
     }
 
-    @Cached(cache = "levelDB", prefix = "prefix")
+    /**
+     * single
+     */
+
+    @Cached(prefix = "list", expire = Expire.TEN_SEC)
     public User singleKey(@CacheKey(prefix = "id:") int id, String name, Object non) {
         return new User(id, name, new Date(), 1, "山东-德州");
     }
 
     @Override
-    @Invalid(cache = "redis")
+    @Invalid(prefix = "list")
     public void singleRemove(@CacheKey(prefix = "id:") int id, String name, Object non) {
     }
 
     @Override
-    @Invalid(cache = "redis")
+    @Invalid(prefix = "list")
     public void updateUser(@CacheKey(prefix = "id:", spel = "id") User user, @CacheKey(prefix = "second:") String name, Object non) {
     }
 
     @Override
-    @Cached(cache = "levelDB")
-    public boolean spelCompose(@CacheKey(spel="'id:'+id+'-name:'+name+'-address:'+getAddress()+'-time:'+getBirthday()") User user) {
+    @Cached
+    public boolean spelCompose(@CacheKey(spel = "'id:'+id+'-name:'+name+'-address:'+getAddress()+'-time:'+getBirthday()") User user) {
         return false;
     }
 

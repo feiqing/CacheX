@@ -6,12 +6,10 @@ import com.alibaba.cacher.constant.Constant;
 import com.alibaba.cacher.domain.CacheKeyHolder;
 import com.alibaba.cacher.domain.MethodInfoHolder;
 import com.alibaba.cacher.domain.Pair;
-import com.alibaba.cacher.shooting.ShootingMXBean;
 import com.alibaba.cacher.manager.CacheManager;
 import com.alibaba.cacher.reader.CacheReader;
-import com.alibaba.cacher.support.cache.NoOpCache;
+import com.alibaba.cacher.shooting.ShootingMXBean;
 import com.alibaba.cacher.utils.*;
-import com.google.common.base.Preconditions;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.After;
@@ -26,7 +24,6 @@ import javax.management.*;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.Method;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
@@ -40,8 +37,6 @@ import java.util.Set;
 public class CacherAspect {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("com.alibaba.cacher");
-
-    private static final String DEFAULT = "default";
 
     @Inject
     private CacheReader singleCacheReader;
@@ -60,10 +55,6 @@ public class CacherAspect {
 
     private volatile Map<String, ICache> caches;
 
-    public CacherAspect() {
-        this(Collections.singletonMap(DEFAULT, new NoOpCache()));
-    }
-
     public CacherAspect(Map<String, ICache> caches) {
         this(caches, true);
     }
@@ -73,9 +64,17 @@ public class CacherAspect {
     }
 
     public CacherAspect(Map<String, ICache> caches, boolean open, ShootingMXBean shootingMXBean) {
-        this.caches = initCaches(caches);
+        this.caches = caches;
         this.open = open;
         this.shootingMXBean = shootingMXBean;
+    }
+
+    public boolean isOpen() {
+        return open;
+    }
+
+    public void setOpen(boolean open) {
+        this.open = open;
     }
 
     @PostConstruct
@@ -93,7 +92,7 @@ public class CacherAspect {
         }
 
         CacherInitUtil.beanInit(Constant.CACHER_BASE_PACKAGE, this);
-        this.cacheManager.setICachePool(this.caches);
+        this.cacheManager.initICachePool(this.caches);
     }
 
     @Around("@annotation(com.alibaba.cacher.Cached)")
@@ -103,7 +102,10 @@ public class CacherAspect {
 
         Object result;
         if (CacherSwitcher.isSwitchOn(open, cached, method, pjp.getArgs())) {
-            long start = System.currentTimeMillis();
+            long start = 0;
+            if (LOGGER.isDebugEnabled()) {
+                start = System.currentTimeMillis();
+            }
 
             Pair<CacheKeyHolder, MethodInfoHolder> pair = MethodInfoUtil.getMethodInfo(method);
             CacheKeyHolder cacheKeyHolder = pair.getLeft();
@@ -115,7 +117,10 @@ public class CacherAspect {
             } else {
                 result = singleCacheReader.read(cacheKeyHolder, cached, pjp, methodInfoHolder);
             }
-            LOGGER.info("cacher [{}] total cost [{}] ms", cached.cache(), System.currentTimeMillis() - start);
+
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("cacher read total cost [{}] ms", (System.currentTimeMillis() - start));
+            }
         } else {
             result = pjp.proceed();
         }
@@ -129,7 +134,12 @@ public class CacherAspect {
         Invalid invalid = method.getAnnotation(Invalid.class);
 
         if (CacherSwitcher.isSwitchOn(open, invalid, method, pjp.getArgs())) {
-            long start = System.currentTimeMillis();
+
+            long start = 0;
+            if (LOGGER.isDebugEnabled()) {
+                start = System.currentTimeMillis();
+            }
+
             Pair<CacheKeyHolder, MethodInfoHolder> pair = MethodInfoUtil.getMethodInfo(method);
             CacheKeyHolder holder = pair.getLeft();
 
@@ -147,27 +157,10 @@ public class CacherAspect {
                 LOGGER.info("single cache clear, key: {}", key);
             }
 
-            LOGGER.info("cacher [{}] clear cost [{}] ms", invalid.cache(), System.currentTimeMillis() - start);
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.info("cacher clear total cost [{}] ms", (System.currentTimeMillis() - start));
+            }
         }
-    }
-
-    public boolean isOpen() {
-        return open;
-    }
-
-    public void setOpen(boolean open) {
-        this.open = open;
-    }
-
-    private Map<String, ICache> initCaches(Map<String, ICache> caches) {
-        Preconditions.checkArgument(!caches.isEmpty(), "at least one ICache implement");
-
-        if (caches.get(DEFAULT) == null) {
-            ICache cache = caches.values().iterator().next();
-            caches.put(DEFAULT, cache);
-        }
-
-        return caches;
     }
 
     @PreDestroy
