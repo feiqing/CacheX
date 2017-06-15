@@ -30,8 +30,8 @@
                     <entry key="vRedisPool" value-ref="vRedisPoolCache"/>
                     <entry key="vRedisCluster" value-ref="vRedisClusterCache"/>
                 -->
-                <entry key="tair" value-ref="tair"/>
                 <entry key="levelDB" value-ref="levelDB"/>
+                <entry key="tair" value-ref="tair"/>
                 <!--<entry key="memcached" value-ref="memcachedCache"/>-->
             </map>
         </constructor-arg>
@@ -97,7 +97,7 @@
     <!--<constructor-arg name="ipPorts" value="10.1.101.60:11211"/>-->
     <!--</bean>-->
 
-    <bean name="levelDB" class="com.alibaba.cacher.support.cache.LevelDBCache"/>
+    <bean name="levelDB" class="com.alibaba.cacher.support.cache.LevelDBCache" destroy-method="tearDown"/>
     <!--<bean name="derbyHitRateMXBean" class="com.alibaba.cacher.support.shooting.DerbyShootingMXBeanImpl"/>-->
 
     <context:component-scan base-package="com.alibaba.cacher.service.impl"/>

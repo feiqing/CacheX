@@ -41,16 +41,14 @@ public class LevelDBCache implements ICache {
     }
 
     public LevelDBCache(IObjectSerializer serializer) throws IOException {
-        this(System.getProperty("user.home") + "/.levelDB/", serializer);
+        this(System.getProperty("user.home") + "/.LevelDB/", serializer);
     }
 
     public LevelDBCache(String levelFilePath, IObjectSerializer serializer) throws IOException {
         Options options = new Options();
         options.compressionType(CompressionType.SNAPPY);
         options.createIfMissing(true);
-        levelDB = factory.open(new File(levelFilePath), options);
-
-
+        this.levelDB = factory.open(new File(levelFilePath), options);
         this.serializer = Optional.ofNullable(serializer).orElseThrow(NullPointerException::new);
     }
 

@@ -24,7 +24,6 @@ public class UserServiceImpl implements UserService {
     @Override
     @Cached(prefix = "map", expire = Expire.FIVE_MIN)
     public Map<Integer, User> returnMap(@CacheKey(prefix = "app:") String app, @CacheKey(prefix = "id:", multi = true) List<Integer> ids, Object noKey) {
-        System.out.println("method: " + ids);
         Map<Integer, User> map = new TreeMap<>();
         for (Integer id : ids) {
             map.put(id, new User(id, "name" + id, new Date(), id, noKey.toString()));
