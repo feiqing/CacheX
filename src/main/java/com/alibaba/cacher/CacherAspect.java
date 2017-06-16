@@ -8,7 +8,6 @@ import com.alibaba.cacher.domain.MethodInfoHolder;
 import com.alibaba.cacher.domain.Pair;
 import com.alibaba.cacher.manager.CacheManager;
 import com.alibaba.cacher.reader.CacheReader;
-import com.alibaba.cacher.shooting.ShootingMXBean;
 import com.alibaba.cacher.utils.*;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;

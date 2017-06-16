@@ -6,7 +6,7 @@ import com.alibaba.cacher.config.Singleton;
 import com.alibaba.cacher.domain.BatchReadResult;
 import com.alibaba.cacher.domain.CacheKeyHolder;
 import com.alibaba.cacher.domain.MethodInfoHolder;
-import com.alibaba.cacher.shooting.ShootingMXBean;
+import com.alibaba.cacher.ShootingMXBean;
 import com.alibaba.cacher.manager.CacheManager;
 import com.alibaba.cacher.utils.*;
 import org.aspectj.lang.ProceedingJoinPoint;

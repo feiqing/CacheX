@@ -1,7 +1,7 @@
 package com.alibaba.cacher.support.shooting;
 
 import com.alibaba.cacher.exception.CacherException;
-import com.alibaba.cacher.shooting.ShootingMXBean;
+import com.alibaba.cacher.ShootingMXBean;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.recipes.atomic.AtomicValue;

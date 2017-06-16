@@ -1,6 +1,6 @@
 package com.alibaba.cacher.support.shooting;
 
-import com.alibaba.cacher.shooting.ShootingMXBean;
+import com.alibaba.cacher.ShootingMXBean;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

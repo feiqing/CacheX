@@ -1,5 +1,6 @@
 package com.alibaba.cacher.shooting;
 
+import com.alibaba.cacher.ShootingMXBean;
 import com.alibaba.cacher.Utils;
 import com.alibaba.cacher.support.shooting.DerbyShootingMXBeanImpl;
 import com.alibaba.cacher.support.shooting.H2ShootingMXBeanImpl;

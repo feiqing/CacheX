@@ -1,4 +1,4 @@
-package com.alibaba.cacher.shooting;
+package com.alibaba.cacher;
 
 import java.util.Map;
 
