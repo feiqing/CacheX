@@ -24,7 +24,7 @@
 ## II. 简单使用
 ### 引入
 - pom.xml
-```
+```xml
 <dependency>
   <groupId>com.alibaba.cacher</groupId>
   <artifactId>cacher</artifactId>
