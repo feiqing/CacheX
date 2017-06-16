@@ -1,6 +1,9 @@
 # cacher 声明式注解缓存框架(1.5.X版本)
 
+> 愿景: 让你的代码中没有一行缓存相关代码!!!
+
 - [版本历史](./markdown/release.md)
+- [下一里程碑版本目标](./markdown/target.md)
 - [why cacher?](./markdown/whycacher.md)
 - [命中率分组统计](./markdown/shooting.md)
 - [使用限制](./markdown/limit.md)
