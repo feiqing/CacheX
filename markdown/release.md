@@ -1,5 +1,5 @@
 ## 版本历史
-### 0.0.X
+### 0.0.x
 - 最初的redis-annotation, 作为一个RedisClusterClient的封装提供给如下应用使用
     - feedcenter
     - feedcenter-push
@@ -9,7 +9,7 @@
     - [redis-annotation 分享](https://github.com/feiqing/Cacher/wiki/redisCli-annotation-%E5%88%86%E4%BA%AB)
 
 ---
-### 1.0.X(0.1.X)
+### 1.0.x(0.1.x)
 - 1.0.0
     - 重构为cacher
         - 开放`ICache`接口, 不再强依赖某一特定缓存产品, 而是作为`ICache`接口的一个具体实现, 以支持更多的缓存服务(如Memcached、Redis、Guava、`ConcurrentHashMap`...);
@@ -32,7 +32,7 @@
     - 添加`MemcachedCache`基于Memcached的缓存实现;
 
 ---
-### 1.2.X(0.3.X)
+### 1.2.x(0.3.x)
 - 1.2.0
     - `@Cached`/`@Invalidate`添加`cache`属性, 使cacher支持管理多个缓存实现;
     - `@Cached`添加`condition`属性: 条件缓存, 支持SpEL表达式, 当表达式结果为`true`时缓存;
@@ -47,36 +47,44 @@
     - fix Single Cache clean bug;
 
 ---
-### 1.3.X
+### 1.3.x
 - 1.3.0
-    - 支持缓存命中率分组统计功能, 添加JMX支持, 可以详细查看各类业务缓存命中情况, 便于缓存优化, 提升系统吞吐:
+    - 支持缓存命中率分组统计功能, 添加JMx支持, 可以详细查看各类业务缓存命中情况, 便于缓存优化, 提升系统吞吐:
         - 支持查看/重置**全部**key命中率;
         - 支持查看/重置**分组**key命中率;
 - 1.3.1
     - fix `RedisClusterCache` `mset` 调用`exec()` bug, 改为`sync()`;
 
 ---
-### 1.4.X
+### 1.4.x
 - 1.4.0
     - Cacher部分配置代码重构, 自定义IoC容器: 使`@Singleton`, `@Inject`生效;
     - 添加`TairCache`缓存实现, 支持Tair **MDB/LDB**开箱即用;
     - 添加`LevelDBCache`缓存实现, 集成LevelDB的高性能大数据量写入;
 
 ---
-### 1.5.X
+### 1.5.x
 - 1.5.1
     - 抽象并开放出`com.alibaba.cacher.ShootingMXBean`接口, 支持自定义缓存分组命中率统计实现;
     - 添加`MemoryShootingMXBeanImpl`, 支持基于内存计数的缓存命中率统计((以机器为单位, 重启历史数据丢失));
 - 1.5.2
     - 添加`DerbyShootingMXBeanImpl`、`H2ShootingMXBeanImpl`实现, 支持基于嵌入式DB的缓存命中率统计(以机器为单位, 重启历史数据不丢失; 其中Derby实现可以动态加载jdk提供的derby.jar包, 实现0依赖配置)
     - 添加`ZKShootingMXBeanImpl`实现, 支持基于ZooKeeper的异步命中率统计, 可以做到统一应用共享计数器(以应用为单位, 重启历史数据不丢失);
-    - 添加`@Cacheds`、`@Invalids`两个注解, 使`@Cached`、`@Invalid`支持Java8重复注解, 定义多级缓存下一功能目标.
+    - 添加`@Cacheds`、`@Invalids`两个注解, 使`@Cached`、`@Invalid`支持Java8重复注解, 定义多级缓存目标.
 
 ---
-### 2.0.X(目标)
-- 消除限制4:
-    - 提供以Map的`keySet`作为Multi的CacheKey参数支持.
-- 消除限制5:
+### 2.0.x(目标)
+- 多级缓存!
+- 限制4:
     - 提供对`java.util.Collections.EmptyList`、`java.util.Collections.EmptyMap`等作为参数/返回值的支持(设计ing)
     - 提供对`java.util.Collections.CheckedList`、`java.util.Collections.CheckedMap`等作为参数/返回值的支持(设计ing)
     - 提供对`java.util.Collections.SingletonList`、`java.util.Collections.SingletonMap`等作为参数/返回值的支持(设计ing)
+    - 思考是否开放接口
+- 限制5:
+    - `@CacheWrite`注解(开关区分是否返回值, 参考SpringCache的key #result实现)    
+- 限制3:
+    - 提供以Map的`keySet`作为Multi的CacheKey参数支持.
+- 缓存预热(了解ing)
+- 参数名导入spel环境
+- 击穿后缓存自动切换
+- `@Invalid`是否开启前向清除缓存?
