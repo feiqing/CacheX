@@ -35,12 +35,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:context="http://www.springframework.org/schema/context"
        xmlns:aop="http://www.springframework.org/schema/aop"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
        http://www.springframework.org/schema/beans/spring-beans.xsd
-       http://www.springframework.org/schema/context
-       http://www.springframework.org/schema/context/spring-context.xsd
        http://www.springframework.org/schema/aop
        http://www.springframework.org/schema/aop/spring-aop.xsd">
 
@@ -63,47 +60,6 @@
         <constructor-arg name="configId" value="mdbcomm-daily"/>
         <constructor-arg name="namespace" value="180"/>
     </bean>
-
-    <!--<bean id="noOpCache" class="com.alibaba.cacher.support.cache.NoOpCache" lazy-init="true"/>-->
-    <!--<bean id="jdkConcurrentMapCache" class="com.alibaba.cacher.support.cache.JdkConcurrentMapCache" lazy-init="true"/>-->
-    <!--<bean id="guavaCache" class="com.alibaba.cacher.support.cache.GuavaCache" lazy-init="true">-->
-    <!--<constructor-arg name="size" value="1000"/>-->
-    <!--<constructor-arg name="expire" value="6000"/>-->
-    <!--</bean>-->
-    <!--<bean id="mapDBCache" class="com.alibaba.cacher.support.cache.MapDBCache" lazy-init="true">-->
-    <!--<constructor-arg name="interval" value="1000000"/>-->
-    <!--<constructor-arg name="maxSize" value="1000000"/>-->
-    <!--<constructor-arg name="maxStoreSize" value="2"/>-->
-    <!--</bean>-->
-    <!--<bean id="ehCache" class="com.alibaba.cacher.support.cache.EhCache" lazy-init="true">-->
-    <!--<constructor-arg name="heapEntries" value="20"/>-->
-    <!--<constructor-arg name="offHeapMBSize" value="512"/>-->
-    <!--<constructor-arg name="diskPath" value="/data/cache"/>-->
-    <!--<constructor-arg name="diskGBSize" value="1"/>-->
-    <!--</bean>-->
-    <!--
-        <bean id="vRedisPoolCache" class="com.vdian.cacher.support.cache.VRedisPoolCache">
-            <constructor-arg name="namespace" value="ares"/>
-        </bean>
-        <bean id="vRedisClusterCache" class="com.vdian.cacher.support.cache.VRedisClusterCache">
-            <constructor-arg name="namespace" value="feedcenter_cluster"/>
-        </bean>
-    -->
-    <!--<bean id="redisCache" class="com.alibaba.cacher.support.cache.RedisClusterCache" lazy-init="true">-->
-    <!--<constructor-arg name="connectString" value="10.1.101.60:6379,10.1.101.60:6380,10.1.101.60:6381"/>-->
-    <!--<constructor-arg name="maxRedirections" value="3"/>-->
-    <!--<constructor-arg name="maxTotal" value="3"/>-->
-    <!--<constructor-arg name="serializer">-->
-    <!--<bean class="com.alibaba.cacher.support.serialize.Hessian2Serializer"/>-->
-    <!--</constructor-arg>-->
-    <!--<constructor-arg name="timeout" value="200"/>-->
-    <!--<constructor-arg name="waitMillis" value="20"/>-->
-    <!--</bean>-->
-    <!--<bean id="memcachedCache" class="com.alibaba.cacher.support.cache.MemcachedCache" lazy-init="true">-->
-    <!--<constructor-arg name="ipPorts" value="10.1.101.60:11211"/>-->
-    <!--</bean>-->
-
-  
 </beans>
 ```
 
