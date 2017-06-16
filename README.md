@@ -71,7 +71,7 @@
 可以看到单key的方法已经只剩下了步骤2(省掉了步骤0、1、3), 多key的方法只剩下了步骤4(省掉了步骤0、1、2、3、5);
 生成key、查询缓存、写入缓存的操作框架已经全部帮你完成了(而且还帮你省掉了一个生成key的`genCacheKey()`方法).
 > 仅从代码量上看: 基于单key的查询方法**由14行减到了2行**, 而批量查询则更加恐怖的**从30/40行降到了3/4行**, 而你所付出的成本, 则只是添加两个注解`@Cached`和`@CacheKey`.
-附: 具体步骤编号可参考[why cacher?](./markdown/whycacher.md)
+(附: 具体步骤编号可参考[why cacher?](./markdown/whycacher.md))
 
 ---
 #### 2. 缓存失效(`@Invalid` & `@CacheKey`)
@@ -82,61 +82,9 @@
 
 > 提示: 想要失效一个缓存, 那肯定得能够找到这个缓存, 也就是失效缓存key的拼装规则一定要与添加缓存的规则一致(如`prefix`、`separator`等).
 
-
 ---
-## cache统一日志
-### 日志策略
-- cacher会打印两种日志:
-    - 读写缓存异常:
-    由`CacheManager`控制, 读写缓存出错会打印日志, 且读缓存出错时会认为该key没有读到, 然后再次执行方法. 框架保证当缓存出现异常时不会影响正常的业务逻辑. (默认打印到`com.vdian.cacher` Logger和项目主Logger两个log内 -> **ERROR级别**);
-    - 缓存执行统计: 每一次执行读写缓存会打印两条日志(打印到`com.vdian.cacher`Logger内: **INFO级别**)
-        1. 缓存命中率: 见下图片. 单缓存还会打印查询的`key`, 批量缓存会打印 `miss keys`;
-        2. 缓存执行耗时: 打印缓存执行总耗时(包含查询缓存、执行方法、写入缓存的总耗时).
-![](https://si.geilicdn.com/hz_img_05aa00000158dc87d50e0a02685e_2022_453_unadjust.png)
-
-> 可以看到在基于RedisPool的缓存中, 在命中率能够达到100%的情况下, 即使157个key, 也能做到在2ms内返回. 而单key则会在0ms内返回.
-
----
-### 配置
-> cacher使用SLF4J日志框架, 不与具体日志实现绑定, 因此很容易与项目内已有的日志实现配合使用. 如下是logback配置, log4j/log4j2类似:
-
-```
-<configuration>
-
-    <property name="pattern" value="%d %p [%t] %c{20} %X{traceId:--} %m%n"/>
-
-    <appender name="STD_OUT" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>${pattern}</pattern>
-        </encoder>
-    </appender>
-
-    <appender name="cacher" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>/data/logs/cacher/cacher.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>/data/logs/cacher/cacher.log.%d{yyyy-MM-dd}</fileNamePattern>
-            <maxHistory>1</maxHistory>
-        </rollingPolicy>
-        <encoder>
-            <pattern>${pattern}</pattern>
-        </encoder>
-    </appender>
-
-    <root level="INFO">
-        <appender-ref ref="STD_OUT"/>
-    </root>
-
-    <logger name="com.vdian.cacher">
-        <appender-ref ref="cacher"/>
-    </logger>
-
-</configuration>
-```
-
----
-
-## 缓存注解详解
-> cacher一共提供三个注解`@Cached`、`@Invalidate`、`@CacheKey`.
+## 注解详解
+> cacher一共提供三个注解`@Cached`、`@Invalid`、`@CacheKey`.
 
 ---
 ### @Cached
@@ -148,6 +96,8 @@
  * @author jifang
  * @since 2016/11/2 下午2:22.
  */
+@Documented
+@Repeatable(Cacheds.class)
 @Target(value = ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Cached {
@@ -157,7 +107,7 @@ public @interface Cached {
      * default the first {@code caches} config in {@code CacherAspect}
      * @since 0.3
      */
-    String cache() default "default";
+    String cache() default "";
 
     /**
      * @return Specifies the start prefix on every key,
@@ -169,7 +119,7 @@ public @interface Cached {
 
     /**
      * @return use <b>SpEL</b>,
-     * when this expression is {@code true}, this {@Code Method} will go through by cache
+     * when this spel is {@code true}, this {@Code Method} will go through by cache
      * @since 0.3
      */
     String condition() default "";
@@ -189,8 +139,8 @@ public @interface Cached {
 
 | 属性 | 描述 | Ext |
 :-------: | ------- | ------- 
-| `cache` | 指定使用的缓存产品, 值为`CacherAspect` `caches`参数的一个key | 选填: 默认为`default`, 即使用在`caches` Map的第一个Entry实例 |
-| `prefix` | 缓存**key**的统一前缀 | 选填: 默认为`""`, 即不添加前缀, 若方法没有参数 or 方法没有`@CacheKey`注解, 则必须在此配置一个`prefix`, 另其成为一个该方法的***静态常量key***, 以后每次执行都走这个唯一的key |
+| `cache` | 指定使用的缓存产品, 值为`CacherAspect.caches`参数的一个key | 选填: 默认为注入Cacher的第一个缓存实现, 即在`caches` Map的第一个Entry实例 |
+| `prefix` | 缓存**key**的统一前缀 | 选填: 默认为`""`, 即不添加前缀, 若方法没有参数 or 方法没有`@CacheKey`注解, 则必须在此配置一个`prefix`, 令其成为该方法的***静态常量key***, 以后每次执行都走这个唯一的key |
 | `condition` | SpEL表达式 | 选填: 默认为`""`, 即默认为`true`, 在Cacher执行前会首先计算该表达式的值, 只有当返回值为`true`时, 才会经过缓存, 在表达式执行前, Cacher会将方法的参数以`参数名` - `参数值`的**key-value**形式导入到表达式的环境中 |
 | `expire` |  缓存过期时间, 单位秒 | 选填: 默认为`Expire.FOREVER` 永不过期, `Expire`提供了一些推荐值 |
 | `separator` | 如果一个缓存Key由多个方法参数组成, 可由`separator`在中间作为分隔符 | 选填: 默认`-` |
@@ -198,19 +148,25 @@ public @interface Cached {
 
 ---
 
-### @Invalidate
-> 在需要失效缓存的方法前添`@Invalidate`注解.
+### @Invalid
+> 在需要失效缓存的方法前添`@Invalid`注解.
 
 ```
+/**
+ * @author jifang
+ * @since 16/7/19 下午4:21.
+ */
+@Documented
+@Repeatable(Invalids.class)
 @Target(value = ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Invalidate {
+public @interface Invalid {
 
     /**
      * @return as {@code @Cached}
      * @since 0.3
      */
-    String cache() default "default";
+    String cache() default "";
 
     /**
      * @return as {@code @Cached}
@@ -231,14 +187,19 @@ public @interface Invalidate {
 }
 ```
 
--  `cache`、`prefix`、`condition`、`separator`与`@Cached`内含义相同, 只是`@Invalidate`少了一个失效时间属性(因为不需要).
+-  `cache`、`prefix`、`condition`、`separator`与`@Cached`内含义相同, 只是`@Invalid`少了一个失效时间属性(因为不需要).
 
 ---
 
 ### @CacheKey
-> 在需要作为缓存key的方法参数前添加`@CacheKey`注解. 其是cacher的核心, 封装了Key的拼装/解析规则. ~~上面的两个注解必须有`@CacheKey`配合才能生效~~(0.3版本开始支持**常量key**缓存).
+> 在需要作为缓存key的方法参数前添加`@CacheKey`注解. `@CacheKey`内封装了Key的拼装/解析规则:
 
 ```
+/**
+ * @author jifang
+ * @since 16/7/19 下午6:07.
+ */
+@Documented
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface CacheKey {
@@ -248,7 +209,7 @@ public @interface CacheKey {
     /**
      * @return use a part of param as a cache key part
      */
-    String expression() default "";
+    String spel() default "";
 
     /**
      * @return used when param is Collection instance,
@@ -260,18 +221,18 @@ public @interface CacheKey {
      * @return used when multi is true and method return Collection instance,
      * the method result is connected with that param
      */
-    String identifier() default "";
+    String id() default "";
 }
+
 
 ```
 
-| 属性 | 描述 |
+| 属性 | 描述 | Ext |
 :-------: | -------
 | `prefix` | (选填: 默认为`""`) 指定Key的前缀, 目的是防止key冲突, 且便于在在后台查看缓存内容.  |
-| `expression` | (选填: 默认为`""`) 一段SpEL表达式, 如果方法形参为一个`JavaBean`, 且只希望将该Bean的一个属性(或一部分内容)作为缓存的Key时, 指定一段SpEL表达式, 框架会在拼装缓存Key时解析该表达式以及传入的参数对象, 拿到你指定的某一部分. |
-| `multi` | (选填: 默认为`false`) 指明该方法是否走批量缓存(例如走Redis的`mget`而非`get`), 其具体含义可参考**引入**部分的批量版本的`getFromDBOrHttp()`方法 |
-| `identifier` | (选填: 默认为`""`) 也是一段SpEL表达式, `multi = true`时生效. 如果方法返回一个`Collection`实例, 需要由`identifier`来指定该`Collection`的单个元素的哪个属性与该`@CacheKey`参数关联 |
-
+| `spel` | (选填: 默认为`""`) 一段SpEL表达式, 如果方法形参为一个`JavaBean`, 且只希望将该Bean的一个属性(或一部分内容)作为缓存的Key时, 指定一段SpEL表达式, 框架会在拼装缓存Key时解析该表达式以及传入的参数对象, 拿到你指定的某一部分. | 曾经见过的高级用法`spel="'id:'+id+'-name:'+name+'-address:'+getAddress()+'-time:'+getBirthday()"` |
+| `multi` | (选填: 默认为`false`) 指明该方法是否走批量缓存(如调用Redis的`mget`而非`get`), 其具体含义可参考**why cacher**部分的批量版本的`getFromDBOrHttp()`方法 |
+| `id` | (选填: 默认为`""`) 也是一段SpEL表达式, `multi = true`时生效. 如果方法返回一个`Collection`实例, 需要由`id`来指定该`Collection`的单个元素的哪个属性与该`@CacheKey`参数关联 |
 
 ---
 ## 限制
