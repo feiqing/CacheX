@@ -45,7 +45,6 @@
         <aop:aspectj-autoproxy/>
     
         <!-- 注入Cacher切面:
-                open: 定义Cacher的全局开关
                 caches: 只要实现了ICache接口的cache产品均可被Cacher托管
          -->
         <bean class="com.alibaba.cacher.CacherAspect">
