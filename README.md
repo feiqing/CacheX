@@ -1,18 +1,19 @@
-# Cacher 缓存注解框架(0.5版本)
+# cacher 声明式注解缓存框架(1.5.X版本)
 
 标签 ： 开源
 
 ---
 
->  服务于feedcenter的 ***redisCli-annotation***:
-1. 每天提供200W+次Dubbo调用, 2.6亿+次缓存查询, 可以做到单次查询(get/mget)耗时 0-2ms (1-200个key).
-2. 0.1版本重新设计&开发, 不再与某一具体缓存服务绑定, 提供更灵活的配置、更快的读写效率.
+>  原服务于`feedcenter`动态中心的 ***redis-annotation*** Redis注解框架重构:
+1. 0.X版本每天提供动态中心系统三个应用350W+次Dubbo调用, 2.6亿+次缓存读写, 单次查询(get/mget)耗时 0~2ms (1~200个key);
+2. 1.0版本重构, 不再与具体缓存产品绑定, 提供更灵活的配置、更快的读写效率;
+3. 1.3版本, 提供基于JMX暴露的分布命中率统计, 可以针对某一具体业务场景进行缓存&业务逻辑优化;
 
 ---
 
 ## 架构
-![](http://7xrgh9.com1.z0.glb.clouddn.com/17-2-20/77360174-file_1487569102103_b75c.png)
-> cacher 0.3.X版本.
+![](https://private-alipayobjects.alipay.com/alipay-rmsdeploy-image/skylark/png/16257/370eee6562be41fa.png) 
+> cacher 1.5.X版本.
 
 ---
 ## 版本历史
@@ -26,7 +27,7 @@
     - [redis-annotation 分享](https://github.com/feiqing/Cacher/wiki/redisCli-annotation-%E5%88%86%E4%BA%AB)
 
 ---
-### 0.1.X
+### 1.0.X
 - 0.1.3
     - 重构为Cacher
         - 开放`ICache`接口以支持更多的缓存服务(如Memcached、Redis、Guava、`ConcurrentHashMap`...).
@@ -43,13 +44,13 @@
     - ~~开放VdianRedis连接池设置策略~~;
 
 ---
-### 0.2.X
+### 1.1.X
 - 0.2.0
     - 添加基于通用Redis的`ICache`接口实现;
     - 添加基于Memcached的`ICache`实现;
 
 ---
-### 0.3.X
+### 1.2.X
 - 0.3.0
     - `@Cached`/`@Invalidate`添加`cache`属性, 使cacher支持管理多个缓存实现
     - `@Cached`添加`condition`属性: 条件缓存, 支持SpEL表达式, 当表达式结果为`true`时缓存.
@@ -66,7 +67,7 @@
     - fix Single Cache clean bug
 
 ---
-### 0.4.X
+### 1.3.X
 - 0.4.0
     - 添加JMX支持(默认开启), 可以详细的查看缓存命中情况, 便于缓存优化, 提升系统吞吐:
         - 支持查看/重置**全部**key命中率
@@ -75,7 +76,7 @@
     - fix 通用Redis mset 调用`exec()` bug, 改为`sync()`
 
 ---
-### 0.5.X(设计 & 开发ing)
+### 1.4.X(设计 & 开发ing)
 - 0.5.0
     - Cacher代码整理/解耦, 自定义IoC容器: 使`@Singleton`, `@Inject`生效
     - 消除限制4:
@@ -87,12 +88,17 @@
     - 添加`RedisClusterCache`, 提供对RedisCluster模式的支持.
 
 ---
-### 0.6.X(todo)
+### 1.5.X(todo)
 - Cacher所有配置抽取为`Configurator`
 - 定义Recorder接口, 抽象命中率统计
     - 实现基于ZooKeeper的命中率统计(以应用为单位, 重启历史数据不丢失)
     - 实现基于LevelDB的命中率统计(以机器为单位, 重启历史数据不丢失)
     - 实现基于ConcurrentHashMap的命中率统计(以及其为单位, 重启历史数据丢失)
+
+
+---
+### 2.0.X(目标)
+
 
 ---
 ## 引入
