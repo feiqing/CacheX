@@ -90,7 +90,7 @@
 
 > 在需要走缓存的方法前添加`@Cached`注解.
 
-```
+```java
 /**
  * @author jifang
  * @since 2016/11/2 下午2:22.
@@ -150,7 +150,7 @@ public @interface Cached {
 ### @Invalid
 > 在需要失效缓存的方法前添`@Invalid`注解.
 
-```
+```java
 /**
  * @author jifang
  * @since 16/7/19 下午4:21.
@@ -193,7 +193,7 @@ public @interface Invalid {
 ### @CacheKey
 > 在需要作为缓存key的方法参数前添加`@CacheKey`注解. `@CacheKey`内封装了Key的拼装/解析规则:
 
-```
+```java
 /**
  * @author jifang
  * @since 16/7/19 下午6:07.
@@ -227,7 +227,7 @@ public @interface CacheKey {
 ```
 
 | 属性 | 描述 | Ext |
-:-------: | -------
+:-------: | ------- | -------
 | `prefix` | (选填: 默认为`""`) 指定Key的前缀, 目的是防止key冲突, 且便于在在后台查看缓存内容.  | |
 | `spel` | (选填: 默认为`""`) 一段SpEL表达式, 如果方法形参为一个`JavaBean`, 且只希望将该Bean的一个属性(或一部分内容)作为缓存的Key时, 指定一段SpEL表达式, 框架会在拼装缓存Key时解析该表达式以及传入的参数对象, 拿到你指定的某一部分. | 曾经见过的高级用法`spel="'id:'+id+'-name:'+name+'-address:'+getAddress()+'-time:'+getBirthday()"` |
 | `multi` | (选填: 默认为`false`) 指明该方法是否走批量缓存(如调用Redis的`mget`而非`get`), 其具体含义可参考**why cacher**部分的批量版本的`getFromDBOrHttp()`方法 |
