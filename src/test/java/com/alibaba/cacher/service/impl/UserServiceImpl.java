@@ -102,6 +102,7 @@ public class UserServiceImpl implements UserService {
 
     }
 
+
     @Cached
     @Override
     public void wrongMultiParam(@CacheKey(multi = true) Object o) {
