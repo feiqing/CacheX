@@ -77,6 +77,7 @@
 #### 2. 缓存失效(`@Invalid` & `@CacheKey`)
 如果一个用户的信息(`User`)修改了怎么办? 按照原先的想法是 *在修改用户信息代码后添加缓存更新/失效的逻辑, 在用户更新的同时让缓存刷新/失效*. 这种方法依然会导致在业务逻辑中充斥大量跟缓存有关的逻辑, 极不优雅!
 ![](https://private-alipayobjects.alipay.com/alipay-rmsdeploy-image/skylark/png/16257/c9f95a8ef39801be.png)
+
 框架会在你的用户信息更新方法执行后去自动的失效缓存.
 
 > 提示: 想要失效一个缓存, 那肯定得能够找到这个缓存, 也就是失效缓存key的拼装规则一定要与添加缓存的规则一致(如`prefix`、`separator`等).
