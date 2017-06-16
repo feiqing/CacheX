@@ -8,6 +8,7 @@
 - [why cacher?](./markdown/whycacher.md)
 - [命中率分组统计](./markdown/shooting.md)
 - [使用限制](./markdown/limit.md)
+- [dependency](dependency.txt)
 
 ---
 >  原服务于`feedcenter`动态中心的 ***redis-annotation*** Redis注解框架重构:
