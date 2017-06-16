@@ -1,17 +1,16 @@
 # cacher 声明式注解缓存框架(1.5.X版本)
 
-标签 ： 开源
+- [版本历史](./markdown/release.md)
+- [why cacher?](./markdown/whycacher.md)
+- [命中率分组统计](./markdown/shooting.md)
+- [使用限制](./markdown/limit.md)
 
 ---
-
 >  原服务于`feedcenter`动态中心的 ***redis-annotation*** Redis注解框架重构:
 - 0.X版本每天提供动态中心系统三个应用350W+次Dubbo调用, 2.6亿+次缓存读写, 单次查询(get/mget)耗时 0~2ms (1~200个key);
 - 1.0版本: 框架重构, 不再与具体缓存产品绑定, 提供更灵活的配置、更快的读写效率;
 - 1.3版本: 提供基于JMX暴露的分布命中率统计, 可以针对某一具体业务场景进行缓存&业务逻辑优化;
 - 1.5版本: 添加`TairCache`实现, Tair缓存开箱即用.
-
-- [版本历史](./markdown/release.md)
-- [why cacher?](./markdown/whycacher.md)
 
 ---
 
@@ -229,77 +228,11 @@ public @interface CacheKey {
 
 | 属性 | 描述 | Ext |
 :-------: | -------
-| `prefix` | (选填: 默认为`""`) 指定Key的前缀, 目的是防止key冲突, 且便于在在后台查看缓存内容.  |
+| `prefix` | (选填: 默认为`""`) 指定Key的前缀, 目的是防止key冲突, 且便于在在后台查看缓存内容.  | |
 | `spel` | (选填: 默认为`""`) 一段SpEL表达式, 如果方法形参为一个`JavaBean`, 且只希望将该Bean的一个属性(或一部分内容)作为缓存的Key时, 指定一段SpEL表达式, 框架会在拼装缓存Key时解析该表达式以及传入的参数对象, 拿到你指定的某一部分. | 曾经见过的高级用法`spel="'id:'+id+'-name:'+name+'-address:'+getAddress()+'-time:'+getBirthday()"` |
 | `multi` | (选填: 默认为`false`) 指明该方法是否走批量缓存(如调用Redis的`mget`而非`get`), 其具体含义可参考**why cacher**部分的批量版本的`getFromDBOrHttp()`方法 |
-| `id` | (选填: 默认为`""`) 也是一段SpEL表达式, `multi = true`时生效. 如果方法返回一个`Collection`实例, 需要由`id`来指定该`Collection`的单个元素的哪个属性与该`@CacheKey`参数关联 |
+| `id` | (选填: 默认为`""`) 也是一段SpEL表达式, `multi = true`时生效. 如果方法返回一个`Collection`实例, 需要由`id`来指定该`Collection`的单个元素的哪个属性与该`@CacheKey`参数关联 | |
 
----
-## 限制
-### 1. `@CacheKey`为multi时, 入参list内的元素个数与返回值不一致:
-```
-@Cached
-public List<FeedUser> invalidMulti(@CacheKey(multi = true, identifier = "id") List<Long> feedIds) {
-   // ...
-}
-```
-
-> 若以`(1,2,3)`调用`getFeedUsers()`方法, 却返回的是`{FeedUser(id=1), FeedUser(id=2), FeedUser(id=3), FeedUser(id=4)}`的对象列表(多一个id=4的对象), 框架只会缓存1、2、3的内容.
-
----
-
-### ~~2. 没有`@CacheKey`注解~~
-```
-@Cached/@Invalidate
-public String noneCacheKey(int id) {
-   // ...
-}
-```
-> 由于任何缓存都必须有一个key, 因此这种情况会在代码结构静态扫描时抛出异常, 提示开发者.
-**从0.3版本开始, 支持无参单key函数**.
-
----
-### 3. 多个@CacheKey属性为multi
-```
-@Cached
-public Type multiMulti(@CacheKey(multi = true) List<Long> feedIds, @CacheKey(multi = true) List<Long> authorIds ) {
-   // ...
-}
-```
-> 如果多个`@CacheKey`属性为multi, 会导致方法的多个参数做笛卡尔积运算产生大量的key, 现阶段的框架还不能支持, 而且我们也不建议这样做(原因是这样很有可能会产生大量无用的缓存).因此这种情况会在代码结构静态扫描时抛出异常, 提示开发者注意.
-
----
-### 4. 以Map作为multi
-
-```
-@Cached(namespace = "feedcenter")
-public Type mapMulti(@CacheKey(multi) Map<Long, FeedUser> map) {
-   // ...
-}
-```
-> 如果将Map内所有的key-value拼装成key的话, 就会产生类似笛卡尔积的效果, 这种情况我们不建议. 不过如果是将Map.keySet作为拼装Key的列表的功能还是蛮常见的, 我们会在未来对这种情况支持.
-
----
-
-### 5. 各类怪异的内部容器类调用
-```
-@Cached
-public List<FeedUser> invalidCollection(@CacheKey(multi = true, identifier = "id") List<Long> feedIds) {
-   // ...
-}
-
-// 以Arrays.asList()调用
-invalidCollection(Arrays.asList(1L, 2L, 3L);
-```
-
-> 由于multi的Cache在构造容器返回值时需要反射调用容器类的构造方法, 但这些类并未提供公开的构造方法, 因此没法构造出对象, 这类容器有:
-
-- Arrays.ArrayList
-- Collections.SingleList
-
----
-### 6. 缓存更新
-框架现在还支持支持添加缓存和失效缓存两种操作, 暂时还不能支持缓存更新(但其实失效后再添加就是更新了O(∩_∩)O~).
 
 ---
 - *by* 菜鸟-翡青
