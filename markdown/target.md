@@ -1,4 +1,4 @@
-## 下一里程碑版本目标 2.0
+## 下一里程碑版本目标 2.x
 - 多级缓存!
 - 限制4:
     - 提供对`java.util.Collections.EmptyList`、`java.util.Collections.EmptyMap`等作为参数/返回值的支持(设计ing)

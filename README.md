@@ -13,7 +13,7 @@
 - 0.X版本每天提供动态中心系统三个应用350W+次Dubbo调用, 2.6亿+次缓存读写, 单次查询(get/mget)耗时 0~2ms (1~200个key);
 - 1.0版本: 框架重构, 不再与具体缓存产品绑定, 提供更灵活的配置、更快的读写效率;
 - 1.3版本: 提供基于JMX暴露的分布命中率统计, 可以针对某一具体业务场景进行缓存&业务逻辑优化;
-- 1.5版本: 添加`TairCache`实现, Tair缓存开箱即用.
+- 1.4版本: 添加`TairCache`实现, Tair缓存开箱即用.
 
 ---
 
@@ -26,9 +26,9 @@
 - pom.xml
 ```
 <dependency>
-    <groupId>com.alibaba.cacher</groupId>
-    <artifactId>cacher</artifactId>
-    <version>1.5.2-SNAPSHOT</version>
+  <groupId>com.alibaba.cacher</groupId>
+  <artifactId>cacher</artifactId>
+  <version>1.5.2-SNAPSHOT</version>
 </dependency>
 ```
 
