@@ -11,7 +11,7 @@
 - 1.5版本: 添加`TairCache`实现, Tair缓存开箱即用.
 
 - [版本历史](./markdown/release.md)
-- [why cacher](./markdown/whycacher.md)
+- [why cacher?](./markdown/whycacher.md)
 
 ---
 
@@ -19,8 +19,9 @@
 ![](https://private-alipayobjects.alipay.com/alipay-rmsdeploy-image/skylark/png/16257/370eee6562be41fa.png)
 
 ---
-## 入门
-#### 1. pom.xml
+## 简单使用
+### 引入
+- pom.xml
 ```
 <dependency>
   <groupId>com.alibaba.cacher</groupId>
@@ -29,9 +30,7 @@
 </dependency>
 ```
 
----
-
-#### 2. 注册(applicationContext.xml)
+- Spring Bean注册(applicationContext.xml)
 ```
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans" ...>
@@ -39,71 +38,20 @@
     <!-- 启用自动代理: 如果已经开启则不必重复开启 -->
     <aop:aspectj-autoproxy/>
 
-    <!-- 注入Cached切面:
-            open: 定义Cacher的全局开关
-            caches: 只要实现了ICache接口的cache产品均可被Cacher托管
+    <!-- 注入Cacher切面:
+            - caches: 只要实现了ICache接口的cache产品均可被Cacher托管
      -->
-    <bean class="CacherAspect">
-        <constructor-arg name="open" value="true"/>
+    <bean class="com.alibaba.cacher.CacherAspect">
         <constructor-arg name="caches">
-            <map key-type="java.lang.String" value-type="ICache">
-                <entry key="noOp" value-ref="noOpCache"/>
-                <entry key="jdkMap" value-ref="jdkConcurrentMapCache"/>
-                <entry key="guava" value-ref="guavaCache"/>
-                <entry key="mapDB" value-ref="mapDBCache"/>
-                <entry key="ehcache" value-ref="ehCache"/>
-                <!--
-                    <entry key="vRedisPool" value-ref="vRedisPoolCache"/>
-                    <entry key="vRedisCluster" value-ref="vRedisClusterCache"/>
-                -->
-                <entry key="redis" value-ref="redisCache"/>
-                <entry key="memcached" value-ref="memcachedCache"/>
+            <map key-type="java.lang.String" value-type="com.alibaba.cacher.ICache">
+                <entry key="tair" value-ref="tair"/>
             </map>
         </constructor-arg>
     </bean>
 
-    <!-- 接入cacher的缓存产品需要实现ICache 接口:
-      默认提供了基于   无操作的缓存、
-                     VdianRedisPool模式、
-                     VdianRedisCluster模式、
-                     Memcached、
-                     通用Redis、
-                     Guava、
-                     JdkConcurrentHashMap、
-                     MapDB、
-                     Ehcache等9款缓存实现.(注意: 开源版本没有提供VdianPool模式和VdianCluster模式实现)
-     -->
-    <bean id="noOpCache" class="NoOpCache"/>
-    <bean id="jdkConcurrentMapCache" class="JdkConcurrentMapCache"/>
-    <bean id="guavaCache" class="GuavaCache">
-        <constructor-arg name="size" value="1000"/>
-        <constructor-arg name="expire" value="6000"/>
-    </bean>
-    <bean id="mapDBCache" class="MapDBCache">
-        <constructor-arg name="interval" value="1000000"/>
-        <constructor-arg name="maxSize" value="1000000"/>
-        <constructor-arg name="maxStoreSize" value="2"/>
-    </bean>
-    <bean id="ehCache" class="EhCache">
-        <constructor-arg name="heapEntries" value="20"/>
-        <constructor-arg name="offHeapMBSize" value="512"/>
-        <constructor-arg name="diskPath" value="/data/cache"/>
-        <constructor-arg name="diskGBSize" value="1"/>
-    </bean>
-    <!--
-        <bean id="vRedisPoolCache" class="com.vdian.cacher.support.cache.VRedisPoolCache">
-            <constructor-arg name="namespace" value="ares"/>
-        </bean>
-        <bean id="vRedisClusterCache" class="com.vdian.cacher.support.cache.VRedisClusterCache">
-            <constructor-arg name="namespace" value="feedcenter_cluster"/>
-        </bean>
-    -->
-    <bean id="redisCache" class="RedisPoolCache">
-        <constructor-arg name="host" value="10.1.101.60"/>
-        <constructor-arg name="port" value="6379"/>
-    </bean>
-    <bean id="memcachedCache" class="MemcachedCache">
-        <constructor-arg name="ipPorts" value="10.1.101.60:11211"/>
+    <bean id="tair" class="com.alibaba.cacher.support.cache.TairCache" lazy-init="true">
+        <constructor-arg name="configId" value="mdbcomm-daily"/>
+        <constructor-arg name="namespace" value="180"/>
     </bean>
 
 </beans>
