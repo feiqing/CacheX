@@ -23,9 +23,9 @@
 - pom.xml
 ```
 <dependency>
-  <groupId>com.alibaba.cacher</groupId>
-  <artifactId>cacher</artifactId>
-  <version>1.5.2-SNAPSHOT</version>
+    <groupId>com.alibaba.cacher</groupId>
+    <artifactId>cacher</artifactId>
+    <version>1.5.2-SNAPSHOT</version>
 </dependency>
 ```
 
@@ -82,7 +82,7 @@
 > 提示: 想要失效一个缓存, 那肯定得能够找到这个缓存, 也就是失效缓存key的拼装规则一定要与添加缓存的规则一致(如`prefix`、`separator`等).
 
 ---
-## 注解详解
+## III. 注解详解
 > cacher一共提供三个注解`@Cached`、`@Invalid`、`@CacheKey`.
 
 ---
