@@ -238,6 +238,11 @@ public @interface CacheKey {
 
 
 ---
+### 附
+cacher目前版本支持的**缓存产品实现**、**序列化类型**、**命中率统计实现**们 ~
+![粘贴图片.png](https://private-alipayobjects.alipay.com/alipay-rmsdeploy-image/skylark/png/16257/50b275b147576855.png) 
+
+---
 - *by* 菜鸟-翡青
     - Email: jifang.zjf@alibaba-inc.com
     - 博客: [菜鸟-翡青](http://blog.csdn.net/zjf280441589) - http://blog.csdn.net/zjf280441589
