@@ -26,7 +26,7 @@
     - 开放`RedisPoolCache`连接池设置策略;
 
 ---
-### 1.1.X
+### 1.1.x
 - 1.1.0
     - 添加`JdkConcurrentMapCache`内存缓存实现;
     - 添加`MemcachedCache`基于Memcached的缓存实现;
