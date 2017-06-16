@@ -103,21 +103,7 @@
     <!--<constructor-arg name="ipPorts" value="10.1.101.60:11211"/>-->
     <!--</bean>-->
 
-    <!-- cache实现 -->
-    <bean name="levelDB" class="com.alibaba.cacher.support.cache.LevelDBCache" destroy-method="tearDown"/>
-
-    <!-- 命中率统计 -->
-    <bean id="derbyShootingMXBean" class="com.alibaba.cacher.support.shooting.DerbyShootingMXBeanImpl"
-          lazy-init="true"/>
-    <bean id="zkShootingMXBean" class="com.alibaba.cacher.support.shooting.ZKShootingMXBeanImpl"
-          destroy-method="tearDown"
-          lazy-init="true">
-        <constructor-arg name="productName" value="cacher-tester"/>
-        <constructor-arg name="zkServers" value="139.129.9.166:2181"/>
-    </bean>
-    <bean id="h2ShootingMXBean" class="com.alibaba.cacher.support.shooting.H2ShootingMXBeanImpl" lazy-init="true"/>
-
-    <context:component-scan base-package="com.alibaba.cacher.service.impl"/>
+  
 </beans>
 ```
 
