@@ -41,25 +41,25 @@
        http://www.springframework.org/schema/aop
        http://www.springframework.org/schema/aop/spring-aop.xsd">
 
-    <!-- 启用自动代理: 如果已经开启则不必重复开启 -->
-    <aop:aspectj-autoproxy/>
-
-    <!-- 注入Cacher切面:
-            open: 定义Cacher的全局开关
-            caches: 只要实现了ICache接口的cache产品均可被Cacher托管
-     -->
-    <bean class="com.alibaba.cacher.CacherAspect">
-        <constructor-arg name="caches">
-            <map key-type="java.lang.String" value-type="com.alibaba.cacher.ICache">
-                <entry key="tair" value-ref="tair"/>
-            </map>
-        </constructor-arg>
-    </bean>
-
-    <bean id="tair" class="com.alibaba.cacher.support.cache.TairCache" lazy-init="true">
-        <constructor-arg name="configId" value="mdbcomm-daily"/>
-        <constructor-arg name="namespace" value="180"/>
-    </bean>
+        <!-- 启用自动代理: 如果已经开启则不必重复开启 -->
+        <aop:aspectj-autoproxy/>
+    
+        <!-- 注入Cacher切面:
+                open: 定义Cacher的全局开关
+                caches: 只要实现了ICache接口的cache产品均可被Cacher托管
+         -->
+        <bean class="com.alibaba.cacher.CacherAspect">
+            <constructor-arg name="caches">
+                <map key-type="java.lang.String" value-type="com.alibaba.cacher.ICache">
+                    <entry key="tair" value-ref="tair"/>
+                </map>
+            </constructor-arg>
+        </bean>
+    
+        <bean id="tair" class="com.alibaba.cacher.support.cache.TairCache" lazy-init="true">
+            <constructor-arg name="configId" value="mdbcomm-daily"/>
+            <constructor-arg name="namespace" value="180"/>
+        </bean>
 </beans>
 ```
 
