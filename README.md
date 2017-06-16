@@ -26,9 +26,9 @@
 - pom.xml
 ```xml
 <dependency>
-  <groupId>com.alibaba.cacher</groupId>
-  <artifactId>cacher</artifactId>
-  <version>1.5.2-SNAPSHOT</version>
+      <groupId>com.alibaba.cacher</groupId>
+      <artifactId>cacher</artifactId>
+      <version>1.5.2-SNAPSHOT</version>
 </dependency>
 ```
 
