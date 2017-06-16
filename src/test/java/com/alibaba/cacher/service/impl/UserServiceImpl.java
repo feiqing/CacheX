@@ -11,6 +11,7 @@ import com.alibaba.cacher.service.UserService;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author jifang
@@ -128,4 +129,29 @@ public class UserServiceImpl implements UserService {
         }
         return users;
     }
+
+    @Cached(expire = Expire.TEN_MIN)
+    public User getFromDBOrHttp(@CacheKey(prefix = "id:") int id,
+                                @CacheKey(prefix = "ad:") String address) {
+        // 2. get from db/hsf/dubbo/http
+        return new User(id, address);
+    }
+
+    @Cached(expire = Expire.FOREVER)
+    public List<User> getFromDBOrHttp(@CacheKey(prefix = "id:", multi = true, id = "id") List<Integer> ids,
+                                      @CacheKey(prefix = "ad:") String address) {
+
+        return ids.stream().map((id) -> {
+
+            // 4. get from db/hsf/dubbo/http
+            return new User(id, address);
+        }).collect(Collectors.toList());
+    }
+
+    @Invalid
+    public void updateUserInfo(@CacheKey(prefix = "id:") int id,
+                               @CacheKey(prefix = "ad:") String address) {
+        // update db or invoke hsf/dubbo/http ...
+    }
+
 }
