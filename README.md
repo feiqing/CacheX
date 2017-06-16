@@ -15,11 +15,11 @@
 
 ---
 
-## 架构
+## I. 架构
 ![](https://private-alipayobjects.alipay.com/alipay-rmsdeploy-image/skylark/png/16257/370eee6562be41fa.png)
 
 ---
-## 简单使用
+## II. 简单使用
 ### 引入
 - pom.xml
 ```
@@ -39,7 +39,7 @@
     <aop:aspectj-autoproxy/>
 
     <!-- 注入Cacher切面:
-            - caches: 只要实现了ICache接口的cache产品均可被Cacher托管
+            - caches: 实现了ICache接口即可被Cacher托管
      -->
     <bean class="com.alibaba.cacher.CacherAspect">
         <constructor-arg name="caches">
@@ -58,12 +58,14 @@
 ```
 
 ---
-#### 3. @Cached & @CacheKey 注解
-- 在需要走缓存的方法前加`@Cached`注解
-- 在想要组装为key的参数前添加`@CacheKey`注解
+### 使用
+#### 添加缓存(`@Cached` & `@CacheKey`)
+- 在想要添加缓存的方法上标`@Cached`注解
+- 在想要组装为key的方法参数上标`@CacheKey`注解
 ![](https://si.geilicdn.com/hz_img_0d8100000158bdf199220a02685e_1291_439_unadjust.png)
 
 可以看到单key的方法已经只剩下了步骤2(省掉了步骤0、1、3), 多key的方法只剩下了步骤4(省掉了步骤0、1、2、3、5), 生成key、查询缓存、写入缓存的操作框架已经全部帮你完成了(而且你还省掉了一个生成key的`genCacheKey()`方法).
+> 具体步骤可参考[why cacher?](./markdown/whycacher.md)
 
 > 而从代码量上看: 基于单key的查询方法**由十四行减到了两行**, 而批量查询则更加恐怖的**从三四十行降到了三四行**, 而你所付出的成本, 则只是添加两个注解`@Cached`和`@CacheKey`, 以及简单的学习一下**cacher**这个框架(而如果缓存产品更换的话, 也只是需要根据目标缓存产品实现以下`ICache`接口, 然后在Spring的环境中配置一下就好了).
 
