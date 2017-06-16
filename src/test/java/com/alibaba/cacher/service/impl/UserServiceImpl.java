@@ -24,7 +24,7 @@ public class UserServiceImpl implements UserService {
      * multi
      ***/
     @Override
-    @Cached(prefix = "map", expire = Expire.FIVE_MIN)
+    @Cached(prefix = "map", expire = Expire.TEN_MIN)
     public Map<Integer, User> returnMap(@CacheKey(prefix = "app:") String app, @CacheKey(prefix = "id:", multi = true) List<Integer> ids, Object noKey) {
         Map<Integer, User> map = new TreeMap<>();
         for (Integer id : ids) {

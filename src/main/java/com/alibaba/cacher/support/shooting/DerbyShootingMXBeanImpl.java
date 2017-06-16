@@ -10,15 +10,12 @@ import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 
-import javax.annotation.PreDestroy;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -135,15 +132,6 @@ public class DerbyShootingMXBeanImpl extends AbstractDBShootingMXBean {
         try {
             addURLMethod.invoke(loader, new URL("file://" + javaFile));
         } catch (IllegalAccessException | InvocationTargetException | MalformedURLException ignored) {
-        }
-    }
-
-    @PreDestroy
-    public void tearDown() {
-        try {
-            DriverManager.getConnection("jdbc:derby:;shutdown=true");
-        } catch (SQLException e) {
-            LOGGER.error("derby shutdown error", e);
         }
     }
 }

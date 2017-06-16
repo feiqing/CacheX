@@ -27,14 +27,14 @@ public class MultiCase extends TestBase {
     @Test
     public void testReturnMap() throws InterruptedException {
         List<Integer> ids = new LinkedList<>();
-        for (int i = 0; i < 20; ++i) {
+        for (int i = 0; i < 200; ++i) {
             ids.add(i);
         }
         Map<Integer, User> map = service.returnMap("name", ids, "ok");
-        System.out.println(map);
+        //System.out.println(map);
 
         map = service.returnMap("name", ids, "ok");
-        System.out.println(map);
+        //System.out.println(map);
 
         //Thread.sleep(10000000);
     }

@@ -9,8 +9,15 @@ import com.taobao.tair.impl.mc.MultiClusterTairManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.PreDestroy;
 import java.io.Serializable;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
@@ -21,23 +28,36 @@ public class TairCache implements ICache {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TairCache.class);
 
-    private static final int MGET_PARALLEL_THRESHOLD = 200;
+    private static final int MGET_PARALLEL_THRESHOLD = 100;
 
     private MultiClusterTairManager tairManager;
 
     private int namespace;
 
+    private Executor mputExecutor;
+
     public TairCache(String configId, int namespace) {
-        this(configId, namespace, true, 500);
+        this(configId, namespace, true, 500, 50);
     }
 
-    public TairCache(String configId, int namespace, boolean dynamicConfig, int timeoutMS) {
+    public TairCache(String configId, int namespace, boolean dynamicConfig, int timeoutMS, int nThread) {
         this.namespace = namespace;
         this.tairManager = new MultiClusterTairManager();
         tairManager.setConfigID(configId);
         tairManager.setDynamicConfig(dynamicConfig);
         tairManager.setTimeout(timeoutMS);
         tairManager.init();
+
+        if (nThread > 0) {
+            AtomicInteger counter = new AtomicInteger(0);
+            this.mputExecutor = Executors.newFixedThreadPool(nThread, (runnable) -> {
+                Thread thread = new Thread(runnable);
+                thread.setName("cacher-tair-mput-thread-" + counter.getAndIncrement());
+                // thread.setDaemon(true);
+
+                return thread;
+            });
+        }
     }
 
     @Override
@@ -48,6 +68,9 @@ public class TairCache implements ICache {
             DataEntry dataEntry = result.getValue();
             if (dataEntry != null) {
                 value = getDeserializeObj(dataEntry.getValue());
+                if (value == null) {
+                    throw new RuntimeException("func");
+                }
             }
         } else {
             ResultCode resultCode = result.getRc();
@@ -92,11 +115,30 @@ public class TairCache implements ICache {
         return resultMap;
     }
 
+
+    // tips: this.tairManager.mput(); X
+    // 新版本的Tair不再支持mput命令, 因此当key数量过多时建议使用并发方式 Write Tair
     @Override
     public void write(Map<String, Object> keyValueMap, long expire) {
-        keyValueMap.entrySet().parallelStream().forEach((entry) -> {
-            write(entry.getKey(), entry.getValue(), expire);
-        });
+        BiConsumer<String, Object> writeConsumer = (key, value) -> write(key, value, expire);
+
+        // 并发写入
+        if (this.mputExecutor != null) {
+            List<CompletableFuture<Void>> futures = new ArrayList<>(keyValueMap.size());
+
+            keyValueMap.forEach((key, value) -> {
+                CompletableFuture<Void> future = CompletableFuture.supplyAsync(() -> {
+                    writeConsumer.accept(key, value);
+                    return null;
+                }, this.mputExecutor);
+
+                futures.add(future);
+            });
+
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()])).join();
+        } else {
+            keyValueMap.forEach(writeConsumer);
+        }
     }
 
     @Override
@@ -104,6 +146,16 @@ public class TairCache implements ICache {
         ResultCode resultCode = tairManager.mdelete(namespace, Arrays.asList(keys));
         if (!resultCode.isSuccess()) {
             LOGGER.error("tair mdelete error, code: {}, message: {}", resultCode.getCode(), resultCode.getMessage());
+        }
+    }
+
+    @PreDestroy
+    public void tearDown() {
+        if (this.tairManager != null) {
+            this.tairManager.close();
+        }
+        if (this.mputExecutor != null && this.mputExecutor instanceof ThreadPoolExecutor) {
+            ((ThreadPoolExecutor) this.mputExecutor).shutdown();
         }
     }
 
@@ -129,7 +181,6 @@ public class TairCache implements ICache {
 
         return obj;
     }
-
 
     private static final class SerializableWrapper implements Serializable {
 
