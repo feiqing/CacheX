@@ -16,24 +16,16 @@
 ---
 
 ## 架构
-![](https://private-alipayobjects.alipay.com/alipay-rmsdeploy-image/skylark/png/16257/370eee6562be41fa.png) 
-> cacher 1.5.X版本.
-
----
-## 版本历史
-
-
----
+![](https://private-alipayobjects.alipay.com/alipay-rmsdeploy-image/skylark/png/16257/370eee6562be41fa.png)
 
 ---
 ## 入门
-### 添加缓存
 #### 1. pom.xml
 ```
 <dependency>
-  <groupId>com.vdian.cacher</groupId>
+  <groupId>com.alibaba.cacher</groupId>
   <artifactId>cacher</artifactId>
-  <version>0.3.3-SNAPSHOT</version>
+  <version>1.5.2-SNAPSHOT</version>
 </dependency>
 ```
 
@@ -394,7 +386,7 @@ invalidCollection(Arrays.asList(1L, 2L, 3L);
 框架现在还支持支持添加缓存和失效缓存两种操作, 暂时还不能支持缓存更新(但其实失效后再添加就是更新了O(∩_∩)O~).
 
 ---
-- *by* 攻城师@翡青
-    - Email: feiqing.zjf@gmail.com
-    - 博客: [攻城师-翡青](http://blog.csdn.net/zjf280441589) - http://blog.csdn.net/zjf280441589
-    - 微博: [攻城师-翡青](http://weibo.com/u/3319050953) - http://weibo.com/u/3319050953
+- *by* 菜鸟-翡青
+    - Email: jifang.zjf@alibaba-inc.com
+    - 博客: [菜鸟-翡青](http://blog.csdn.net/zjf280441589) - http://blog.csdn.net/zjf280441589
+    - 微博: [菜鸟-翡青](http://weibo.com/u/3319050953) - http://weibo.com/u/3319050953
