@@ -31,16 +31,16 @@
 ```
 
 - Spring Bean注册(applicationContext.xml)
-```
+```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans" ...>
 
     <!-- 启用自动代理: 如果已经开启则不必重复开启 -->
     <aop:aspectj-autoproxy/>
-
+    
     <!-- 注入Cacher切面:
             - caches: 实现了ICache接口即可被Cacher托管
-     -->
+    -->
     <bean class="com.alibaba.cacher.CacherAspect">
         <constructor-arg name="caches">
             <map key-type="java.lang.String" value-type="com.alibaba.cacher.ICache">
@@ -48,7 +48,7 @@
             </map>
         </constructor-arg>
     </bean>
-
+    
     <bean id="tair" class="com.alibaba.cacher.support.cache.TairCache" lazy-init="true">
         <constructor-arg name="configId" value="mdbcomm-daily"/>
         <constructor-arg name="namespace" value="180"/>
@@ -56,6 +56,7 @@
 
 </beans>
 ```
+
 > 
 
 ---
