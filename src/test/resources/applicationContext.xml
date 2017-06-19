@@ -21,14 +21,18 @@
         <constructor-arg name="open" value="true"/>
         <constructor-arg name="caches">
             <map key-type="java.lang.String" value-type="com.alibaba.cacher.ICache">
-                <entry key="tair" value-ref="tair"/>
+                <entry key="level" value-ref="level"/>
             </map>
         </constructor-arg>
         <!-- 开启缓存命中率分组统计功能, 注入基于zk的实现-->
         <constructor-arg name="shootingMXBean" ref="derbyShootingMXBean"/>
     </bean>
 
-    <bean id="levelDBCache" class="com.alibaba.cacher.support.cache.LevelDBCache" lazy-init="true" destroy-method="tearDown"/>
+    <bean id="level" class="com.alibaba.cacher.support.cache.LevelDBCache" lazy-init="true" destroy-method="tearDown">
+        <constructor-arg name="serializer">
+            <bean class="com.alibaba.cacher.support.serialize.KryoSerializer"/>
+        </constructor-arg>
+    </bean>
     <bean id="tair" class="com.alibaba.cacher.support.cache.TairCache" lazy-init="true" destroy-method="tearDown">
         <constructor-arg name="nThread" value="10"/>
         <constructor-arg name="timeoutMS" value="500"/>

@@ -1,9 +1,8 @@
 package com.alibaba.cacher.support.serialize;
 
-import com.alibaba.cacher.exception.CacherException;
+import com.alibaba.cacher.IObjectSerializer;
 import com.caucho.hessian.io.Hessian2Input;
 import com.caucho.hessian.io.Hessian2Output;
-import com.alibaba.cacher.IObjectSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,39 +20,37 @@ public class Hessian2Serializer implements IObjectSerializer {
 
     @Override
     public <T> byte[] serialize(T obj) {
+        byte[] result = null;
+
         if (obj != null) {
             try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
 
                 Hessian2Output out = new Hessian2Output(os);
                 out.writeObject(obj);
                 out.close();
-                return os.toByteArray();
-
+                result = os.toByteArray();
             } catch (IOException e) {
                 LOGGER.error("Hessian serialize error ", e);
-                throw new CacherException(e);
             }
         }
-        return null;
+
+        return result;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
+    @SuppressWarnings("unchecked")
     public <T> T deserialize(byte[] bytes) {
+        Object result = null;
         if (bytes != null) {
             try (ByteArrayInputStream is = new ByteArrayInputStream(bytes)) {
-
                 Hessian2Input in = new Hessian2Input(is);
-                T obj = (T) in.readObject();
+                result = in.readObject();
                 in.close();
-
-                return obj;
-
             } catch (IOException e) {
                 LOGGER.error("Hessian deserialize error ", e);
-                throw new CacherException(e);
             }
         }
-        return null;
+
+        return (T) result;
     }
 }

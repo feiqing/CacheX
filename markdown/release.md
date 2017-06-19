@@ -71,5 +71,7 @@
     - 添加`DerbyShootingMXBeanImpl`、`H2ShootingMXBeanImpl`实现, 支持基于嵌入式DB的缓存命中率统计(以机器为单位, 重启历史数据不丢失; 其中Derby实现可以动态加载jdk提供的derby.jar包, 实现0依赖配置)
     - 添加`ZKShootingMXBeanImpl`实现, 支持基于ZooKeeper的异步命中率统计, 可以做到统一应用共享计数器(以应用为单位, 重启历史数据不丢失);
     - 添加`@Cacheds`、`@Invalids`两个注解, 使`@Cached`、`@Invalid`支持Java8重复注解, 定义多级缓存目标.
+- 1.5.3
+    - 添加`com.alibaba.cacher.support.serialize.KryoSerializer`序列化实现
 
 ---
