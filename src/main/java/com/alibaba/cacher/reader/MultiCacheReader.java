@@ -47,7 +47,7 @@ public class MultiCacheReader implements CacheReader {
 
         Object result;
         // have miss keys : part shooting || all not shooting
-        if (batchReadResult.getMissKeys().size() > 0) {
+        if (!batchReadResult.getMissKeys().isEmpty()) {
             result = handlePartHit(pjp, batchReadResult, holder, ret, cached, pair);
         }
         // no miss keys : all hits || empty key
@@ -85,8 +85,6 @@ public class MultiCacheReader implements CacheReader {
         if (proceed != null) {
             Class<?> returnType = proceed.getClass();
             ret.setType(returnType);
-            // 兼容各种内部类
-
             if (Map.class.isAssignableFrom(returnType)) {
                 Map proceedIdValueMap = (Map) proceed;
 
@@ -104,7 +102,7 @@ public class MultiCacheReader implements CacheReader {
 
                 cacheManager.writeBatch(cached.cache(), keyValueMap, cached.expire());
 
-                result = ResultMergeUtils.collectionMerge(key_id.keySet(), returnType, keyValueMap, hitKeyValueMap);
+                result = ResultMergeUtils.collectionMerge(returnType, proceedCollection, hitKeyValueMap);
             }
         } else {
             // read as full shooting
@@ -139,9 +137,9 @@ public class MultiCacheReader implements CacheReader {
             }
         } else {
             if (ret.isCollection()) {
-                result = ResultTranslateUtils.toCollection(returnType, keyValueMap.values());
+                result = ResultConvertUtils.toCollection(returnType, keyValueMap.values());
             } else {
-                result = ResultTranslateUtils.toMap(returnType, keyValueMap, keyIdMap);
+                result = ResultConvertUtils.toMap(returnType, keyValueMap, keyIdMap);
             }
         }
 

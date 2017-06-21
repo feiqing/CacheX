@@ -1,6 +1,7 @@
 package com.alibaba.cacher.utils;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Map;
 
 /**
  * @author jifang
@@ -9,32 +10,32 @@ import java.util.*;
 @SuppressWarnings("unchecked")
 public class ResultMergeUtils {
 
-    public static Map mapMerge(Map<String, Object> keyIdMap, Class<?> returnType,
-                               Map idValueMap, Map<String, Object> keyValueMap)
-            throws IllegalAccessException, InstantiationException {
+    public static Map mapMerge(Map<String, Object> keyIdMap, Class<?> mapType,
+                               Map fromMethodMap, Map<String, Object> fromCacheMap) {
 
-        Map mergedMap = (Map) returnType.newInstance();
+        Map mergedMap = MapSuppliers.newInstance(mapType, fromMethodMap);
 
-        // keep maps order
-        for (Map.Entry<String, Object> keyIdEntry : keyIdMap.entrySet()) {
-            Object id = keyIdEntry.getValue();
-
-            // get idValueMap first
-            Object value = idValueMap.get(id);
-            if (value == null) {
-                String key = keyIdEntry.getKey();
-                value = keyValueMap.get(key);
-            }
-
+        fromCacheMap.forEach((key, value) -> {
+            Object id = keyIdMap.get(key);
             mergedMap.put(id, value);
-        }
+        });
 
-        return mergedMap;
+        return MapSuppliers.convertInstanceType(mapType, mergedMap);
     }
 
+    public static Collection collectionMerge(Class<?> collectionType, Collection fromMethodCollection,
+                                             Map<String, Object> fromCacheMap) {
+        Collection collection = CollectionSupplier.newInstance(collectionType, fromMethodCollection);
+        collection.addAll(fromCacheMap.values());
+
+        return CollectionSupplier.convertInstanceType(collectionType, collection);
+    }
+
+    /*
     public static Collection collectionMerge(Set<String> keys, Class<?> returnType,
-                                             Map<String, Object> keyValueMap1, Map<String, Object> keyValueMap2)
-            throws IllegalAccessException, InstantiationException {
+                                             Map<String, Object> keyValueMap1, Map<String, Object> keyValueMap2) {
+
+        CollectionSupplier.newInstance(returnType, )
 
         Collection mergedCollection = (Collection) returnType.newInstance();
 
@@ -48,5 +49,5 @@ public class ResultMergeUtils {
         }
 
         return mergedCollection;
-    }
+    }*/
 }
