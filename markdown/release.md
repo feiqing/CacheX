@@ -77,7 +77,7 @@
     - 消除限制4, 支持:
     
     | Map | Collection | 
-    | :- | :- |
+    :------- | ------- |
     | `Collections.emptyMap()` | `Collections.emptyList()` |
     | `Collections.emptyNavigableMap()` | `Collections.emptySet()` | 
     | `Collections.emptySortedMap()` | `Collections.emptySortedSet()` |
