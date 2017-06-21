@@ -73,5 +73,32 @@
     - 添加`@Cacheds`、`@Invalids`两个注解, 使`@Cached`、`@Invalid`支持Java8重复注解, 定义多级缓存目标.
 - 1.5.3
     - 添加`com.alibaba.cacher.support.serialize.KryoSerializer`序列化实现
+- 1.5.4
+    - 消除限制4, 支持
+    | Map | Collection | 
+    | :-: | :-: |
+    | `Collections.emptyMap()` | `Collections.emptyList()` |
+    | `Collections.emptyNavigableMap()` | `Collections.emptySet()` | 
+    | `Collections.emptySortedMap()` | `Collections.emptySortedSet()` |
+    | `Collections.singletonMap()`   | `Collections.emptyNavigableSet()` |
+    | `Collections.unmodifiableMap()` | `Collections.singletonList()` |
+    | `Collections.unmodifiableNavigableMap()` | `Collections.singleton()` |
+    | `Collections.unmodifiableSortedMap()` | `Arrays.asList()` | 
+    | `Collections.synchronizedMap()` | `Collections.unmodifiableCollection()` |
+    | `Collections.synchronizedNavigableMap()` | `Collections.unmodifiableList()` |
+    | `Collections.synchronizedSortedMap()` | `Collections.unmodifiableSet()` |
+    | `Collections.checkedMap()` | `Collections.unmodifiableSortedSet()` |
+    | `Collections.checkedNavigableMap()` | `Collections.unmodifiableNavigableSet()` |
+    | `Collections.checkedSortedMap()` | `Collections.synchronizedCollection()` |
+    | | `Collections.synchronizedList()` |
+    | | `Collections.synchronizedSet()` |
+    | | `Collections.synchronizedNavigableSet()` |
+    | | `Collections.synchronizedSortedSet()` |
+    | | `Collections.checkedCollection()` |
+    | | `Collections.checkedList()` |
+    | | `Collections.checkedSet()` |
+    | | `Collections.checkedNavigableSet()` |
+    | | `Collections.checkedSortedSet()` |
+    | | `Collections.checkedQueue()` |
 
 ---
