@@ -1,7 +1,6 @@
 package com.alibaba.cacher.support.serialize;
 
 import com.alibaba.cacher.IObjectSerializer;
-import com.alibaba.cacher.exception.CacherException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +29,6 @@ public class JdkSerializer implements IObjectSerializer {
 
             } catch (IOException e) {
                 LOGGER.error("Jdk serialize error", e);
-                throw new CacherException(e);
             }
         }
 
@@ -49,8 +47,7 @@ public class JdkSerializer implements IObjectSerializer {
                 obj = (T) ois.readObject();
 
             } catch (Exception e) {
-                LOGGER.error("Hessian deserialize error", e);
-                throw new CacherException(e);
+                LOGGER.error("Jdk deserialize error", e);
             }
         }
 
