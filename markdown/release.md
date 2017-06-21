@@ -74,7 +74,8 @@
 - 1.5.3
     - 添加`com.alibaba.cacher.support.serialize.KryoSerializer`序列化实现
 - 1.5.4
-    - 消除限制4, 支持
+    - 消除限制4, 支持:
+    
     | Map | Collection | 
     | :-: | :-: |
     | `Collections.emptyMap()` | `Collections.emptyList()` |
