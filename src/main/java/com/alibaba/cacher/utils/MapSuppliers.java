@@ -22,28 +22,42 @@ public class MapSuppliers {
 
     private static final Class EMPTY_CLASS = EMPTY_OBJ.getClass();
 
-    private static final ConcurrentMap<Class<?>, Function<Optional<Map>, Map>> mapSuppliers
+    private static final Function<Optional<Map>, Map> hashMapSupplier = (optional) -> {
+        if (optional.isPresent()) {
+            return new HashMap(optional.get());
+        }
+        return new HashMap();
+    };
+
+    private static final Function<Optional<Map>, Map> treeMapSupplier = (optional) -> {
+        if (optional.isPresent()) {
+            return new TreeMap(optional.get());
+        }
+        return new TreeMap();
+    };
+
+    private static final ConcurrentMap<Class<?>, Function<Optional<Map>, Map>> modifiableMapSuppliers
             = new ConcurrentHashMap<Class<?>, Function<Optional<Map>, Map>>() {
         {
-            // ******************** //
-            // --- need replace until --  //
-            // ******************** //
+            // ************************** //
+            // need replace until the end //
+            // ************************** //
             // empty
             put(emptyMap().getClass(), (optional) -> new HashMap());
             put(emptyNavigableMap().getClass(), (optional) -> new TreeMap());
             put(emptySortedMap().getClass(), (optional) -> new TreeMap());
 
             // singleton
-            put(singletonMap(EMPTY_OBJ, EMPTY_OBJ).getClass(), (optional) -> new HashMap());
+            put(singletonMap(EMPTY_OBJ, EMPTY_OBJ).getClass(), hashMapSupplier);
 
             // ******************** //
             // --- need convert --- //
             // ******************** //
 
             // unmodifiable
-            put(unmodifiableMap(EMPTY_MAP).getClass(), (optional) -> new HashMap());
-            put(unmodifiableNavigableMap(EMPTY_MAP).getClass(), (optional) -> new TreeMap());
-            put(unmodifiableSortedMap(EMPTY_MAP).getClass(), (optional) -> new TreeMap());
+            put(unmodifiableMap(EMPTY_MAP).getClass(), hashMapSupplier);
+            put(unmodifiableNavigableMap(EMPTY_MAP).getClass(), treeMapSupplier);
+            put(unmodifiableSortedMap(EMPTY_MAP).getClass(), treeMapSupplier);
 
             // ******************** //
             //  keep what they are  //
@@ -108,12 +122,12 @@ public class MapSuppliers {
     }
 
     private static Function<Optional<Map>, Map> getSupplier(Class<?> type) {
-        return mapSuppliers.getOrDefault(type, (optional) -> {
+        return modifiableMapSuppliers.getOrDefault(type, (optional) -> optional.orElseGet(() -> {
             try {
                 return (Map) type.newInstance();
             } catch (InstantiationException | IllegalAccessException e) {
-                throw new CacherException("could not invoke map: " + type + "'s no param (default) constructor", e);
+                throw new CacherException("could not invoke map: " + type.getName() + "'s no param (default) constructor!", e);
             }
-        });
+        }));
     }
 }

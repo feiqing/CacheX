@@ -5,18 +5,15 @@ import com.google.common.base.Strings;
 import javassist.*;
 import javassist.bytecode.LocalVariableAttribute;
 import javassist.bytecode.MethodInfo;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.proxy.Interceptor;
-import org.apache.commons.proxy.Invocation;
-import org.apache.commons.proxy.ProxyFactory;
-import org.apache.commons.proxy.factory.cglib.CglibProxyFactory;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 
 import java.lang.reflect.Method;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 /**
  * @author jifang
@@ -113,31 +110,5 @@ public class CacherUtils {
 
     private static CtClass getCtClass(Class<?> clazz) throws NotFoundException {
         return pool.getCtClass(clazz.getName());
-    }
-
-    @SuppressWarnings("unchecked")
-    public static Map<String, AtomicLong> createAtomicMapProxy(final Map<String, AtomicLong> map) {
-        ProxyFactory factory = new CglibProxyFactory();
-        Object proxyMap = factory.createInterceptorProxy(map, new Interceptor() {
-
-            @Override
-            public Object intercept(Invocation invocation) throws Throwable {
-                Object result = invocation.proceed();
-                if (needInit(result, invocation)) {
-                    result = new AtomicLong(0);
-                    String key = (String) invocation.getArguments()[0]; //
-                    map.put(key, (AtomicLong) result);
-                }
-
-                return result;
-            }
-        }, new Class[]{Map.class});
-
-        return (Map<String, AtomicLong>) proxyMap;
-    }
-
-    private static boolean needInit(Object result, Invocation invocation) {
-        return result == null &&
-                StringUtils.equals(invocation.getMethod().getName(), "get");
     }
 }

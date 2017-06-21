@@ -176,7 +176,7 @@ public class MultiCacheReader implements CacheReader {
             this.shootingMXBean.hitIncr(keyPattern, hitCount);
             this.shootingMXBean.requireIncr(keyPattern, totalCount);
 
-            LOGGER.info("multi cache hit shooting: {}/{}, missed keys: {}",
+            LOGGER.info("multi cache hit rate: {}/{}, missed keys: {}",
                     hitCount, totalCount, missKeys);
         }
     }

@@ -20,7 +20,6 @@
         <guava.version>19.0</guava.version>
         <aspectj.version>1.8.9</aspectj.version>
         <javassist.version>3.20.0-GA</javassist.version>
-        <commons.proxy.version>1.0</commons.proxy.version>
         <commons.lang.version>3.4</commons.lang.version>
         <cglib.version>3.2.0</cglib.version>
 
@@ -73,11 +72,6 @@
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
-            <artifactId>commons-proxy</artifactId>
-            <version>${commons.proxy.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>${commons.lang.version}</version>
         </dependency>
@@ -111,7 +105,7 @@
         </dependency>
 
 
-        <!-- optional: hit shooting -->
+        <!-- optional: hit rate -->
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
@@ -149,8 +143,13 @@
             <artifactId>curator-recipes</artifactId>
             <version>${zk.version}</version>
             <optional>true</optional>
+            <exclusions>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
-
 
         <!-- optional: cache implements -->
         <!-- tair -->

@@ -24,12 +24,33 @@ public class CollectionSupplier {
 
     private static final Class EMPTY_CLASS = EMPTY_OBJ.getClass();
 
+    private static final Function<Optional<Collection>, Collection> arrayListSupplier = (optional) -> {
+        if (optional.isPresent()) {
+            return new ArrayList(optional.get());
+        }
+        return new ArrayList();
+    };
+
+    private static final Function<Optional<Collection>, Collection> hashSetSupplier = (optional) -> {
+        if (optional.isPresent()) {
+            return new HashSet(optional.get());
+        }
+        return new HashSet();
+    };
+
+    private static final Function<Optional<Collection>, Collection> treeSetSupplier = (optional) -> {
+        if (optional.isPresent()) {
+            return new TreeSet(optional.get());
+        }
+        return new TreeSet();
+    };
+
     private static final ConcurrentMap<Class<?>, Function<Optional<Collection>, Collection>> collectionSuppliers
             = new ConcurrentHashMap<Class<?>, Function<Optional<Collection>, Collection>>() {
         {
-            // ******************** //
-            // --- need replace until --  //
-            // ******************** //
+            // ************************** //
+            // need replace until the end //
+            // ************************** //
 
             // empty
             put(emptyList().getClass(), (optional) -> new ArrayList());
@@ -38,18 +59,19 @@ public class CollectionSupplier {
             put(emptyNavigableSet().getClass(), (optional) -> new HashSet());
 
             // singleton
-            put(singletonList(EMPTY_OBJ).getClass(), (optional) -> new ArrayList());
-            put(singleton(EMPTY_OBJ).getClass(), (optional) -> new HashSet());
+            put(singletonList(EMPTY_OBJ).getClass(), arrayListSupplier);
+            put(singleton(EMPTY_OBJ).getClass(), arrayListSupplier);
+            put(Arrays.asList().getClass(), arrayListSupplier);
 
             // ******************** //
             // --- need convert --- //
             // ******************** //
             // unmodifiable
-            put(unmodifiableCollection(EMPTY_SET).getClass(), (optional) -> new ArrayList());
-            put(unmodifiableList(EMPTY_LIST).getClass(), (optional) -> new ArrayList());
-            put(unmodifiableSet(EMPTY_SET).getClass(), (optional) -> new HashSet());
-            put(unmodifiableSortedSet(EMPTY_SET).getClass(), (optional) -> new TreeSet());
-            put(unmodifiableNavigableSet(EMPTY_SET).getClass(), (optional) -> new TreeSet());
+            put(unmodifiableCollection(EMPTY_SET).getClass(), arrayListSupplier);
+            put(unmodifiableList(EMPTY_LIST).getClass(), arrayListSupplier);
+            put(unmodifiableSet(EMPTY_SET).getClass(), hashSetSupplier);
+            put(unmodifiableSortedSet(EMPTY_SET).getClass(), treeSetSupplier);
+            put(unmodifiableNavigableSet(EMPTY_SET).getClass(), treeSetSupplier);
 
             // ******************** //
             //  keep what they are  //
@@ -124,12 +146,12 @@ public class CollectionSupplier {
     }
 
     private static Function<Optional<Collection>, Collection> getSupplier(Class<?> type) {
-        return collectionSuppliers.getOrDefault(type, (optional) -> {
+        return collectionSuppliers.getOrDefault(type, (optional) -> optional.orElseGet(() -> {
             try {
                 return (Collection) type.newInstance();
             } catch (InstantiationException | IllegalAccessException e) {
-                throw new CacherException("could not invoke collection: " + type + "'s no param (default) constructor", e);
+                throw new CacherException("could not invoke collection: " + type.getName() + "'s no param (default) constructor!", e);
             }
-        });
+        }));
     }
 }

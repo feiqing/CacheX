@@ -26,11 +26,11 @@ public class UserServiceImpl implements UserService {
     @Override
     @Cached(prefix = "map", expire = Expire.TEN_MIN)
     public Map<Integer, User> returnMap(@CacheKey(prefix = "app:") String app, @CacheKey(prefix = "id:", multi = true) List<Integer> ids, Object noKey) {
-        Map<Integer, User> map = new TreeMap<>();
+        Map<Integer, User> map = new HashMap<>();
         for (Integer id : ids) {
             map.put(id, new User(id, "name" + id, new Date(), id, noKey.toString()));
         }
-        return map;
+        return Collections.synchronizedMap(map);
     }
 
     @Override
@@ -101,7 +101,6 @@ public class UserServiceImpl implements UserService {
     public void noCacheKey(Object o) {
 
     }
-
 
     @Cached
     @Override

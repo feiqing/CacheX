@@ -54,7 +54,7 @@ public class SingleCacheReader implements CacheReader {
             }
             this.shootingMXBean.requireIncr(keyPattern, 1);
 
-            LOGGER.info("single cache hit shooting: {}, key: {}", rate, key);
+            LOGGER.info("single cache hit rate: {}, key: {}", rate, key);
         }
     }
 }
