@@ -34,7 +34,7 @@ public Type mapMulti(@CacheKey(multi = true) Map<Long, FeedUser> map) {
 
 ---
 
-### 4. 各类怪异的内部容器类调用
+### ~~4. 各类怪异的内部容器类调用~~
 ```java
 @Cached
 public List<User> invalidCollection(@CacheKey(multi = true, id = "id") List<Long> ids) {
@@ -48,7 +48,7 @@ public List<User> invalidCollection(@CacheKey(multi = true, id = "id") List<Long
 - Collections.SingleList
 - ...
 
-> 我们目标在2.0版本中兼容部分这样的`Collection`实现.
+> @since 1.5.4 该限制不再存在, 详见 1.5.4 release列表.
 
 
 ---
