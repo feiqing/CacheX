@@ -74,7 +74,7 @@
 - 1.5.3
     - 添加`com.alibaba.cacher.support.serialize.KryoSerializer`序列化实现
 - 1.5.4
-    - 消除[限制4](limit.md), 支持:
+    - 消除[限制4](limit.md#4-%E5%90%84%E7%B1%BB%E6%80%AA%E5%BC%82%E7%9A%84%E5%86%85%E9%83%A8%E5%AE%B9%E5%99%A8%E7%B1%BB%E8%B0%83%E7%94%A8), 支持:
     
     | Map | Collection | 
     :------- | ------- |
