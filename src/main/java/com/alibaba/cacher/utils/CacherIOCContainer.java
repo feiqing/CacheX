@@ -10,8 +10,6 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.JarURLConnection;
 import java.net.URL;
@@ -27,7 +25,7 @@ import java.util.jar.JarFile;
  * @since 2016/10/27 上午9:38.
  */
 @SuppressWarnings("unchecked")
-public class CacherInitUtil {
+public class CacherIOCContainer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("com.alibaba.cacher");
 
@@ -38,6 +36,18 @@ public class CacherInitUtil {
     private static ConcurrentMap<String, Object> nameBeanMap = new ConcurrentHashMap<>();
 
     private static ConcurrentMap<Class<?>, Object> classBeanMap = new ConcurrentHashMap<>();
+
+    public static void init(Object rootBean, String... packageNames) throws IOException {
+        Class<?> rootBeanClass = rootBean.getClass();
+        Set<Class<?>> classes = new HashSet<>();
+        for (String packageName : packageNames) {
+            classes.addAll(packageScan(packageName));
+        }
+
+        savePackageBeanInstance(classes, rootBeanClass, rootBean);
+
+        injectBeanField();
+    }
 
     public static <T> T getBeanInstance(Class<T> clazz) {
         Object bean = classBeanMap.get(clazz);
@@ -62,32 +72,6 @@ public class CacherInitUtil {
         nameBeanMap.put(getBeanId(clazz), bean);
     }
 
-
-    public static void beanInit(String packageName, Object rootBean) throws IOException {
-        Class<?> rootBeanClass = rootBean.getClass();
-        Set<Class<?>> classes = packageScan(packageName);
-
-        savePackageBeanInstance(classes, rootBeanClass, rootBean);
-        //saveConfigJavaBeanInstance(BeanInitor.class);
-
-        injectBeanField();
-    }
-
-    private static void saveConfigJavaBeanInstance(Class<?> configClass) {
-        Method[] methods = configClass.getDeclaredMethods();
-        for (Method method : methods) {
-            method.setAccessible(true);
-            try {
-                Object beanInstance = method.invoke(null);
-
-                nameBeanMap.put(method.getName(), beanInstance);
-                classBeanMap.put(beanInstance.getClass(), beanInstance);
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                throw new CacherException("shit, my fucking wrong!!!");
-            }
-        }
-    }
-
     private static void savePackageBeanInstance(Set<Class<?>> classes, Class<?> rootBeanClass, Object rootBean) {
         Map<String, Object> nameBeanMap = new HashMap<>(classes.size());
         Map<Class<?>, Object> classBeanMap = new HashMap<>(classes.size());
@@ -101,8 +85,8 @@ public class CacherInitUtil {
             classBeanMap.put(clazz, beanInstance);
         }
 
-        CacherInitUtil.nameBeanMap.putAll(nameBeanMap);
-        CacherInitUtil.classBeanMap.putAll(classBeanMap);
+        CacherIOCContainer.nameBeanMap.putAll(nameBeanMap);
+        CacherIOCContainer.classBeanMap.putAll(classBeanMap);
     }
 
     private static Object newBeanInstance(Class<?> clazz, Class<?> rootBeanClass, Object rootBean) {

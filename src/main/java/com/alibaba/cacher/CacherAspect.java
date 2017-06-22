@@ -4,10 +4,11 @@ import com.alibaba.cacher.config.Inject;
 import com.alibaba.cacher.config.Singleton;
 import com.alibaba.cacher.constant.Constant;
 import com.alibaba.cacher.domain.CacheKeyHolder;
-import com.alibaba.cacher.domain.MethodInfoHolder;
+import com.alibaba.cacher.domain.CacheMethodHolder;
 import com.alibaba.cacher.domain.Pair;
+import com.alibaba.cacher.invoker.JoinPointInvokerAdapter;
 import com.alibaba.cacher.manager.CacheManager;
-import com.alibaba.cacher.reader.CacheReader;
+import com.alibaba.cacher.reader.AbstractCacheReader;
 import com.alibaba.cacher.utils.*;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -38,10 +39,10 @@ public class CacherAspect {
     private static final Logger LOGGER = LoggerFactory.getLogger("com.alibaba.cacher");
 
     @Inject
-    private CacheReader singleCacheReader;
+    private AbstractCacheReader singleCacheReader;
 
     @Inject
-    private CacheReader multiCacheReader;
+    private AbstractCacheReader multiCacheReader;
 
     @Inject
     private CacheManager cacheManager;
@@ -84,18 +85,21 @@ public class CacherAspect {
             MBeanRegistrationException, IOException {
 
         if (this.shootingMXBean != null) {
-            CacherInitUtil.registerBeanInstance(this.shootingMXBean);
+            CacherIOCContainer.registerBeanInstance(this.shootingMXBean);
             this.mBeanServer = ManagementFactory.getPlatformMBeanServer();
             this.mBeanServer.registerMBean(this.shootingMXBean,
                     new ObjectName("com.alibaba.cacher:name=shooting"));
         }
 
-        CacherInitUtil.beanInit(Constant.CACHER_BASE_PACKAGE, this);
+        CacherIOCContainer.init(this,
+                Constant.PACKAGE_MANAGER,
+                Constant.PACKAGE_READER
+        );
         this.cacheManager.initICachePool(this.caches);
     }
 
     @Around("@annotation(com.alibaba.cacher.Cached)")
-    public Object readCache(ProceedingJoinPoint pjp) throws Throwable {
+    public Object readWrite(ProceedingJoinPoint pjp) throws Throwable {
         Method method = CacherUtils.getMethod(pjp);
         Cached cached = method.getAnnotation(Cached.class);
 
@@ -106,15 +110,15 @@ public class CacherAspect {
                 start = System.currentTimeMillis();
             }
 
-            Pair<CacheKeyHolder, MethodInfoHolder> pair = MethodInfoUtil.getMethodInfo(method);
+            Pair<CacheKeyHolder, CacheMethodHolder> pair = MethodInfoUtil.getMethodInfo(method);
             CacheKeyHolder cacheKeyHolder = pair.getLeft();
-            MethodInfoHolder methodInfoHolder = pair.getRight();
+            CacheMethodHolder cacheMethodHolder = pair.getRight();
 
             // multi
             if (cacheKeyHolder.isMulti()) {
-                result = multiCacheReader.read(cacheKeyHolder, cached, pjp, methodInfoHolder);
+                result = multiCacheReader.read(cacheKeyHolder, cacheMethodHolder, new JoinPointInvokerAdapter(pjp), true);
             } else {
-                result = singleCacheReader.read(cacheKeyHolder, cached, pjp, methodInfoHolder);
+                result = singleCacheReader.read(cacheKeyHolder, cacheMethodHolder, new JoinPointInvokerAdapter(pjp), true);
             }
 
             if (LOGGER.isDebugEnabled()) {
@@ -128,7 +132,7 @@ public class CacherAspect {
     }
 
     @After("@annotation(com.alibaba.cacher.Invalid)")
-    public void removeCache(JoinPoint pjp) throws Throwable {
+    public void remove(JoinPoint pjp) throws Throwable {
         Method method = CacherUtils.getMethod(pjp);
         Invalid invalid = method.getAnnotation(Invalid.class);
 
@@ -139,18 +143,18 @@ public class CacherAspect {
                 start = System.currentTimeMillis();
             }
 
-            Pair<CacheKeyHolder, MethodInfoHolder> pair = MethodInfoUtil.getMethodInfo(method);
-            CacheKeyHolder holder = pair.getLeft();
+            Pair<CacheKeyHolder, CacheMethodHolder> pair = MethodInfoUtil.getMethodInfo(method);
+            CacheKeyHolder cacheKeyHolder = pair.getLeft();
 
-            if (holder.isMulti()) {
-                Map[] keyIdPair = KeysCombineUtil.toMultiKey(holder, invalid.separator(), pjp.getArgs());
+            if (cacheKeyHolder.isMulti()) {
+                Map[] keyIdPair = KeysCombineUtil.toMultiKey(cacheKeyHolder, pjp.getArgs());
                 Set<String> keys = ((Map<String, Object>) keyIdPair[1]).keySet();
                 cacheManager.remove(invalid.cache(), keys.toArray(new String[keys.size()]));
 
                 LOGGER.info("multi cache clear, keys: {}", keys);
 
             } else {
-                String key = KeysCombineUtil.toSingleKey(pair.getLeft(), invalid.separator(), pjp.getArgs());
+                String key = KeysCombineUtil.toSingleKey(cacheKeyHolder, pjp.getArgs());
                 cacheManager.remove(invalid.cache(), key);
 
                 LOGGER.info("single cache clear, key: {}", key);

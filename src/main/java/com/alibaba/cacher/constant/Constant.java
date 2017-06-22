@@ -6,7 +6,7 @@ package com.alibaba.cacher.constant;
  */
 public interface Constant {
 
-    String TOTAL_KEY = "CacherTotalStatistics";
+    String PACKAGE_MANAGER = "com.alibaba.cacher.manager";
 
-    String CACHER_BASE_PACKAGE = "com.alibaba.cacher";
+    String PACKAGE_READER = "com.alibaba.cacher.reader";
 }

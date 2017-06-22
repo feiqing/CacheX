@@ -10,24 +10,50 @@ import java.util.Map;
  */
 public class CacheKeyHolder {
 
+    // ******************* //
+    // --- cached 内容 ---- //
+    // ******************* //
+    private String cache;
+
     private String prefix;
 
+    private int expire;
+
+    private String separator;
+
+    // ****************** //
+    // --- @CacheKey --- //
+    // ****************** //
     private Map<Integer, CacheKey> cacheKeyMap;
 
     private int multiIndex = -1;
 
-    private String identifier;
+    private String id;
 
-    private CacheKeyHolder(String prefix, Map<Integer, CacheKey> cacheKeyMap, int multiIndex, String identifier) {
+    private CacheKeyHolder(String cache, String prefix, int expire, String separator, Map<Integer, CacheKey> cacheKeyMap, int multiIndex, String id) {
+        this.cache = cache;
         this.prefix = prefix;
+        this.expire = expire;
+        this.separator = separator;
         this.cacheKeyMap = cacheKeyMap;
         this.multiIndex = multiIndex;
-        this.identifier = identifier;
+        this.id = id;
     }
 
+    public String getCache() {
+        return cache;
+    }
 
     public String getPrefix() {
         return prefix;
+    }
+
+    public int getExpire() {
+        return expire;
+    }
+
+    public String getSeparator() {
+        return separator;
     }
 
     public Map<Integer, CacheKey> getCacheKeyMap() {
@@ -42,26 +68,47 @@ public class CacheKeyHolder {
         return multiIndex != -1;
     }
 
-    public String getIdentifier() {
-        return identifier;
+    public String getId() {
+        return id;
     }
 
     public static class Builder {
 
+        private String cache;
+
         private String prefix;
+
+        private int expire;
+
+        private String separator;
 
         private Map<Integer, CacheKey> cacheKeyMap;
 
         private int multiIndex = -1;
 
-        private String identifier;
+        private String id;
 
-        public static Builder newCacheKeyHolderBuilder() {
+        public static Builder newBuilder() {
             return new Builder();
+        }
+
+        public Builder setCache(String cache) {
+            this.cache = cache;
+            return this;
         }
 
         public Builder setPrefix(String prefix) {
             this.prefix = prefix;
+            return this;
+        }
+
+        public Builder setExpire(int expire) {
+            this.expire = expire;
+            return this;
+        }
+
+        public Builder setSeparator(String separator) {
+            this.separator = separator;
             return this;
         }
 
@@ -70,8 +117,8 @@ public class CacheKeyHolder {
             return this;
         }
 
-        public Builder setIdentifier(String identifier) {
-            this.identifier = identifier;
+        public Builder setId(String id) {
+            this.id = id;
             return this;
         }
 
@@ -81,7 +128,7 @@ public class CacheKeyHolder {
         }
 
         public CacheKeyHolder build() {
-            return new CacheKeyHolder(prefix, cacheKeyMap, multiIndex, identifier);
+            return new CacheKeyHolder(cache, prefix, expire, separator, cacheKeyMap, multiIndex, id);
         }
     }
 }

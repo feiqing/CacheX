@@ -14,9 +14,9 @@ import java.util.Map;
  */
 public class KeysCombineUtil {
 
-    public static String toSingleKey(CacheKeyHolder holder, String separator, Object[] args) {
-        String prefix = holder.getPrefix();
-        Map<Integer, CacheKey> cacheKeyMap = holder.getCacheKeyMap();
+    public static String toSingleKey(CacheKeyHolder keyHolder, Object[] args) {
+        String prefix = keyHolder.getPrefix();
+        Map<Integer, CacheKey> cacheKeyMap = keyHolder.getCacheKeyMap();
 
         StringBuilder sb = new StringBuilder(prefix);
         for (Map.Entry<Integer, CacheKey> entry : cacheKeyMap.entrySet()) {
@@ -24,6 +24,7 @@ public class KeysCombineUtil {
             CacheKey cacheKey = entry.getValue();
 
             // append key separator (like : "-")
+            String separator = keyHolder.getSeparator();
             if (!Strings.isNullOrEmpty(separator) &&
                     (!Strings.isNullOrEmpty(prefix) || index != 0)) {
                 sb.append(separator);
@@ -41,10 +42,10 @@ public class KeysCombineUtil {
     }
 
     //{idKeyMap, keyIdMap}
-    public static Map[] toMultiKey(CacheKeyHolder holder, String separator, Object[] args) {
-        String prefix = holder.getPrefix();
-        Map<Integer, CacheKey> cacheKeyMap = holder.getCacheKeyMap();
-        int multiIndex = holder.getMultiIndex();
+    public static Map[] toMultiKey(CacheKeyHolder keyHolder, Object[] args) {
+        String prefix = keyHolder.getPrefix();
+        Map<Integer, CacheKey> cacheKeyMap = keyHolder.getCacheKeyMap();
+        int multiIndex = keyHolder.getMultiIndex();
         Collection multiArgValues = (Collection) args[multiIndex];
 
         Map<Object, String> idKeyMap = new LinkedHashMap<>();
@@ -57,6 +58,7 @@ public class KeysCombineUtil {
                     int index = entry.getKey();
                     CacheKey cacheKey = entry.getValue();
 
+                    String separator = keyHolder.getSeparator();
                     // append key separator
                     if (!Strings.isNullOrEmpty(separator) &&
                             (!Strings.isNullOrEmpty(prefix) || index != 0)) {

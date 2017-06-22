@@ -4,13 +4,13 @@ package com.alibaba.cacher.domain;
  * @author jifang
  * @since 2016/11/29 下午10:41.
  */
-public class MethodInfoHolder {
+public class CacheMethodHolder {
 
     private Class<?> type;
 
     private boolean collection;
 
-    public MethodInfoHolder(boolean collection) {
+    public CacheMethodHolder(boolean collection) {
         this.collection = collection;
     }
 
