@@ -1,7 +1,5 @@
-package com.alibaba.cacher.utils;
+package com.alibaba.cacher.ioc;
 
-import com.alibaba.cacher.config.Inject;
-import com.alibaba.cacher.config.Singleton;
 import com.alibaba.cacher.exception.CacherException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,6 +71,7 @@ public class CacherIOCContainer {
     }
 
     private static void savePackageBeanInstance(Set<Class<?>> classes, Class<?> rootBeanClass, Object rootBean) {
+        classes.add(rootBeanClass);
         Map<String, Object> nameBeanMap = new HashMap<>(classes.size());
         Map<Class<?>, Object> classBeanMap = new HashMap<>(classes.size());
 

@@ -1,14 +1,14 @@
 package com.alibaba.cacher.reader;
 
 import com.alibaba.cacher.ShootingMXBean;
-import com.alibaba.cacher.config.Inject;
-import com.alibaba.cacher.config.Singleton;
+import com.alibaba.cacher.ioc.Inject;
+import com.alibaba.cacher.ioc.Singleton;
 import com.alibaba.cacher.domain.CacheKeyHolder;
 import com.alibaba.cacher.domain.CacheMethodHolder;
 import com.alibaba.cacher.invoker.Invoker;
 import com.alibaba.cacher.manager.CacheManager;
-import com.alibaba.cacher.utils.PatternSupplier;
-import com.alibaba.cacher.utils.KeysCombineUtil;
+import com.alibaba.cacher.supplier.PatternSupplier;
+import com.alibaba.cacher.utils.KeyGenerators;
 
 /**
  * @author jifang
@@ -25,7 +25,7 @@ public class SingleCacheReader extends AbstractCacheReader {
 
     @Override
     public Object read(CacheKeyHolder cacheKeyHolder, CacheMethodHolder cacheMethodHolder, Invoker invoker, boolean needWrite) throws Throwable {
-        String key = KeysCombineUtil.toSingleKey(cacheKeyHolder, invoker.getArgs());
+        String key = KeyGenerators.generateSingleKey(cacheKeyHolder, invoker.getArgs());
         Object result = cacheManager.readSingle(cacheKeyHolder.getCache(), key);
 
         doRecord(result, key, cacheKeyHolder);

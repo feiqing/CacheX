@@ -22,9 +22,9 @@ public @interface CachedGet {
     String cache() default "";
 
     /**
-     * @return Specifies the start prefix on every key,
+     * @return Specifies the start keyExp on every key,
      * if the {@code Method} have non {@code param},
-     * {@code prefix} is the <b>constant key</b> used by this {@code Method}
+     * {@code keyExp} is the <b>constant key</b> used by this {@code Method}
      * @since 0.3
      */
     String prefix() default "";

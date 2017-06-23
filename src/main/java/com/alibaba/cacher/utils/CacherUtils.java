@@ -1,11 +1,6 @@
 package com.alibaba.cacher.utils;
 
 import com.google.common.base.Strings;
-import org.aspectj.lang.JoinPoint;
-import org.aspectj.lang.reflect.MethodSignature;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
-
-import java.lang.reflect.Method;
 
 /**
  * @author jifang
@@ -13,27 +8,13 @@ import java.lang.reflect.Method;
  */
 public class CacherUtils {
 
-    private static final SpelExpressionParser parser = new SpelExpressionParser();
-
-
-
-    public static Method getMethod(JoinPoint pjp) throws NoSuchMethodException {
-        MethodSignature ms = (MethodSignature) pjp.getSignature();
-        Method method = ms.getMethod();
-        if (method.getDeclaringClass().isInterface()) {
-            method = pjp.getTarget().getClass().getDeclaredMethod(ms.getName(), method.getParameterTypes());
+    public static StringBuilder appendSeparator(StringBuilder sb, String prefix, int index, String separator) {
+        if (!Strings.isNullOrEmpty(separator)) {
+            if (!Strings.isNullOrEmpty(prefix) || index != 0) {
+                sb.append(separator);
+            }
         }
-        return method;
-    }
 
-    static Object getExpressionValue(String spEL, Object outerValue) {
-        Object innerValue;
-        if (!Strings.isNullOrEmpty(spEL)) {
-            innerValue = parser.parseExpression(spEL).getValue(outerValue);
-        } else {
-            innerValue = outerValue;
-        }
-        return innerValue;
+        return sb;
     }
-
 }

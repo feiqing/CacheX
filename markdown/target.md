@@ -1,4 +1,7 @@
 ## 下一里程碑版本目标 2.x
+- 缓存击穿, 参考junnan `poney`实现
+- 限制4: 自定义`Collection`在注解内开放配置
+- `@CacheKey` spel导入参数名
 - 多级缓存!
 - 限制4:
     - 提供对`java.util.Collections.EmptyList`、`java.util.Collections.EmptyMap`等作为参数/返回值的支持(设计ing)
@@ -6,10 +9,9 @@
     - 提供对`java.util.Collections.SingletonList`、`java.util.Collections.SingletonMap`等作为参数/返回值的支持(设计ing)
     - 思考是否开放接口
 - 限制5:
-    - `@CacheWrite`注解(开关区分是否返回值, 参考SpringCache的key #result实现)    
+    - `@CachedPut`注解(开关区分是否返回值, 参考SpringCache的key #result实现)    
 - 限制3:
     - 提供以Map的`keySet`作为Multi的CacheKey参数支持.
 - 缓存预热(了解ing)
-- 参数名导入spel环境
 - 击穿后缓存自动切换
 - `@Invalid`是否开启前向清除缓存?

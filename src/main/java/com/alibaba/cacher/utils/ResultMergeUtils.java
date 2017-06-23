@@ -1,5 +1,8 @@
 package com.alibaba.cacher.utils;
 
+import com.alibaba.cacher.supplier.CollectionSupplier;
+import com.alibaba.cacher.supplier.MapSuppliers;
+
 import java.util.Collection;
 import java.util.Map;
 
@@ -30,24 +33,4 @@ public class ResultMergeUtils {
 
         return CollectionSupplier.convertInstanceType(collectionType, collection);
     }
-
-    /*
-    public static Collection collectionMerge(Set<String> keys, Class<?> returnType,
-                                             Map<String, Object> keyValueMap1, Map<String, Object> keyValueMap2) {
-
-        CollectionSupplier.newInstance(returnType, )
-
-        Collection mergedCollection = (Collection) returnType.newInstance();
-
-        for (String key : keys) {
-            Object value = keyValueMap1.get(key);
-            if (value == null) {
-                value = keyValueMap2.get(key);
-            }
-
-            mergedCollection.add(value);
-        }
-
-        return mergedCollection;
-    }*/
 }

@@ -114,9 +114,9 @@ public @interface Cached {
     String cache() default "";
 
     /**
-     * @return Specifies the start prefix on every key,
+     * @return Specifies keyExp
      * if the {@code Method} have non {@code param},
-     * {@code prefix} is the <b>constant key</b> used by this {@code Method}
+     * {@codekeyExp} is the <b>constant key</b> used by this {@code Method}
      * @since 0.3
      */
     String prefix() default "";

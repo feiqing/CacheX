@@ -1,4 +1,4 @@
-package com.alibaba.cacher.utils;
+package com.alibaba.cacher.supplier;
 
 import com.alibaba.cacher.CacheKey;
 import com.alibaba.cacher.Cached;
@@ -25,15 +25,15 @@ import java.util.concurrent.ConcurrentMap;
  * @author jifang
  * @since 16/7/20 上午11:49.
  */
-public class MethodInfoUtil {
+public class CacherInfoSupplier {
 
     private static final ConcurrentMap<Method, Pair<CacheKeyHolder, CacheMethodHolder>> cacheMap = new ConcurrentHashMap<>();
 
     public static Pair<CacheKeyHolder, CacheMethodHolder> getMethodInfo(Method method) {
-        return cacheMap.computeIfAbsent(method, MethodInfoUtil::supplier);
+        return cacheMap.computeIfAbsent(method, CacherInfoSupplier::doGetMethodInfo);
     }
 
-    private static Pair<CacheKeyHolder, CacheMethodHolder> supplier(Method method) {
+    private static Pair<CacheKeyHolder, CacheMethodHolder> doGetMethodInfo(Method method) {
         CacheKeyHolder cacheKeyHolder = supplyKeyHolder(method);
         CacheMethodHolder cacheMethodHolder = supplyMethodHolder(method, cacheKeyHolder);
 
@@ -41,12 +41,12 @@ public class MethodInfoUtil {
     }
 
     /****
-     * cache key supplier
+     * cache key doGetMethodInfo
      ****/
 
     private static CacheKeyHolder supplyKeyHolder(Method method) {
 
-        CacheKeyHolder.Builder builder = CacheKeyHolder.Builder.newBuilder();
+        CacheKeyHolder.Builder builder = CacheKeyHolder.Builder.newBuilder(method);
 
         Annotation[][] pAnnotations = method.getParameterAnnotations();
         scanKeys(builder, pAnnotations);
@@ -113,7 +113,7 @@ public class MethodInfoUtil {
     }
 
     /***
-     * cache method supplier
+     * cache method doGetMethodInfo
      ***/
 
     private static CacheMethodHolder supplyMethodHolder(Method method, CacheKeyHolder cacheKeyHolder) {
@@ -180,5 +180,6 @@ public class MethodInfoUtil {
 
     private static boolean isInvalidMulti(Class<?> paramType) {
         return !Collection.class.isAssignableFrom(paramType);
+        //暂时还不能放开  && !Map.class.isAssignableFrom(paramType);
     }
 }

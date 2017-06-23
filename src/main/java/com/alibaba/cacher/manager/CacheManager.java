@@ -1,7 +1,7 @@
 package com.alibaba.cacher.manager;
 
 import com.alibaba.cacher.ICache;
-import com.alibaba.cacher.config.Singleton;
+import com.alibaba.cacher.ioc.Singleton;
 import com.alibaba.cacher.domain.BatchReadResult;
 import com.alibaba.cacher.domain.Pair;
 import com.alibaba.cacher.exception.CacherException;

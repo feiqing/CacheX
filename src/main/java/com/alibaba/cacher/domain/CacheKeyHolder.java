@@ -2,13 +2,18 @@ package com.alibaba.cacher.domain;
 
 import com.alibaba.cacher.CacheKey;
 
+import java.lang.reflect.Method;
 import java.util.Map;
 
 /**
+ * TODO 生成hashCode & equals
+ *
  * @author jifang
  * @since 2016/11/29 下午10:43.
  */
 public class CacheKeyHolder {
+
+    private Method method;
 
     // ******************* //
     // --- cached 内容 ---- //
@@ -30,7 +35,10 @@ public class CacheKeyHolder {
 
     private String id;
 
-    private CacheKeyHolder(String cache, String prefix, int expire, String separator, Map<Integer, CacheKey> cacheKeyMap, int multiIndex, String id) {
+    private CacheKeyHolder(Method method,
+                           String cache, String prefix, int expire, String separator,
+                           Map<Integer, CacheKey> cacheKeyMap, int multiIndex, String id) {
+        this.method = method;
         this.cache = cache;
         this.prefix = prefix;
         this.expire = expire;
@@ -38,6 +46,10 @@ public class CacheKeyHolder {
         this.cacheKeyMap = cacheKeyMap;
         this.multiIndex = multiIndex;
         this.id = id;
+    }
+
+    public Method getMethod() {
+        return method;
     }
 
     public String getCache() {
@@ -74,6 +86,8 @@ public class CacheKeyHolder {
 
     public static class Builder {
 
+        private Method method;
+
         private String cache;
 
         private String prefix;
@@ -88,8 +102,12 @@ public class CacheKeyHolder {
 
         private String id;
 
-        public static Builder newBuilder() {
-            return new Builder();
+        private Builder(Method method) {
+            this.method = method;
+        }
+
+        public static Builder newBuilder(Method method) {
+            return new Builder(method);
         }
 
         public Builder setCache(String cache) {
@@ -128,7 +146,7 @@ public class CacheKeyHolder {
         }
 
         public CacheKeyHolder build() {
-            return new CacheKeyHolder(cache, prefix, expire, separator, cacheKeyMap, multiIndex, id);
+            return new CacheKeyHolder(method, cache, prefix, expire, separator, cacheKeyMap, multiIndex, id);
         }
     }
 }

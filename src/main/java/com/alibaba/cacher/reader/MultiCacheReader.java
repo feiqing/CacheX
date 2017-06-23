@@ -1,13 +1,15 @@
 package com.alibaba.cacher.reader;
 
 import com.alibaba.cacher.ShootingMXBean;
-import com.alibaba.cacher.config.Inject;
-import com.alibaba.cacher.config.Singleton;
+import com.alibaba.cacher.ioc.Inject;
+import com.alibaba.cacher.ioc.Singleton;
 import com.alibaba.cacher.domain.BatchReadResult;
 import com.alibaba.cacher.domain.CacheKeyHolder;
 import com.alibaba.cacher.domain.CacheMethodHolder;
 import com.alibaba.cacher.invoker.Invoker;
 import com.alibaba.cacher.manager.CacheManager;
+import com.alibaba.cacher.supplier.CollectionSupplier;
+import com.alibaba.cacher.supplier.PatternSupplier;
 import com.alibaba.cacher.utils.*;
 
 import java.util.ArrayList;
@@ -32,7 +34,7 @@ public class MultiCacheReader extends AbstractCacheReader {
     @Override
     public Object read(CacheKeyHolder cacheKeyHolder, CacheMethodHolder cacheMethodHolder, Invoker invoker, boolean needWrite) throws Throwable {
         // compose keys
-        Map[] pair = KeysCombineUtil.toMultiKey(cacheKeyHolder, invoker.getArgs());
+        Map[] pair = KeyGenerators.generateMultiKey(cacheKeyHolder, invoker.getArgs());
         Map<String, Object> keyIdMap = pair[1];
 
         // request cache
@@ -78,7 +80,7 @@ public class MultiCacheReader extends AbstractCacheReader {
                 // @since 1.5.4 为了兼容@CachedGet注解, 客户端缓存
                 if (needWrite) {
                     // 将方法调用返回的map转换成key_value_map写入Cache
-                    Map<String, Object> keyValueMap = KeyValueConverts.idValueMap2KeyValue(proceedIdValueMap, id2Key);
+                    Map<String, Object> keyValueMap = KeyValueConverts.idValueToKeyValue(proceedIdValueMap, id2Key);
                     cacheManager.writeBatch(cacheKeyHolder.getCache(), keyValueMap, cacheKeyHolder.getExpire());
                 }
                 // 将方法调用返回的map与从Cache中读取的key_value_map合并返回
@@ -89,7 +91,7 @@ public class MultiCacheReader extends AbstractCacheReader {
                 // @since 1.5.4 为了兼容@CachedGet注解, 客户端缓存
                 if (needWrite) {
                     // 将方法调用返回的collection转换成key_value_map写入Cache
-                    Map<String, Object> keyValueMap = KeyValueConverts.collection2KeyValue(proceedCollection, cacheKeyHolder.getId(), id2Key);
+                    Map<String, Object> keyValueMap = KeyValueConverts.collectionToKeyValue(proceedCollection, cacheKeyHolder.getId(), id2Key);
                     cacheManager.writeBatch(cacheKeyHolder.getCache(), keyValueMap, cacheKeyHolder.getExpire());
                 }
                 // 将方法调用返回的collection与从Cache中读取的key_value_map合并返回

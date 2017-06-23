@@ -1,7 +1,8 @@
 package com.alibaba.cacher;
 
-import com.alibaba.cacher.config.Inject;
-import com.alibaba.cacher.config.Singleton;
+import com.alibaba.cacher.ioc.CacherIOCContainer;
+import com.alibaba.cacher.ioc.Inject;
+import com.alibaba.cacher.ioc.Singleton;
 import com.alibaba.cacher.constant.Constant;
 import com.alibaba.cacher.domain.CacheKeyHolder;
 import com.alibaba.cacher.domain.CacheMethodHolder;
@@ -9,12 +10,14 @@ import com.alibaba.cacher.domain.Pair;
 import com.alibaba.cacher.invoker.JoinPointInvokerAdapter;
 import com.alibaba.cacher.manager.CacheManager;
 import com.alibaba.cacher.reader.AbstractCacheReader;
+import com.alibaba.cacher.supplier.CacherInfoSupplier;
 import com.alibaba.cacher.utils.*;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -100,7 +103,7 @@ public class CacherAspect {
 
     @Around("@annotation(com.alibaba.cacher.Cached)")
     public Object readWrite(ProceedingJoinPoint pjp) throws Throwable {
-        Method method = CacherUtils.getMethod(pjp);
+        Method method = getMethod(pjp);
         Cached cached = method.getAnnotation(Cached.class);
 
         Object result;
@@ -110,7 +113,7 @@ public class CacherAspect {
                 start = System.currentTimeMillis();
             }
 
-            Pair<CacheKeyHolder, CacheMethodHolder> pair = MethodInfoUtil.getMethodInfo(method);
+            Pair<CacheKeyHolder, CacheMethodHolder> pair = CacherInfoSupplier.getMethodInfo(method);
             CacheKeyHolder cacheKeyHolder = pair.getLeft();
             CacheMethodHolder cacheMethodHolder = pair.getRight();
 
@@ -133,7 +136,7 @@ public class CacherAspect {
 
     @After("@annotation(com.alibaba.cacher.Invalid)")
     public void remove(JoinPoint pjp) throws Throwable {
-        Method method = CacherUtils.getMethod(pjp);
+        Method method = getMethod(pjp);
         Invalid invalid = method.getAnnotation(Invalid.class);
 
         if (CacherSwitcher.isSwitchOn(open, invalid, method, pjp.getArgs())) {
@@ -143,18 +146,18 @@ public class CacherAspect {
                 start = System.currentTimeMillis();
             }
 
-            Pair<CacheKeyHolder, CacheMethodHolder> pair = MethodInfoUtil.getMethodInfo(method);
+            Pair<CacheKeyHolder, CacheMethodHolder> pair = CacherInfoSupplier.getMethodInfo(method);
             CacheKeyHolder cacheKeyHolder = pair.getLeft();
 
             if (cacheKeyHolder.isMulti()) {
-                Map[] keyIdPair = KeysCombineUtil.toMultiKey(cacheKeyHolder, pjp.getArgs());
+                Map[] keyIdPair = KeyGenerators.generateMultiKey(cacheKeyHolder, pjp.getArgs());
                 Set<String> keys = ((Map<String, Object>) keyIdPair[1]).keySet();
                 cacheManager.remove(invalid.cache(), keys.toArray(new String[keys.size()]));
 
                 LOGGER.info("multi cache clear, keys: {}", keys);
 
             } else {
-                String key = KeysCombineUtil.toSingleKey(cacheKeyHolder, pjp.getArgs());
+                String key = KeyGenerators.generateSingleKey(cacheKeyHolder, pjp.getArgs());
                 cacheManager.remove(invalid.cache(), key);
 
                 LOGGER.info("single cache clear, key: {}", key);
@@ -176,5 +179,15 @@ public class CacherAspect {
                 && this.shootingMXBean != null) {
             this.mBeanServer.unregisterMBean(new ObjectName("com.alibaba.cacher:name=hit"));
         }
+    }
+
+
+    private Method getMethod(JoinPoint pjp) throws NoSuchMethodException {
+        MethodSignature ms = (MethodSignature) pjp.getSignature();
+        Method method = ms.getMethod();
+        if (method.getDeclaringClass().isInterface()) {
+            method = pjp.getTarget().getClass().getDeclaredMethod(ms.getName(), method.getParameterTypes());
+        }
+        return method;
     }
 }

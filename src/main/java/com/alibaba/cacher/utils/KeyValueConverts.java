@@ -1,5 +1,6 @@
 package com.alibaba.cacher.utils;
 
+import com.alibaba.cacher.supplier.SpelValueSupplier;
 import com.google.common.base.Strings;
 
 import java.util.Collection;
@@ -12,28 +13,26 @@ import java.util.Map;
  */
 public class KeyValueConverts {
 
-    public static Map<String, Object> idValueMap2KeyValue(Map idValueMap, Map<Object, String> idKeyMap) {
-        Map<String, Object> keyValueMap = new HashMap<>(idValueMap.size());
+    @SuppressWarnings("unchecked")
+    public static Map<String, Object> idValueToKeyValue(Map id2Value, Map<Object, String> id2Key) {
+        Map<String, Object> keyValueMap = new HashMap<>(id2Value.size());
 
-        for (Object entry : idValueMap.entrySet()) {
-            Map.Entry mapEntry = (Map.Entry) entry;
-
-            String key = idKeyMap.get(mapEntry.getKey());
+        id2Value.forEach((id, value) -> {
+            String key = id2Key.get(id);
             if (!Strings.isNullOrEmpty(key)) {
-                Object value = mapEntry.getValue();
                 keyValueMap.put(key, value);
             }
-        }
+        });
 
         return keyValueMap;
     }
 
-    public static Map<String, Object> collection2KeyValue(Collection collection, String identifier, Map<Object, String> idKeyMap) {
-        Map<String, Object> keyValueMap = new HashMap<>(collection.size());
+    public static Map<String, Object> collectionToKeyValue(Collection proceedCollection, String idSpel, Map<Object, String> id2Key) {
+        Map<String, Object> keyValueMap = new HashMap<>(proceedCollection.size());
 
-        for (Object value : collection) {
-            Object id = CacherUtils.getExpressionValue(identifier, value);
-            String key = idKeyMap.get(id);
+        for (Object value : proceedCollection) {
+            Object id = SpelValueSupplier.calcSpelValue(idSpel, value);
+            String key = id2Key.get(id);
 
             if (!Strings.isNullOrEmpty(key)) {
                 keyValueMap.put(key, value);

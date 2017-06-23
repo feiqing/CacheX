@@ -1,4 +1,4 @@
-package com.alibaba.cacher.config;
+package com.alibaba.cacher.ioc;
 
 import java.lang.annotation.*;
 
