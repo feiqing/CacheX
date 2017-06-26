@@ -1,7 +1,7 @@
 package com.alibaba.cacher.supplier;
 
 import com.alibaba.cacher.exception.CacherException;
-import com.alibaba.cacher.utils.CacherSwitcher;
+import com.alibaba.cacher.utils.SwitcherUtils;
 import javassist.*;
 import javassist.bytecode.LocalVariableAttribute;
 
@@ -77,6 +77,6 @@ public class ParameterNamesSupplier {
     static {
         pool = ClassPool.getDefault();
         // 自定义ClassLoader情况
-        pool.insertClassPath(new ClassClassPath(CacherSwitcher.class));
+        pool.insertClassPath(new ClassClassPath(SwitcherUtils.class));
     }
 }

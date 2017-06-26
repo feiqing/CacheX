@@ -31,6 +31,7 @@ public abstract class AbstractCacheReader {
         return result;
     }
 
+    @FunctionalInterface
     protected interface Supplier<T> {
         T get() throws Throwable;
     }

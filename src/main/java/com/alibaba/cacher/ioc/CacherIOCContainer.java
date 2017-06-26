@@ -5,7 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -198,12 +197,7 @@ public class CacherIOCContainer {
         File packageDirFile = new File(packageDirPath);
         if (packageDirFile.exists() && packageDirFile.isDirectory()) {
 
-            File[] subFiles = packageDirFile.listFiles(new FileFilter() {
-                @Override
-                public boolean accept(File pathname) {
-                    return pathname.isDirectory() || pathname.getName().endsWith(CLASS_SUFFIX);
-                }
-            });
+            File[] subFiles = packageDirFile.listFiles(pathname -> pathname.isDirectory() || pathname.getName().endsWith(CLASS_SUFFIX));
 
             assert subFiles != null;
             for (File subFile : subFiles) {

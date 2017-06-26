@@ -13,23 +13,24 @@ import java.util.Map;
 @SuppressWarnings("unchecked")
 public class ResultConvertUtils {
 
-    public static Map toMap(Class<?> mapType, Map<String, Object> fromCacheMap, Map<String, Object> keyIdMap) {
+    public static Map toMap(Map<String, Object> keyIdMap, Class<?> mapType,
+                            Map<String, Object> cacheMap) {
 
         Map resultMap = MapSuppliers.newInstance(mapType);
-        fromCacheMap.forEach((key, value) -> {
+        cacheMap.forEach((key, value) -> {
             Object id = keyIdMap.get(key);
-
             resultMap.put(id, value);
         });
 
         return MapSuppliers.convertInstanceType(mapType, resultMap);
     }
 
-    public static Collection toCollection(Class<?> returnType, Collection fromCacheCollection) {
+    public static Collection toCollection(Class<?> collectionType,
+                                          Map<String, Object> cacheMap) {
 
-        Collection collection = CollectionSupplier.newInstance(returnType);
-        collection.addAll(fromCacheCollection);
+        Collection resultCollection = CollectionSupplier.newInstance(collectionType);
+        resultCollection.addAll(cacheMap.values());
 
-        return CollectionSupplier.convertInstanceType(returnType, collection);
+        return CollectionSupplier.convertInstanceType(collectionType, resultCollection);
     }
 }

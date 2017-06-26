@@ -21,10 +21,10 @@ public class BatchReadResult {
     }
 
     public Map<String, Object> getHitKeyValueMap() {
-        return hitKeyValueMap == null ? Collections.<String, Object>emptyMap() : hitKeyValueMap;
+        return hitKeyValueMap == null ? Collections.emptyMap() : hitKeyValueMap;
     }
 
     public Set<String> getMissKeys() {
-        return missKeys == null ? Collections.<String>emptySet() : missKeys;
+        return missKeys == null ? Collections.emptySet() : missKeys;
     }
 }

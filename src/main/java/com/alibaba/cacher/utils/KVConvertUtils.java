@@ -11,13 +11,13 @@ import java.util.Map;
  * @author jifang
  * @since 2016/11/18 下午3:21.
  */
-public class KeyValueConverts {
+@SuppressWarnings("unchecked")
+public class KVConvertUtils {
 
-    @SuppressWarnings("unchecked")
-    public static Map<String, Object> idValueToKeyValue(Map id2Value, Map<Object, String> id2Key) {
-        Map<String, Object> keyValueMap = new HashMap<>(id2Value.size());
+    public static Map<String, Object> idValueToKeyValue(Map proceedMap, Map<Object, String> id2Key) {
+        Map<String, Object> keyValueMap = new HashMap<>(proceedMap.size());
 
-        id2Value.forEach((id, value) -> {
+        proceedMap.forEach((id, value) -> {
             String key = id2Key.get(id);
             if (!Strings.isNullOrEmpty(key)) {
                 keyValueMap.put(key, value);

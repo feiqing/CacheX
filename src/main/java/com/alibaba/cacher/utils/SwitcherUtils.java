@@ -8,16 +8,12 @@ import com.alibaba.cacher.supplier.ParameterNamesSupplier;
 import com.alibaba.cacher.supplier.SpelValueSupplier;
 
 import java.lang.reflect.Method;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author jifang
  * @since 2017/1/9 下午4:59.
  */
-public class CacherSwitcher {
-
-    private static final Map<Method, String[]> methodArgNameMap = new ConcurrentHashMap<>();
+public class SwitcherUtils {
 
     public static boolean isSwitchOn(boolean openStat, Cached cached, Method method, Object[] args) {
         return doIsSwitchOn(openStat, cached.expire(), cached.condition(), method, args);

@@ -6,8 +6,6 @@ import java.lang.reflect.Method;
 import java.util.Map;
 
 /**
- * TODO 生成hashCode & equals
- *
  * @author jifang
  * @since 2016/11/29 下午10:43.
  */

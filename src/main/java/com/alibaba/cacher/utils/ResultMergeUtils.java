@@ -13,12 +13,13 @@ import java.util.Map;
 @SuppressWarnings("unchecked")
 public class ResultMergeUtils {
 
-    public static Map mapMerge(Map<String, Object> keyIdMap, Class<?> mapType,
-                               Map fromMethodMap, Map<String, Object> fromCacheMap) {
+    public static Map mergeMap(Map<String, Object> keyIdMap, Class<?> mapType,
+                               Map proceedMap,
+                               Map<String, Object> cacheMap) {
 
-        Map mergedMap = MapSuppliers.newInstance(mapType, fromMethodMap);
+        Map mergedMap = MapSuppliers.newInstance(mapType, proceedMap);
 
-        fromCacheMap.forEach((key, value) -> {
+        cacheMap.forEach((key, value) -> {
             Object id = keyIdMap.get(key);
             mergedMap.put(id, value);
         });
@@ -26,11 +27,12 @@ public class ResultMergeUtils {
         return MapSuppliers.convertInstanceType(mapType, mergedMap);
     }
 
-    public static Collection collectionMerge(Class<?> collectionType, Collection fromMethodCollection,
-                                             Map<String, Object> fromCacheMap) {
-        Collection collection = CollectionSupplier.newInstance(collectionType, fromMethodCollection);
-        collection.addAll(fromCacheMap.values());
+    public static Collection mergeCollection(Class<?> collectionType,
+                                             Collection proceedCollection,
+                                             Map<String, Object> cacheMap) {
+        Collection mergedCollection = CollectionSupplier.newInstance(collectionType, proceedCollection);
+        mergedCollection.addAll(cacheMap.values());
 
-        return CollectionSupplier.convertInstanceType(collectionType, collection);
+        return CollectionSupplier.convertInstanceType(collectionType, mergedCollection);
     }
 }

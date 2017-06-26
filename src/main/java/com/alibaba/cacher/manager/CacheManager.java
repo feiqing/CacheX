@@ -1,10 +1,10 @@
 package com.alibaba.cacher.manager;
 
 import com.alibaba.cacher.ICache;
-import com.alibaba.cacher.ioc.Singleton;
 import com.alibaba.cacher.domain.BatchReadResult;
 import com.alibaba.cacher.domain.Pair;
 import com.alibaba.cacher.exception.CacherException;
+import com.alibaba.cacher.ioc.Singleton;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import org.slf4j.Logger;
@@ -26,21 +26,23 @@ public class CacheManager {
 
     private Pair<String, ICache> defaultCacheImpl;
 
-    private Map<String, Pair<String, ICache>> iCachePool = new ConcurrentHashMap<>();
+    private Map<String, Pair<String, ICache>> cachePool = new ConcurrentHashMap<>();
 
     public void initICachePool(Map<String, ICache> caches) {
         Preconditions.checkArgument(!caches.isEmpty(), "CacherAspect.caches param can not be empty!!!");
-        Map.Entry<String, ICache> entry = caches.entrySet().iterator().next();
 
+        // default cache impl
+        Map.Entry<String, ICache> entry = caches.entrySet().iterator().next();
         this.defaultCacheImpl = Pair.of(entry.getKey(), entry.getValue());
-        caches.forEach((name, cache) -> this.iCachePool.put(name, Pair.of(name, cache)));
+
+        caches.forEach((name, cache) -> this.cachePool.put(name, Pair.of(name, cache)));
     }
 
     public Object readSingle(String cache, String key) {
         try {
             Pair<String, ICache> cacheImpl = getCacheImpl(cache);
-            long start = System.currentTimeMillis();
 
+            long start = System.currentTimeMillis();
             Object result = cacheImpl.getRight().read(key);
             CACHER_LOGGER.info("cache [{}] read single cost: [{}] ms",
                     cacheImpl.getLeft(),
@@ -58,10 +60,9 @@ public class CacheManager {
         if (value != null) {
             try {
                 Pair<String, ICache> cacheImpl = getCacheImpl(cache);
+
                 long start = System.currentTimeMillis();
-
                 cacheImpl.getRight().write(key, value, expire);
-
                 CACHER_LOGGER.info("cache [{}] write single cost: [{}] ms",
                         cacheImpl.getLeft(),
                         (System.currentTimeMillis() - start));
@@ -79,12 +80,10 @@ public class CacheManager {
             batchReadResult = new BatchReadResult();
         } else {
             try {
-
                 Pair<String, ICache> cacheImpl = getCacheImpl(cache);
+
                 long start = System.currentTimeMillis();
-
-                Map<String, Object> fromCacheMap = cacheImpl.getRight().read(keys);
-
+                Map<String, Object> cacheMap = cacheImpl.getRight().read(keys);
                 CACHER_LOGGER.info("cache [{}] read batch cost: [{}] ms",
                         cacheImpl.getLeft(),
                         (System.currentTimeMillis() - start));
@@ -93,7 +92,7 @@ public class CacheManager {
                 Map<String, Object> hitValueMap = new LinkedHashMap<>();
                 Set<String> notHitKeys = new LinkedHashSet<>();
                 for (String key : keys) {
-                    Object value = fromCacheMap.get(key);
+                    Object value = cacheMap.get(key);
 
                     if (value == null) {
                         notHitKeys.add(key);
@@ -116,13 +115,13 @@ public class CacheManager {
     public void writeBatch(String cache, Map<String, Object> keyValueMap, int expire) {
         try {
             Pair<String, ICache> cacheImpl = getCacheImpl(cache);
+
             long start = System.currentTimeMillis();
-
             cacheImpl.getRight().write(keyValueMap, expire);
-
             CACHER_LOGGER.info("cache [{}] write batch cost: [{}] ms",
                     cacheImpl.getLeft(),
                     (System.currentTimeMillis() - start));
+
         } catch (Exception e) {
             ROOT_LOGGER.error("write map multi cache failed, keys: {}", keyValueMap.keySet(), e);
             CACHER_LOGGER.error("write map multi cache failed, keys: {}", keyValueMap.keySet(), e);
@@ -133,13 +132,13 @@ public class CacheManager {
         if (keys != null && keys.length != 0) {
             try {
                 Pair<String, ICache> cacheImpl = getCacheImpl(cache);
+
                 long start = System.currentTimeMillis();
-
                 cacheImpl.getRight().remove(keys);
-
                 CACHER_LOGGER.info("cache [{}] remove cost: [{}] ms",
                         cacheImpl.getLeft(),
                         (System.currentTimeMillis() - start));
+
             } catch (Throwable e) {
                 ROOT_LOGGER.error("remove cache failed, keys: {}: ", keys, e);
                 CACHER_LOGGER.error("remove cache failed, keys: {}: ", keys, e);
@@ -152,16 +151,10 @@ public class CacheManager {
         if (Strings.isNullOrEmpty(cacheName)) {
             cachePair = this.defaultCacheImpl;
         } else {
-            cachePair = this.iCachePool.computeIfAbsent(cacheName, (key) -> {
-                String msg = String.format("no ICache implementation named [%s], " +
+            cachePair = this.cachePool.computeIfAbsent(cacheName, (key) -> {
+                throw new CacherException(String.format("no ICache implementation named [%s], " +
                                 "please check the CacherAspect.caches param config correct",
-                        key);
-
-                CacherException exception = new CacherException(msg);
-                ROOT_LOGGER.error("wrong cache name {}", key, exception);
-                CACHER_LOGGER.error("wrong cache name {}", key, exception);
-
-                throw exception;
+                        key));
             });
         }
 

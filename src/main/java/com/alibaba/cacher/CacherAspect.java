@@ -107,7 +107,7 @@ public class CacherAspect {
         Cached cached = method.getAnnotation(Cached.class);
 
         Object result;
-        if (CacherSwitcher.isSwitchOn(open, cached, method, pjp.getArgs())) {
+        if (SwitcherUtils.isSwitchOn(open, cached, method, pjp.getArgs())) {
             long start = 0;
             if (LOGGER.isDebugEnabled()) {
                 start = System.currentTimeMillis();
@@ -139,7 +139,7 @@ public class CacherAspect {
         Method method = getMethod(pjp);
         Invalid invalid = method.getAnnotation(Invalid.class);
 
-        if (CacherSwitcher.isSwitchOn(open, invalid, method, pjp.getArgs())) {
+        if (SwitcherUtils.isSwitchOn(open, invalid, method, pjp.getArgs())) {
 
             long start = 0;
             if (LOGGER.isDebugEnabled()) {

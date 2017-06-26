@@ -12,10 +12,8 @@ import com.alibaba.cacher.supplier.CollectionSupplier;
 import com.alibaba.cacher.supplier.PatternSupplier;
 import com.alibaba.cacher.utils.*;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author jifang
@@ -80,22 +78,22 @@ public class MultiCacheReader extends AbstractCacheReader {
                 // @since 1.5.4 为了兼容@CachedGet注解, 客户端缓存
                 if (needWrite) {
                     // 将方法调用返回的map转换成key_value_map写入Cache
-                    Map<String, Object> keyValueMap = KeyValueConverts.idValueToKeyValue(proceedIdValueMap, id2Key);
+                    Map<String, Object> keyValueMap = KVConvertUtils.idValueToKeyValue(proceedIdValueMap, id2Key);
                     cacheManager.writeBatch(cacheKeyHolder.getCache(), keyValueMap, cacheKeyHolder.getExpire());
                 }
                 // 将方法调用返回的map与从Cache中读取的key_value_map合并返回
-                result = ResultMergeUtils.mapMerge(key2Id, returnType, proceedIdValueMap, hitKeyValueMap);
+                result = ResultMergeUtils.mergeMap(key2Id, returnType, proceedIdValueMap, hitKeyValueMap);
             } else {
                 Collection proceedCollection = (Collection) proceed;
 
                 // @since 1.5.4 为了兼容@CachedGet注解, 客户端缓存
                 if (needWrite) {
                     // 将方法调用返回的collection转换成key_value_map写入Cache
-                    Map<String, Object> keyValueMap = KeyValueConverts.collectionToKeyValue(proceedCollection, cacheKeyHolder.getId(), id2Key);
+                    Map<String, Object> keyValueMap = KVConvertUtils.collectionToKeyValue(proceedCollection, cacheKeyHolder.getId(), id2Key);
                     cacheManager.writeBatch(cacheKeyHolder.getCache(), keyValueMap, cacheKeyHolder.getExpire());
                 }
                 // 将方法调用返回的collection与从Cache中读取的key_value_map合并返回
-                result = ResultMergeUtils.collectionMerge(returnType, proceedCollection, hitKeyValueMap);
+                result = ResultMergeUtils.mergeCollection(returnType, proceedCollection, hitKeyValueMap);
             }
         } else {
             // read as full shooting
@@ -106,11 +104,10 @@ public class MultiCacheReader extends AbstractCacheReader {
     }
 
     private Object handleFullHit(Invoker invoker, Map<String, Object> keyValueMap,
-                                 CacheMethodHolder ret, Map<String, Object> keyIdMap)
-            throws Throwable {
+                                 CacheMethodHolder cacheMethodHolder, Map<String, Object> keyIdMap) throws Throwable {
 
         Object result;
-        Class<?> returnType = ret.getType();
+        Class<?> returnType = cacheMethodHolder.getType();
 
         // when method return type not cached. case: full shooting when application restart
         if (returnType == null) {
@@ -118,13 +115,13 @@ public class MultiCacheReader extends AbstractCacheReader {
 
             // catch return type for next time
             if (result != null) {
-                ret.setType(result.getClass());
+                cacheMethodHolder.setType(result.getClass());
             }
         } else {
-            if (ret.isCollection()) {
-                result = ResultConvertUtils.toCollection(returnType, keyValueMap.values());
+            if (cacheMethodHolder.isCollection()) {
+                result = ResultConvertUtils.toCollection(returnType, keyValueMap);
             } else {
-                result = ResultConvertUtils.toMap(returnType, keyValueMap, keyIdMap);
+                result = ResultConvertUtils.toMap(keyIdMap, returnType, keyValueMap);
             }
         }
 
@@ -134,11 +131,9 @@ public class MultiCacheReader extends AbstractCacheReader {
     private Object[] toMissArgs(Set<String> missKeys, Map<String, Object> keyIdMap,
                                 Object[] args, int batchIndex) {
 
-        Collection<Object> missIds = new ArrayList<>(missKeys.size());
-        for (String key : missKeys) {
-            Object id = keyIdMap.get(key);
-            missIds.add(id);
-        }
+        List<Object> missIds = missKeys.stream()
+                .map(keyIdMap::get)
+                .collect(Collectors.toList());
 
         Collection collection = CollectionSupplier.newInstance(args[batchIndex].getClass());
         collection.addAll(missIds);

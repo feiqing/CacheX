@@ -3,6 +3,7 @@ package com.alibaba.cacher.supplier;
 import com.alibaba.cacher.domain.CacheKeyHolder;
 import com.alibaba.cacher.utils.CacherUtils;
 
+import java.lang.reflect.Method;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -14,10 +15,10 @@ public class PatternSupplier {
 
     private static final String PATTERN_PLACEHOLDER = "[*]";
 
-    private static final ConcurrentMap<CacheKeyHolder, String> patterns = new ConcurrentHashMap<>();
+    private static final ConcurrentMap<Method, String> patterns = new ConcurrentHashMap<>();
 
     public static String getPattern(CacheKeyHolder cacheKeyHolder) {
-        return patterns.computeIfAbsent(cacheKeyHolder, PatternSupplier::doPatternCombiner);
+        return patterns.computeIfAbsent(cacheKeyHolder.getMethod(), (method) -> doPatternCombiner(cacheKeyHolder));
     }
 
     private static String doPatternCombiner(CacheKeyHolder cacheKeyHolder) {
