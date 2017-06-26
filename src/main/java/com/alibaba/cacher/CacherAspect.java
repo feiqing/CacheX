@@ -1,56 +1,27 @@
 package com.alibaba.cacher;
 
-import com.alibaba.cacher.ioc.CacherIOCContainer;
-import com.alibaba.cacher.ioc.Inject;
-import com.alibaba.cacher.ioc.Singleton;
-import com.alibaba.cacher.constant.Constant;
-import com.alibaba.cacher.domain.CacheKeyHolder;
-import com.alibaba.cacher.domain.CacheMethodHolder;
-import com.alibaba.cacher.domain.Pair;
+import com.alibaba.cacher.core.CacherCore;
 import com.alibaba.cacher.invoker.JoinPointInvokerAdapter;
-import com.alibaba.cacher.manager.CacheManager;
-import com.alibaba.cacher.reader.AbstractCacheReader;
-import com.alibaba.cacher.supplier.CacherInfoSupplier;
-import com.alibaba.cacher.utils.*;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.management.*;
 import java.io.IOException;
-import java.lang.management.ManagementFactory;
 import java.lang.reflect.Method;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @author jifang
  * @since 2016/11/2 下午2:34.
  */
 @Aspect
-@Singleton
-@SuppressWarnings("unchecked")
-public class CacherAspect {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger("com.alibaba.cacher");
-
-    @Inject
-    private AbstractCacheReader singleCacheReader;
-
-    @Inject
-    private AbstractCacheReader multiCacheReader;
-
-    @Inject
-    private CacheManager cacheManager;
-
-    private MBeanServer mBeanServer;
+public class CacherAspect extends CacherCore {
 
     private volatile boolean open;
 
@@ -86,19 +57,15 @@ public class CacherAspect {
             NotCompliantMBeanException,
             InstanceAlreadyExistsException,
             MBeanRegistrationException, IOException {
+        super.init(caches, shootingMXBean);
+    }
 
-        if (this.shootingMXBean != null) {
-            CacherIOCContainer.registerBeanInstance(this.shootingMXBean);
-            this.mBeanServer = ManagementFactory.getPlatformMBeanServer();
-            this.mBeanServer.registerMBean(this.shootingMXBean,
-                    new ObjectName("com.alibaba.cacher:name=shooting"));
-        }
+    @Around("@annotation(com.alibaba.cacher.CachedGet)")
+    public Object read(ProceedingJoinPoint pjp) throws Throwable {
+        Method method = getMethod(pjp);
+        CachedGet cachedGet = method.getAnnotation(CachedGet.class);
 
-        CacherIOCContainer.init(this,
-                Constant.PACKAGE_MANAGER,
-                Constant.PACKAGE_READER
-        );
-        this.cacheManager.initICachePool(this.caches);
+        return super.read(isOpen(), cachedGet, method, new JoinPointInvokerAdapter(pjp));
     }
 
     @Around("@annotation(com.alibaba.cacher.Cached)")
@@ -106,81 +73,20 @@ public class CacherAspect {
         Method method = getMethod(pjp);
         Cached cached = method.getAnnotation(Cached.class);
 
-        Object result;
-        if (SwitcherUtils.isSwitchOn(open, cached, method, pjp.getArgs())) {
-            long start = 0;
-            if (LOGGER.isDebugEnabled()) {
-                start = System.currentTimeMillis();
-            }
-
-            Pair<CacheKeyHolder, CacheMethodHolder> pair = CacherInfoSupplier.getMethodInfo(method);
-            CacheKeyHolder cacheKeyHolder = pair.getLeft();
-            CacheMethodHolder cacheMethodHolder = pair.getRight();
-
-            // multi
-            if (cacheKeyHolder.isMulti()) {
-                result = multiCacheReader.read(cacheKeyHolder, cacheMethodHolder, new JoinPointInvokerAdapter(pjp), true);
-            } else {
-                result = singleCacheReader.read(cacheKeyHolder, cacheMethodHolder, new JoinPointInvokerAdapter(pjp), true);
-            }
-
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("cacher read total cost [{}] ms", (System.currentTimeMillis() - start));
-            }
-        } else {
-            result = pjp.proceed();
-        }
-
-        return result;
+        return super.readWrite(open, cached, method, new JoinPointInvokerAdapter(pjp));
     }
 
     @After("@annotation(com.alibaba.cacher.Invalid)")
     public void remove(JoinPoint pjp) throws Throwable {
         Method method = getMethod(pjp);
         Invalid invalid = method.getAnnotation(Invalid.class);
-
-        if (SwitcherUtils.isSwitchOn(open, invalid, method, pjp.getArgs())) {
-
-            long start = 0;
-            if (LOGGER.isDebugEnabled()) {
-                start = System.currentTimeMillis();
-            }
-
-            Pair<CacheKeyHolder, CacheMethodHolder> pair = CacherInfoSupplier.getMethodInfo(method);
-            CacheKeyHolder cacheKeyHolder = pair.getLeft();
-
-            if (cacheKeyHolder.isMulti()) {
-                Map[] keyIdPair = KeyGenerators.generateMultiKey(cacheKeyHolder, pjp.getArgs());
-                Set<String> keys = ((Map<String, Object>) keyIdPair[1]).keySet();
-                cacheManager.remove(invalid.cache(), keys.toArray(new String[keys.size()]));
-
-                LOGGER.info("multi cache clear, keys: {}", keys);
-
-            } else {
-                String key = KeyGenerators.generateSingleKey(cacheKeyHolder, pjp.getArgs());
-                cacheManager.remove(invalid.cache(), key);
-
-                LOGGER.info("single cache clear, key: {}", key);
-            }
-
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.info("cacher clear total cost [{}] ms", (System.currentTimeMillis() - start));
-            }
-        }
+        super.doRemove(open, invalid, method, pjp.getArgs());
     }
 
     @PreDestroy
-    public void tearDown()
-            throws MalformedObjectNameException,
-            MBeanRegistrationException,
-            InstanceNotFoundException {
-
-        if (this.mBeanServer != null
-                && this.shootingMXBean != null) {
-            this.mBeanServer.unregisterMBean(new ObjectName("com.alibaba.cacher:name=hit"));
-        }
+    public void tearDown() throws MalformedObjectNameException, InstanceNotFoundException, MBeanRegistrationException {
+        super.tearDown();
     }
-
 
     private Method getMethod(JoinPoint pjp) throws NoSuchMethodException {
         MethodSignature ms = (MethodSignature) pjp.getSignature();
@@ -188,6 +94,7 @@ public class CacherAspect {
         if (method.getDeclaringClass().isInterface()) {
             method = pjp.getTarget().getClass().getDeclaredMethod(ms.getName(), method.getParameterTypes());
         }
+
         return method;
     }
 }

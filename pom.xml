@@ -69,6 +69,7 @@
             <groupId>org.javassist</groupId>
             <artifactId>javassist</artifactId>
             <version>${javassist.version}</version>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -255,6 +256,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.3</version>
                 <configuration>
+                    <compilerArgument>-parameters</compilerArgument>
                     <encoding>UTF-8</encoding>
                     <source>1.8</source>
                     <target>1.8</target>

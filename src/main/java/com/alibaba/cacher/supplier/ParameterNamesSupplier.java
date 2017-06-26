@@ -1,11 +1,12 @@
 package com.alibaba.cacher.supplier;
 
 import com.alibaba.cacher.exception.CacherException;
-import com.alibaba.cacher.utils.SwitcherUtils;
 import javassist.*;
 import javassist.bytecode.LocalVariableAttribute;
+import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.SortedMap;
@@ -22,10 +23,21 @@ public class ParameterNamesSupplier {
     private static final ConcurrentMap<Method, String[]> methodParameterNamesMap = new ConcurrentHashMap<>();
 
     public static String[] getParameterNames(Method method) {
-        return methodParameterNamesMap.computeIfAbsent(method, ParameterNamesSupplier::doGetParameterNames);
+        return methodParameterNamesMap.computeIfAbsent(method, ParameterNamesSupplier::doGetParameterNamesJava8);
     }
 
-    private static String[] doGetParameterNames(Method method) {
+    // Java1.8之后提供了获取参数名方法, 但需要编译时添加`–parameters`参数支持, 如`javac –parameters`
+    private static String[] doGetParameterNamesJava8(Method method) {
+        Parameter[] parameters = method.getParameters();
+        return Arrays.stream(parameters).map(Parameter::getName).toArray(String[]::new);
+    }
+
+    private static String[] doGetParameterNamesSpring(Method method) {
+        LocalVariableTableParameterNameDiscoverer discoverer = new LocalVariableTableParameterNameDiscoverer();
+        return discoverer.getParameterNames(method);
+    }
+
+    private static String[] doGetParameterNamesJavassist(Method method) {
 
         CtMethod ctMethod = getCtMethod(method);
 
@@ -69,14 +81,18 @@ public class ParameterNamesSupplier {
     }
 
     private static CtClass getCtClass(Class<?> clazz) throws NotFoundException {
-        return pool.getCtClass(clazz.getName());
+        return InnerClass.pool.getCtClass(clazz.getName());
     }
 
-    private static final ClassPool pool;
+    // 静态内部类:防止过早引用Javassist包
+    private static class InnerClass {
 
-    static {
-        pool = ClassPool.getDefault();
-        // 自定义ClassLoader情况
-        pool.insertClassPath(new ClassClassPath(SwitcherUtils.class));
+        private static final ClassPool pool;
+
+        static {
+            pool = ClassPool.getDefault();
+            // 自定义ClassLoader情况
+            pool.insertClassPath(new ClassClassPath(ParameterNamesSupplier.class));
+        }
     }
 }
