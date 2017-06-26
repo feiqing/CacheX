@@ -1,5 +1,6 @@
-package com.alibaba.cacher.invoker;
+package com.alibaba.cacher.invoker.adapter;
 
+import com.alibaba.cacher.invoker.Invoker;
 import org.aspectj.lang.ProceedingJoinPoint;
 
 /**

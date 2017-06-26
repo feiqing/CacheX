@@ -21,6 +21,7 @@
         <aspectj.version>1.8.9</aspectj.version>
         <javassist.version>3.20.0-GA</javassist.version>
         <commons.lang.version>3.4</commons.lang.version>
+        <commons.proxy.version>1.0</commons.proxy.version>
         <cglib.version>3.2.0</cglib.version>
 
         <h2.version>1.4.195</h2.version>
@@ -79,6 +80,11 @@
 
 
         <!-- byte code -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-proxy</artifactId>
+            <version>${commons.proxy.version}</version>
+        </dependency>
         <dependency>
             <groupId>cglib</groupId>
             <artifactId>cglib-nodep</artifactId>

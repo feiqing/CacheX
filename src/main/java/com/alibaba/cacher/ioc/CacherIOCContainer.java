@@ -7,7 +7,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLDecoder;
@@ -103,25 +102,23 @@ public class CacherIOCContainer {
     }
 
     private static void injectBeanField() {
-        for (Map.Entry<Class<?>, Object> entry : classBeanMap.entrySet()) {
-            Object beanInstance = entry.getValue();
+        classBeanMap.forEach((clazz, beanInstance) -> {
+            Set<Field> fields = new HashSet<>();
 
-            Field[] fields = entry.getKey().getDeclaredFields();
+            while (clazz != Object.class) {
+                fields.addAll(Arrays.asList(clazz.getDeclaredFields()));
+                clazz = clazz.getSuperclass();
+            }
 
             injectField(beanInstance, fields);
-        }
+        });
     }
 
-    private static void injectField(Object beanInstance, Field[] fields) {
-        for (Field field : fields) {
-            if (!Modifier.isStatic(field.getModifiers())
-                    && !Modifier.isFinal(field.getModifiers())
-                    && !Modifier.isVolatile(field.getModifiers())) {
-
-                Inject inject = field.getAnnotation(Inject.class);
-                if (inject != null) {
-                    Class<?> filedType = field.getType();
-
+    private static void injectField(Object beanInstance, Set<Field> fields) {
+        fields.stream()
+                .filter((field) -> field.isAnnotationPresent(Inject.class))
+                .forEach((field) -> {
+                    Inject inject = field.getAnnotation(Inject.class);
 
                     Object bean = nameBeanMap.get(inject.qualifierName());
                     if (bean == null) {
@@ -130,10 +127,10 @@ public class CacherIOCContainer {
                     if (bean == null) {
                         bean = classBeanMap.get(inject.qualifierClass());
                     }
+                    Class<?> filedType = field.getType();
                     if (bean == null) {
                         bean = getBeanInstance(filedType);
                     }
-
                     if (bean == null) {
                         if (inject.optional()) {
                             LOGGER.warn("field {}.{} not injected, because no related bean instance",
@@ -151,9 +148,7 @@ public class CacherIOCContainer {
                             // no chance
                         }
                     }
-                }
-            }
-        }
+                });
     }
 
 

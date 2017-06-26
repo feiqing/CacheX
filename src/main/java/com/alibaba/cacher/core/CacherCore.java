@@ -30,7 +30,7 @@ import java.util.Set;
  */
 @Singleton
 @SuppressWarnings("unchecked")
-public abstract class CacherCore {
+public class CacherCore {
 
     protected static final Logger LOGGER = LoggerFactory.getLogger("com.alibaba.cacher");
 
@@ -45,6 +45,12 @@ public abstract class CacherCore {
 
     private MBeanServer mBeanServer;
 
+    private boolean isInited = false;
+
+    public boolean isInited() {
+        return isInited;
+    }
+
     /**
      * faced 在Cacher启动之前一定要调用init()方法
      *
@@ -56,7 +62,7 @@ public abstract class CacherCore {
      * @throws MBeanRegistrationException
      * @throws IOException
      */
-    protected void init(Map<String, ICache> caches, ShootingMXBean shootingMXBean) throws
+    public void init(Map<String, ICache> caches, ShootingMXBean shootingMXBean) throws
             MalformedObjectNameException,
             NotCompliantMBeanException,
             InstanceAlreadyExistsException,
@@ -73,10 +79,12 @@ public abstract class CacherCore {
                 Constant.PACKAGE_MANAGER,
                 Constant.PACKAGE_READER
         );
-        this.cacheManager.initICachePool(caches);
+        this.cacheManager.initCachePool(caches);
+
+        this.isInited = true;
     }
 
-    protected Object read(boolean open, CachedGet cachedGet, Method method, Invoker invoker) throws Throwable {
+    public Object read(boolean open, CachedGet cachedGet, Method method, Invoker invoker) throws Throwable {
         Object result;
         if (SwitcherUtils.isSwitchOn(open, cachedGet, method, invoker.getArgs())) {
             result = doReadWrite(method, invoker, false);
@@ -87,11 +95,11 @@ public abstract class CacherCore {
         return result;
     }
 
-    protected void write() {
+    public void write() {
         // TODO on @CachedPut
     }
 
-    protected Object readWrite(boolean open, Cached cached, Method method, Invoker invoker) throws Throwable {
+    public Object readWrite(boolean open, Cached cached, Method method, Invoker invoker) throws Throwable {
         Object result;
         if (SwitcherUtils.isSwitchOn(open, cached, method, invoker.getArgs())) {
             result = doReadWrite(method, invoker, true);
@@ -126,7 +134,7 @@ public abstract class CacherCore {
         return result;
     }
 
-    protected void doRemove(boolean open, Invalid invalid, Method method, Object[] args) {
+    public void remove(boolean open, Invalid invalid, Method method, Object[] args) {
         if (SwitcherUtils.isSwitchOn(open, invalid, method, args)) {
 
             long start = 0;
@@ -161,7 +169,7 @@ public abstract class CacherCore {
      * @throws MBeanRegistrationException
      * @throws InstanceNotFoundException
      */
-    protected void tearDown()
+    public void tearDown()
             throws MalformedObjectNameException,
             MBeanRegistrationException,
             InstanceNotFoundException {

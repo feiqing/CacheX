@@ -1,7 +1,7 @@
 package com.alibaba.cacher;
 
 import com.alibaba.cacher.core.CacherCore;
-import com.alibaba.cacher.invoker.JoinPointInvokerAdapter;
+import com.alibaba.cacher.invoker.adapter.JoinPointInvokerAdapter;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.After;
@@ -80,7 +80,7 @@ public class CacherAspect extends CacherCore {
     public void remove(JoinPoint pjp) throws Throwable {
         Method method = getMethod(pjp);
         Invalid invalid = method.getAnnotation(Invalid.class);
-        super.doRemove(open, invalid, method, pjp.getArgs());
+        super.remove(open, invalid, method, pjp.getArgs());
     }
 
     @PreDestroy

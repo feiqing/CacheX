@@ -28,7 +28,7 @@ public class CacheManager {
 
     private Map<String, Pair<String, ICache>> cachePool = new ConcurrentHashMap<>();
 
-    public void initICachePool(Map<String, ICache> caches) {
+    public void initCachePool(Map<String, ICache> caches) {
         Preconditions.checkArgument(!caches.isEmpty(), "CacherAspect.caches param can not be empty!!!");
 
         // default cache impl
