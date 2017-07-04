@@ -3,8 +3,6 @@ package com.alibaba.cacher.support.shooting;
 import com.alibaba.cacher.exception.CacherException;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -26,8 +24,6 @@ import java.util.stream.Stream;
  * @since 2017/6/9 下午12:35.
  */
 public class DerbyShootingMXBeanImpl extends AbstractDBShootingMXBean {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(DerbyShootingMXBeanImpl.class);
 
     private static final String DERBY_JAR_PATTERN = "%s/../db/lib/derby.jar";
 

@@ -55,8 +55,8 @@ public abstract class AbstractDBShootingMXBean implements ShootingMXBean {
     protected abstract Stream<DataDO> transferResults(List<Map<String, Object>> mapResults);
 
     public AbstractDBShootingMXBean(String dbPath) {
-        InputStream yamlStream = this.getClass().getClassLoader().getResourceAsStream("sql.yaml");
-        this.configs = new Yaml().loadAs(yamlStream, Properties.class);
+        InputStream resource = this.getClass().getClassLoader().getResourceAsStream("sql.yaml");
+        this.configs = new Yaml().loadAs(resource, Properties.class);
 
         this.jdbcOperations = operationsSupplier(dbPath).get();
     }
