@@ -61,8 +61,9 @@ public class DerbyShootingMXBeanImpl extends AbstractDBShootingMXBean {
                         "hit_count     BIGINT      NOT NULL     DEFAULT 0," +
                         "require_count BIGINT      NOT NULL     DEFAULT 0," +
                         "version       BIGINT      NOT NULL     DEFAULT 0)");
-            } catch (DataIntegrityViolationException e) {
-                LOGGER.error(e.getMessage());
+            } catch (DataIntegrityViolationException ignored) {
+            } catch (Throwable e) {
+                throw new CacherException(e);
             }
 
             return jdbcOperations;

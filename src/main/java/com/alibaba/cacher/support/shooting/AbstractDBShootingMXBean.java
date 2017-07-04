@@ -55,7 +55,7 @@ public abstract class AbstractDBShootingMXBean implements ShootingMXBean {
     protected abstract Stream<DataDO> transferResults(List<Map<String, Object>> mapResults);
 
     public AbstractDBShootingMXBean(String dbPath) {
-        InputStream yamlStream = ClassLoader.getSystemResourceAsStream("shooting_sql.yaml");
+        InputStream yamlStream = this.getClass().getClassLoader().getResourceAsStream("sql.yaml");
         this.configs = new Yaml().loadAs(yamlStream, Properties.class);
 
         this.jdbcOperations = operationsSupplier(dbPath).get();
@@ -154,7 +154,7 @@ public abstract class AbstractDBShootingMXBean implements ShootingMXBean {
     }
 
     private List<DataDO> queryAll() {
-        String selectAllQuery = configs.getProperty("selectAll");
+        String selectAllQuery = configs.getProperty("select_all");
         List<Map<String, Object>> mapResults = jdbcOperations.queryForList(selectAllQuery);
 
         return transferResults(mapResults).collect(Collectors.toList());
