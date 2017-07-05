@@ -1,4 +1,4 @@
-package com.alibaba.cacher.ioc;
+package com.alibaba.cacher.di;
 
 import com.alibaba.cacher.exception.CacherException;
 import org.slf4j.Logger;
@@ -21,7 +21,7 @@ import java.util.jar.JarFile;
  * @since 2016/10/27 上午9:38.
  */
 @SuppressWarnings("unchecked")
-public class CacherIOCContainer {
+public class CacherDIContainer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("com.alibaba.cacher");
 
@@ -82,8 +82,8 @@ public class CacherIOCContainer {
             classBeanMap.put(clazz, beanInstance);
         }
 
-        CacherIOCContainer.nameBeanMap.putAll(nameBeanMap);
-        CacherIOCContainer.classBeanMap.putAll(classBeanMap);
+        CacherDIContainer.nameBeanMap.putAll(nameBeanMap);
+        CacherDIContainer.classBeanMap.putAll(classBeanMap);
     }
 
     private static Object newBeanInstance(Class<?> clazz, Class<?> rootBeanClass, Object rootBean) {

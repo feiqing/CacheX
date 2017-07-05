@@ -18,14 +18,19 @@
             caches: 只要实现了ICache接口的cache产品均可被Cacher托管
      -->
     <bean class="com.alibaba.cacher.CacherAspect">
-        <constructor-arg name="open" value="true"/>
         <constructor-arg name="caches">
             <map key-type="java.lang.String" value-type="com.alibaba.cacher.ICache">
                 <entry key="level" value-ref="level"/>
             </map>
         </constructor-arg>
+        <constructor-arg name="config" type="com.alibaba.cacher.core.Config">
+            <bean class="com.alibaba.cacher.core.Config">
+                <constructor-arg name="open" value="true"/>
+                <constructor-arg name="preventBreakdown" value="true"/>
+                <constructor-arg name="shootingMXBean" value="null"/>
+            </bean>
+        </constructor-arg>
         <!-- 开启缓存命中率分组统计功能, 注入基于zk的实现-->
-        <constructor-arg name="shootingMXBean" ref="h2ShootingMXBean"/>
     </bean>
 
     <bean id="level" class="com.alibaba.cacher.support.cache.LevelDBCache" lazy-init="true" destroy-method="tearDown">

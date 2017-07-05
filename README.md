@@ -50,7 +50,7 @@
          -->
         <bean class="com.alibaba.cacher.CacherAspect">
             <constructor-arg name="caches">
-                <map key-type="java.lang.String" value-type="com.alibaba.cacher.ICache">
+                <map key-returnType="java.lang.String" value-returnType="com.alibaba.cacher.ICache">
                     <entry key="tair" value-ref="tair"/>
                 </map>
             </constructor-arg>

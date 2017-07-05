@@ -2,7 +2,7 @@ package com.alibaba.cacher;
 
 import com.alibaba.cacher.core.CacherCore;
 import com.alibaba.cacher.invoker.adapter.InvocationInvokerAdapter;
-import com.alibaba.cacher.ioc.CacherIOCContainer;
+import com.alibaba.cacher.di.CacherDIContainer;
 import org.apache.commons.proxy.Interceptor;
 import org.apache.commons.proxy.Invocation;
 import org.apache.commons.proxy.ProxyFactory;
@@ -61,7 +61,7 @@ public class HSFConsumerCacherProxyBean implements FactoryBean, InitializingBean
     public void afterPropertiesSet() throws Exception {
         ProxyFactory factory = isNeedCGLIB ? new CglibProxyFactory() : new ProxyFactory();
         this.proxy = factory.createInterceptorProxy(target, interceptor, types);
-        this.cacherCore = CacherIOCContainer.getBeanInstance(CacherCore.class);
+        this.cacherCore = CacherDIContainer.getBeanInstance(CacherCore.class);
         if (cacherCore == null || !this.cacherCore.isInited()) {
             cacherCore = new CacherCore();
             cacherCore.init(caches, null);

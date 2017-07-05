@@ -1,6 +1,7 @@
 package com.alibaba.cacher;
 
 import com.alibaba.cacher.core.CacherCore;
+import com.alibaba.cacher.core.Config;
 import com.alibaba.cacher.invoker.adapter.JoinPointInvokerAdapter;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -23,32 +24,21 @@ import java.util.Map;
 @Aspect
 public class CacherAspect extends CacherCore {
 
-    private volatile boolean open;
-
-    private ShootingMXBean shootingMXBean;
-
     private volatile Map<String, ICache> caches;
 
+    private Config config;
+
     public CacherAspect(Map<String, ICache> caches) {
-        this(caches, true);
+        this(caches, new Config(true, false, null));
     }
 
-    public CacherAspect(Map<String, ICache> caches, boolean open) {
-        this(caches, open, null);
-    }
-
-    public CacherAspect(Map<String, ICache> caches, boolean open, ShootingMXBean shootingMXBean) {
+    public CacherAspect(Map<String, ICache> caches, Config config) {
         this.caches = caches;
-        this.open = open;
-        this.shootingMXBean = shootingMXBean;
+        this.config = config;
     }
 
-    public boolean isOpen() {
-        return open;
-    }
-
-    public void setOpen(boolean open) {
-        this.open = open;
+    public Config getConfig() {
+        return config;
     }
 
     @PostConstruct
@@ -57,7 +47,7 @@ public class CacherAspect extends CacherCore {
             NotCompliantMBeanException,
             InstanceAlreadyExistsException,
             MBeanRegistrationException, IOException {
-        super.init(caches, shootingMXBean);
+        super.init(caches, config);
     }
 
     @Around("@annotation(com.alibaba.cacher.CachedGet)")
@@ -65,7 +55,7 @@ public class CacherAspect extends CacherCore {
         Method method = getMethod(pjp);
         CachedGet cachedGet = method.getAnnotation(CachedGet.class);
 
-        return super.read(isOpen(), cachedGet, method, new JoinPointInvokerAdapter(pjp));
+        return super.read(config.isOpen(), cachedGet, method, new JoinPointInvokerAdapter(pjp));
     }
 
     @Around("@annotation(com.alibaba.cacher.Cached)")
@@ -73,14 +63,14 @@ public class CacherAspect extends CacherCore {
         Method method = getMethod(pjp);
         Cached cached = method.getAnnotation(Cached.class);
 
-        return super.readWrite(open, cached, method, new JoinPointInvokerAdapter(pjp));
+        return super.readWrite(config.isOpen(), cached, method, new JoinPointInvokerAdapter(pjp));
     }
 
     @After("@annotation(com.alibaba.cacher.Invalid)")
     public void remove(JoinPoint pjp) throws Throwable {
         Method method = getMethod(pjp);
         Invalid invalid = method.getAnnotation(Invalid.class);
-        super.remove(open, invalid, method, pjp.getArgs());
+        super.remove(config.isOpen(), invalid, method, pjp.getArgs());
     }
 
     @PreDestroy

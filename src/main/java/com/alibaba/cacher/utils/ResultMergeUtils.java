@@ -2,6 +2,7 @@ package com.alibaba.cacher.utils;
 
 import com.alibaba.cacher.supplier.CollectionSupplier;
 import com.alibaba.cacher.supplier.MapSuppliers;
+import com.alibaba.cacher.supplier.PreventObjectSupplier;
 
 import java.util.Collection;
 import java.util.Map;
@@ -18,11 +19,13 @@ public class ResultMergeUtils {
                                Map<String, Object> cacheMap) {
 
         Map mergedMap = MapSuppliers.newInstance(mapType, proceedMap);
-
-        cacheMap.forEach((key, value) -> {
-            Object id = keyIdMap.get(key);
-            mergedMap.put(id, value);
-        });
+        cacheMap.entrySet().stream()
+                .filter(entry -> !PreventObjectSupplier.isGeneratePreventObject(entry.getValue()))  // 将防击穿Object过滤掉
+                .forEach(entry -> {
+                    // 将key转换为id
+                    Object id = keyIdMap.get(entry.getKey());
+                    mergedMap.put(id, entry.getValue());
+                });
 
         return MapSuppliers.convertInstanceType(mapType, mergedMap);
     }
@@ -31,7 +34,9 @@ public class ResultMergeUtils {
                                              Collection proceedCollection,
                                              Map<String, Object> cacheMap) {
         Collection mergedCollection = CollectionSupplier.newInstance(collectionType, proceedCollection);
-        mergedCollection.addAll(cacheMap.values());
+        cacheMap.values().stream()
+                .filter(value -> !PreventObjectSupplier.isGeneratePreventObject(value)) // 将防击穿Object过滤掉
+                .forEach(mergedCollection::add);
 
         return CollectionSupplier.convertInstanceType(collectionType, mergedCollection);
     }

@@ -4,7 +4,7 @@ import com.alibaba.cacher.ICache;
 import com.alibaba.cacher.domain.BatchReadResult;
 import com.alibaba.cacher.domain.Pair;
 import com.alibaba.cacher.exception.CacherException;
-import com.alibaba.cacher.ioc.Singleton;
+import com.alibaba.cacher.di.Singleton;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import org.slf4j.Logger;

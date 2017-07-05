@@ -1,8 +1,9 @@
 package com.alibaba.cacher.reader;
 
 import com.alibaba.cacher.ShootingMXBean;
-import com.alibaba.cacher.ioc.Inject;
-import com.alibaba.cacher.ioc.Singleton;
+import com.alibaba.cacher.core.Config;
+import com.alibaba.cacher.di.Inject;
+import com.alibaba.cacher.di.Singleton;
 import com.alibaba.cacher.domain.BatchReadResult;
 import com.alibaba.cacher.domain.CacheKeyHolder;
 import com.alibaba.cacher.domain.CacheMethodHolder;
@@ -26,6 +27,9 @@ public class MultiCacheReader extends AbstractCacheReader {
     @Inject
     private CacheManager cacheManager;
 
+    @Inject
+    private Config config;
+
     @Inject(optional = true)
     private ShootingMXBean shootingMXBean;
 
@@ -41,11 +45,11 @@ public class MultiCacheReader extends AbstractCacheReader {
         doRecord(batchReadResult, cacheKeyHolder);
 
         Object result;
-        // have miss keys : part shooting || all not shooting
+        // have miss keys : part hit || all not hit
         if (!batchReadResult.getMissKeys().isEmpty()) {
             result = handlePartHit(invoker, batchReadResult, cacheKeyHolder, cacheMethodHolder, pair, needWrite);
         }
-        // no miss keys : all hits || empty key
+        // no miss keys : all hit || empty key
         else {
             Map<String, Object> keyValueMap = batchReadResult.getHitKeyValueMap();
             result = handleFullHit(invoker, keyValueMap, cacheMethodHolder, keyIdMap);
@@ -71,14 +75,15 @@ public class MultiCacheReader extends AbstractCacheReader {
         Object result;
         if (proceed != null) {
             Class<?> returnType = proceed.getClass();
-            cacheMethodHolder.setType(returnType);
+            cacheMethodHolder.setReturnType(returnType);
             if (Map.class.isAssignableFrom(returnType)) {
                 Map proceedIdValueMap = (Map) proceed;
 
                 // @since 1.5.4 为了兼容@CachedGet注解, 客户端缓存
                 if (needWrite) {
                     // 将方法调用返回的map转换成key_value_map写入Cache
-                    Map<String, Object> keyValueMap = KVConvertUtils.idValueToKeyValue(proceedIdValueMap, id2Key);
+                    // TODO: 将包含在missKeys中, 但proceedMap中不包含的生成防击穿Object
+                    Map<String, Object> keyValueMap = KVConvertUtils.mapToKeyValue(proceedIdValueMap, missKeys, id2Key);
                     cacheManager.writeBatch(cacheKeyHolder.getCache(), keyValueMap, cacheKeyHolder.getExpire());
                 }
                 // 将方法调用返回的map与从Cache中读取的key_value_map合并返回
@@ -89,7 +94,7 @@ public class MultiCacheReader extends AbstractCacheReader {
                 // @since 1.5.4 为了兼容@CachedGet注解, 客户端缓存
                 if (needWrite) {
                     // 将方法调用返回的collection转换成key_value_map写入Cache
-                    Map<String, Object> keyValueMap = KVConvertUtils.collectionToKeyValue(proceedCollection, cacheKeyHolder.getId(), id2Key);
+                    Map<String, Object> keyValueMap = KVConvertUtils.collectionToKeyValue(proceedCollection, cacheKeyHolder.getId(), missKeys, id2Key);
                     cacheManager.writeBatch(cacheKeyHolder.getCache(), keyValueMap, cacheKeyHolder.getExpire());
                 }
                 // 将方法调用返回的collection与从Cache中读取的key_value_map合并返回
@@ -104,10 +109,10 @@ public class MultiCacheReader extends AbstractCacheReader {
     }
 
     private Object handleFullHit(Invoker invoker, Map<String, Object> keyValueMap,
-                                 CacheMethodHolder cacheMethodHolder, Map<String, Object> keyIdMap) throws Throwable {
+                                 CacheMethodHolder cacheMethodHolder, Map<String, Object> key2Id) throws Throwable {
 
         Object result;
-        Class<?> returnType = cacheMethodHolder.getType();
+        Class<?> returnType = cacheMethodHolder.getReturnType();
 
         // when method return type not cached. case: full shooting when application restart
         if (returnType == null) {
@@ -115,13 +120,13 @@ public class MultiCacheReader extends AbstractCacheReader {
 
             // catch return type for next time
             if (result != null) {
-                cacheMethodHolder.setType(result.getClass());
+                cacheMethodHolder.setReturnType(result.getClass());
             }
         } else {
             if (cacheMethodHolder.isCollection()) {
                 result = ResultConvertUtils.toCollection(returnType, keyValueMap);
             } else {
-                result = ResultConvertUtils.toMap(keyIdMap, returnType, keyValueMap);
+                result = ResultConvertUtils.toMap(key2Id, returnType, keyValueMap);
             }
         }
 

@@ -6,9 +6,9 @@ import com.alibaba.cacher.domain.CacheKeyHolder;
 import com.alibaba.cacher.domain.CacheMethodHolder;
 import com.alibaba.cacher.domain.Pair;
 import com.alibaba.cacher.invoker.Invoker;
-import com.alibaba.cacher.ioc.CacherIOCContainer;
-import com.alibaba.cacher.ioc.Inject;
-import com.alibaba.cacher.ioc.Singleton;
+import com.alibaba.cacher.di.CacherDIContainer;
+import com.alibaba.cacher.di.Inject;
+import com.alibaba.cacher.di.Singleton;
 import com.alibaba.cacher.manager.CacheManager;
 import com.alibaba.cacher.reader.AbstractCacheReader;
 import com.alibaba.cacher.supplier.CacherInfoSupplier;
@@ -55,27 +55,28 @@ public class CacherCore {
      * faced 在Cacher启动之前一定要调用init()方法
      *
      * @param caches
-     * @param shootingMXBean
+     * @param config
      * @throws MalformedObjectNameException
      * @throws NotCompliantMBeanException
      * @throws InstanceAlreadyExistsException
      * @throws MBeanRegistrationException
      * @throws IOException
      */
-    public void init(Map<String, ICache> caches, ShootingMXBean shootingMXBean) throws
+    public void init(Map<String, ICache> caches, Config config) throws
             MalformedObjectNameException,
             NotCompliantMBeanException,
             InstanceAlreadyExistsException,
             MBeanRegistrationException,
             IOException {
 
-        if (shootingMXBean != null) {
-            CacherIOCContainer.registerBeanInstance(shootingMXBean);
+        CacherDIContainer.registerBeanInstance(config);
+        if (config.getShootingMXBean() != null) {
+            CacherDIContainer.registerBeanInstance(config.getShootingMXBean());
             this.mBeanServer = ManagementFactory.getPlatformMBeanServer();
-            this.mBeanServer.registerMBean(shootingMXBean, new ObjectName("com.alibaba.cacher:name=shooting"));
+            this.mBeanServer.registerMBean(config.getShootingMXBean(), new ObjectName("com.alibaba.cacher:name=shooting"));
         }
 
-        CacherIOCContainer.init(this,
+        CacherDIContainer.init(this,
                 Constant.PACKAGE_MANAGER,
                 Constant.PACKAGE_READER
         );

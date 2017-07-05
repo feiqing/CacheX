@@ -6,7 +6,9 @@ package com.alibaba.cacher.domain;
  */
 public class CacheMethodHolder {
 
-    private Class<?> type;
+    private Class<?> innerReturnType;
+
+    private Class<?> returnType;
 
     private boolean collection;
 
@@ -18,11 +20,19 @@ public class CacheMethodHolder {
         return collection;
     }
 
-    public Class<?> getType() {
-        return type;
+    public Class<?> getReturnType() {
+        return returnType;
     }
 
-    public void setType(Class<?> type) {
-        this.type = type;
+    public void setReturnType(Class<?> returnType) {
+        this.returnType = returnType;
+    }
+
+    public Class<?> getInnerReturnType() {
+        return innerReturnType;
+    }
+
+    public void setInnerReturnType(Class<?> innerReturnType) {
+        this.innerReturnType = innerReturnType;
     }
 }
