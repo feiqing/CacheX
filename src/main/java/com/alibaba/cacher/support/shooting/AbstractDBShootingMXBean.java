@@ -33,17 +33,17 @@ public abstract class AbstractDBShootingMXBean implements ShootingMXBean {
         return thread;
     });
 
+    private static final Lock lock = new ReentrantLock();
+
     private volatile boolean isShutdown = false;
 
     private BlockingQueue<Pair<String, Integer>> hitQueue = new LinkedBlockingQueue<>();
 
     private BlockingQueue<Pair<String, Integer>> requireQueue = new LinkedBlockingQueue<>();
 
-    private final Lock lock = new ReentrantLock();
-
     private JdbcOperations jdbcOperations;
 
-    private Properties configs;
+    private Properties sqls;
 
     /**
      * 1. create JdbcOperations
@@ -64,7 +64,7 @@ public abstract class AbstractDBShootingMXBean implements ShootingMXBean {
 
     protected AbstractDBShootingMXBean(String dbPath) {
         InputStream resource = this.getClass().getClassLoader().getResourceAsStream("sql.yaml");
-        this.configs = new Yaml().loadAs(resource, Properties.class);
+        this.sqls = new Yaml().loadAs(resource, Properties.class);
 
         this.jdbcOperations = jdbcOperationsSupplier(dbPath).get();
         executor.submit(() -> {
@@ -79,7 +79,7 @@ public abstract class AbstractDBShootingMXBean implements ShootingMXBean {
         long times = 0;
         Pair<String, Integer> head;
 
-        // 将queue中(所有的/前100条)数据聚合到一个Map中
+        // gather queue's all or before 100 data to a Map
         Map<String, AtomicLong> holdMap = new HashMap<>();
         while ((head = queue.poll()) != null && times <= 100) {
             holdMap
@@ -88,7 +88,7 @@ public abstract class AbstractDBShootingMXBean implements ShootingMXBean {
             ++times;
         }
 
-        // 批量写入DB
+        // batch write to DB
         holdMap.forEach((pattern, count) -> countAddCas(column, pattern, count.get()));
     }
 
@@ -130,12 +130,12 @@ public abstract class AbstractDBShootingMXBean implements ShootingMXBean {
 
     @Override
     public void reset(String pattern) {
-        jdbcOperations.update(configs.getProperty("delete"), pattern);
+        jdbcOperations.update(sqls.getProperty("delete"), pattern);
     }
 
     @Override
     public void resetAll() {
-        jdbcOperations.update(configs.getProperty("truncate"));
+        jdbcOperations.update(sqls.getProperty("truncate"));
     }
 
     private void countAddCas(String column, String pattern, long count) {
@@ -164,27 +164,27 @@ public abstract class AbstractDBShootingMXBean implements ShootingMXBean {
     }
 
     private Optional<DataDO> queryObject(String pattern) {
-        String selectSql = configs.getProperty("select");
+        String selectSql = sqls.getProperty("select");
         List<Map<String, Object>> mapResults = jdbcOperations.queryForList(selectSql, pattern);
 
         return transferResults(mapResults).findFirst();
     }
 
     private List<DataDO> queryAll() {
-        String selectAllQuery = configs.getProperty("select_all");
+        String selectAllQuery = sqls.getProperty("select_all");
         List<Map<String, Object>> mapResults = jdbcOperations.queryForList(selectAllQuery);
 
         return transferResults(mapResults).collect(Collectors.toList());
     }
 
     private int insert(String column, String pattern, long count) {
-        String insertSql = String.format(configs.getProperty("insert"), column);
+        String insertSql = String.format(sqls.getProperty("insert"), column);
 
         return jdbcOperations.update(insertSql, pattern, count);
     }
 
     private int update(String column, String pattern, long count, long version) {
-        String updateSql = String.format(configs.getProperty("update"), column);
+        String updateSql = String.format(sqls.getProperty("update"), column);
 
         return jdbcOperations.update(updateSql, count, pattern, version);
     }

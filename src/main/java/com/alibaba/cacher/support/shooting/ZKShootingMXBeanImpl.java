@@ -29,7 +29,7 @@ public class ZKShootingMXBeanImpl implements ShootingMXBean {
 
     private static final ExecutorService executor = Executors.newSingleThreadExecutor(r -> {
         Thread thread = new Thread(r);
-        thread.setName("cacher:shooting-zk-uploader");
+        thread.setName("cacher:zk-shooting-uploader");
         thread.setDaemon(true);
         return thread;
     });
@@ -48,15 +48,15 @@ public class ZKShootingMXBeanImpl implements ShootingMXBean {
 
     private CuratorFramework client;
 
-    private String hitPrefix;
+    private String hitPathPrefix;
 
-    private String requirePrefix;
+    private String requirePathPrefix;
 
     public ZKShootingMXBeanImpl(String zkServers) {
         this(zkServers, System.getProperty("product.name", "unnamed"));
     }
 
-    public ZKShootingMXBeanImpl(String zkServers, String uniqueProductName) {
+    public ZKShootingMXBeanImpl(String zkServers, String productName) {
         this.client = CuratorFrameworkFactory.builder()
                 .connectString(zkServers)
                 .retryPolicy(new RetryNTimes(3, 0))
@@ -64,24 +64,24 @@ public class ZKShootingMXBeanImpl implements ShootingMXBean {
                 .build();
         client.start();
 
-        // create prefix path
-        uniqueProductName = processProductName(uniqueProductName);
-        this.hitPrefix = String.format("%s%s", uniqueProductName, "hit");
-        this.requirePrefix = String.format("%s%s", uniqueProductName, "require");
+        // append prefix and suffix
+        String uniqueProductName = processProductName(productName);
+        this.hitPathPrefix = String.format("%s%s", uniqueProductName, "hit");
+        this.requirePathPrefix = String.format("%s%s", uniqueProductName, "require");
         try {
-            client.create().creatingParentsIfNeeded().forPath(hitPrefix);
-            client.create().creatingParentContainersIfNeeded().forPath(requirePrefix);
-            LOGGER.info("create path:[{}],[{}] on namespace: [{}] success", hitPrefix, requirePrefix, NAME_SPACE);
+            client.create().creatingParentsIfNeeded().forPath(hitPathPrefix);
+            client.create().creatingParentsIfNeeded().forPath(requirePathPrefix);
+            LOGGER.info("create path:[{}],[{}] on namespace: [{}] success", hitPathPrefix, requirePathPrefix, NAME_SPACE);
         } catch (KeeperException.NodeExistsException ignored) {
-            LOGGER.warn("path: [{}], [{}] on namespace: [{}] is exits", hitPrefix, requirePrefix, NAME_SPACE);
+            LOGGER.warn("path: [{}], [{}] on namespace: [{}] is exits, please make product name:{} is unique", hitPathPrefix, requirePathPrefix, NAME_SPACE, productName);
         } catch (Exception e) {
-            throw new CacherException("create path: " + hitPrefix + ", " + requirePrefix + " on namespace: " + NAME_SPACE + " error", e);
+            throw new CacherException("create path: " + hitPathPrefix + ", " + requirePathPrefix + " on namespace: " + NAME_SPACE + " error", e);
         }
 
         executor.submit(() -> {
             while (!isShutdown) {
-                dumpToZK(hitQueue, hitCounterMap, hitPrefix);
-                dumpToZK(requireQueue, requireCounterMap, requirePrefix);
+                dumpToZK(hitQueue, hitCounterMap, hitPathPrefix);
+                dumpToZK(requireQueue, requireCounterMap, requirePathPrefix);
             }
         });
     }

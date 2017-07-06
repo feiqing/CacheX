@@ -27,15 +27,15 @@ import java.util.stream.Stream;
  */
 public class DerbyShootingMXBeanImpl extends AbstractDBShootingMXBean {
 
-    private static final String DERBY_JAR_PATTERN = "%s/../db/lib/derby.jar";
+    private static final String DERBY_JAR_REGEX = ".*/derby-([\\d\\.]+)\\.jar";
+
+    private static final String DERBY_JAR_PATH = "%s/../db/lib/derby.jar";
 
     private static final String[] classPaths = {
             "sun.boot.class.path",
             "java.ext.dirs",
             "java.class.path"
     };
-
-    private static final String DERBY_POM_JAR_REGEX = ".*/derby-([\\d\\.]+)\\.jar";
 
     public DerbyShootingMXBeanImpl() {
         this(System.getProperty("user.home") + "/.Derby");
@@ -93,9 +93,8 @@ public class DerbyShootingMXBeanImpl extends AbstractDBShootingMXBean {
     // ---- Derby Driver --- //
     // --------------------- //
     private void registerDerbyDriver() {
-        // 如果当前classpath下没有derby jar包, 则动态加载JAVA_HOME下的jar
         if (!containsDerbyJar()) {
-            String jarFilePath = String.format(DERBY_JAR_PATTERN, System.getProperty("java.home"));
+            String jarFilePath = String.format(DERBY_JAR_PATH, System.getProperty("java.home"));
             if (new File(jarFilePath).exists()) {
                 loadJar(jarFilePath);
             }
@@ -116,7 +115,7 @@ public class DerbyShootingMXBeanImpl extends AbstractDBShootingMXBean {
             String jarStr;
             if (!Strings.isNullOrEmpty(jarStr = System.getProperty(classPaths[i]))) {
                 for (String jar : Splitter.on(":").split(jarStr)) {
-                    if (jar.matches(DERBY_POM_JAR_REGEX)) {
+                    if (jar.matches(DERBY_JAR_REGEX)) {
                         contains = true;
                         break;
                     }

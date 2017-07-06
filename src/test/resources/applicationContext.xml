@@ -27,7 +27,7 @@
             <bean class="com.alibaba.cacher.core.Config">
                 <constructor-arg name="open" value="true"/>
                 <constructor-arg name="preventBreakdown" value="true"/>
-                <constructor-arg name="shootingMXBean" ref="h2ShootingMXBean"/>
+                <constructor-arg name="shootingMXBean" ref="zkShootingMXBean"/>
             </bean>
         </constructor-arg>
         <!-- 开启缓存命中率分组统计功能, 注入基于zk的实现-->
