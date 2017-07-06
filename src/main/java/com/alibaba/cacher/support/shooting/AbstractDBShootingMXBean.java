@@ -37,9 +37,9 @@ public abstract class AbstractDBShootingMXBean implements ShootingMXBean {
 
     private volatile boolean isShutdown = false;
 
-    private BlockingQueue<Pair<String, Integer>> hitQueue = new LinkedBlockingQueue<>();
+    private BlockingQueue<Pair<String, Integer>> hitQueue = new LinkedTransferQueue<>();
 
-    private BlockingQueue<Pair<String, Integer>> requireQueue = new LinkedBlockingQueue<>();
+    private BlockingQueue<Pair<String, Integer>> requireQueue = new LinkedTransferQueue<>();
 
     private JdbcOperations jdbcOperations;
 
