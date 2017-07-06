@@ -31,12 +31,6 @@ public @interface Cached {
     String prefix() default "";
 
     /**
-     * @return multi part key`s separator
-     * like: <i>part1-part2-part3</i>
-     */
-    String separator() default "-";
-
-    /**
      * @return use <b>SpEL</b>,
      * when this spel is {@code true}, this {@Code Method} will go through by cache
      * @since 0.3

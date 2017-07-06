@@ -74,6 +74,8 @@
 - 1.5.3
     - 添加`com.alibaba.cacher.support.serialize.KryoSerializer`序列化实现
 - 1.5.4
+    - 删除`@Cached`/`@Invalid`/`@CachedGet`内的`seperator`属性, 似缓存key拼装更简单
+    - 添加缓存防击穿策略(开启后: 如果执行方法返回`null`, 则向缓存内写入一个空对象, 下次不走DB)
     - 消除[限制4](limit.md#4-各类怪异的内部容器类调用), 支持:
     
     | Map | Collection | 

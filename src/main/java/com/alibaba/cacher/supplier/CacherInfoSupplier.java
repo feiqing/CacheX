@@ -92,24 +92,24 @@ public class CacherInfoSupplier {
         return builder
                 .setCache(cached.cache())
                 .setPrefix(cached.prefix())
-                .setExpire(cached.expire())
-                .setSeparator(cached.separator());
+                .setExpire(cached.expire());
+        //.setSeparator(cached.separator());
     }
 
     private static CacheKeyHolder.Builder scanCachedGet(CacheKeyHolder.Builder builder, CachedGet cachedGet) {
         return builder
                 .setCache(cachedGet.cache())
                 .setPrefix(cachedGet.prefix())
-                .setExpire(Expire.NO)
-                .setSeparator(cachedGet.separator());
+                .setExpire(Expire.NO);
+        // .setSeparator(cachedGet.separator());
     }
 
     private static CacheKeyHolder.Builder scanInvalid(CacheKeyHolder.Builder builder, Invalid invalid) {
         return builder
                 .setCache(invalid.cache())
                 .setPrefix(invalid.prefix())
-                .setExpire(Expire.NO)
-                .setSeparator(invalid.separator());
+                .setExpire(Expire.NO);
+        //.setSeparator(invalid.separator());
     }
 
     /***

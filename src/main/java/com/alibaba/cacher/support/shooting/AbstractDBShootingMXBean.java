@@ -1,13 +1,13 @@
 package com.alibaba.cacher.support.shooting;
 
 import com.alibaba.cacher.ShootingMXBean;
+import com.alibaba.cacher.domain.Pair;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.InputStream;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -21,21 +21,24 @@ import java.util.stream.Stream;
  */
 public abstract class AbstractDBShootingMXBean implements ShootingMXBean {
 
-    private static final long _5S = 5 * 1000;
+    private static final ExecutorService executor = Executors.newSingleThreadExecutor(r -> {
+        Thread thread = new Thread(r);
+        thread.setName("cacher:shooting-db-writer");
+        thread.setDaemon(true);
+        return thread;
+    });
 
-    private long hitLastTime = System.currentTimeMillis() - _5S;
+    private BlockingQueue<Pair<String, Integer>> hitQueue = new LinkedBlockingQueue<>();
 
-    private long requireLastTime = System.currentTimeMillis() - _5S;
-
-    private ConcurrentMap<String, AtomicLong> hitMapTS = new ConcurrentHashMap<>();
-
-    private ConcurrentMap<String, AtomicLong> requireMapTS = new ConcurrentHashMap<>();
+    private BlockingQueue<Pair<String, Integer>> requireQueue = new LinkedBlockingQueue<>();
 
     private final Lock lock = new ReentrantLock();
 
     private JdbcOperations jdbcOperations;
 
     private Properties configs;
+
+    private volatile boolean isShutdown = false;
 
     /**
      * 1. create JdbcOperations
@@ -59,36 +62,22 @@ public abstract class AbstractDBShootingMXBean implements ShootingMXBean {
         this.configs = new Yaml().loadAs(resource, Properties.class);
 
         this.jdbcOperations = operationsSupplier(dbPath).get();
+        executor.submit(() -> {
+            while (!isShutdown) {
+                dumpToDB(hitQueue, "hit_count");
+                dumpToDB(requireQueue, "require_count");
+            }
+        });
     }
 
     @Override
     public void hitIncr(String pattern, int count) {
-        hitMapTS.computeIfAbsent(pattern,
-                (k) -> new AtomicLong(0L))
-                .addAndGet(count);
-
-        long currentTime = System.currentTimeMillis();
-        if (currentTime - hitLastTime >= _5S) {
-            countAddCas("hit_count", pattern, count);
-            hitMapTS.clear();
-
-            hitLastTime = currentTime;
-        }
+        hitQueue.add(Pair.of(pattern, count));
     }
 
     @Override
     public void requireIncr(String pattern, int count) {
-        requireMapTS.computeIfAbsent(pattern,
-                (k) -> new AtomicLong(0L))
-                .addAndGet(count);
-
-        long currentTime = System.currentTimeMillis();
-        if (currentTime - requireLastTime >= _5S) {
-            countAddCas("require_count", pattern, count);
-            requireMapTS.clear();
-
-            requireLastTime = currentTime;
-        }
+        requireQueue.add(Pair.of(pattern, count));
     }
 
     @Override
@@ -118,6 +107,22 @@ public abstract class AbstractDBShootingMXBean implements ShootingMXBean {
     @Override
     public void resetAll() {
         jdbcOperations.update(configs.getProperty("truncate"));
+    }
+
+    private void dumpToDB(BlockingQueue<Pair<String, Integer>> queue, String column) {
+        long times = 0;
+        Pair<String, Integer> head;
+
+        // 将queue中所有的 || 前100条数据聚合到一个暂存Map中
+        Map<String, AtomicLong> holdMap = new HashMap<>();
+        while ((head = queue.poll()) != null && times <= 100) {
+            holdMap
+                    .computeIfAbsent(head.getLeft(), (key) -> new AtomicLong(0L))
+                    .addAndGet(head.getRight());
+            ++times;
+        }
+
+        holdMap.forEach((pattern, count) -> countAddCas(column, pattern, count.get()));
     }
 
     private void countAddCas(String column, String pattern, long count) {

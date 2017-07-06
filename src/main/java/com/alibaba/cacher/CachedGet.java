@@ -35,10 +35,4 @@ public @interface CachedGet {
      * @since 0.3
      */
     String condition() default "";
-
-    /**
-     * @return multi part key`s separator
-     * like: <i>part1-part2-part3</i>
-     */
-    String separator() default "-";
 }

@@ -16,10 +16,7 @@ import javax.annotation.PreDestroy;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -29,6 +26,13 @@ import java.util.concurrent.atomic.AtomicLong;
 public class ZKShootingMXBeanImpl implements ShootingMXBean {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ZKShootingMXBeanImpl.class);
+
+    private static final ExecutorService executor = Executors.newSingleThreadExecutor(r -> {
+        Thread thread = new Thread(r);
+        thread.setName("cacher:shooting-zk-uploader");
+        thread.setDaemon(true);
+        return thread;
+    });
 
     private static final String NAME_SPACE = "cacher";
 
@@ -74,13 +78,7 @@ public class ZKShootingMXBeanImpl implements ShootingMXBean {
             throw new CacherException("create path: " + hitPrefix + ", " + requirePrefix + " on namespace: " + NAME_SPACE + " error", e);
         }
 
-        // register async executor
-        Executors.newSingleThreadExecutor(r -> {
-            Thread thread = new Thread(r);
-            thread.setName("cacher:shooting-zk-uploader");
-            thread.setDaemon(true);
-            return thread;
-        }).submit(() -> {
+        executor.submit(() -> {
             while (!isShutdown) {
                 dumpToZK(hitQueue, hitCounterMap, hitPrefix);
                 dumpToZK(requireQueue, requireCounterMap, requirePrefix);
@@ -189,9 +187,9 @@ public class ZKShootingMXBeanImpl implements ShootingMXBean {
         long count = 0;
         Pair<String, Integer> head;
 
-        // 将queue中所有的 || 前1024条数据聚合到一个暂存Map中
+        // 将queue中所有的 || 前100条数据聚合到一个暂存Map中
         Map<String, AtomicLong> holdMap = new HashMap<>();
-        while ((head = queue.poll()) != null && count <= 1024) {
+        while ((head = queue.poll()) != null && count <= 100) {
             holdMap
                     .computeIfAbsent(head.getLeft(), (key) -> new AtomicLong(0L))
                     .addAndGet(head.getRight());
