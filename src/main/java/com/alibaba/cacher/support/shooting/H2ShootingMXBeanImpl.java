@@ -4,6 +4,7 @@ import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 
+import javax.annotation.PreDestroy;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -16,7 +17,7 @@ import java.util.stream.Stream;
 public class H2ShootingMXBeanImpl extends AbstractDBShootingMXBean {
 
     public H2ShootingMXBeanImpl() {
-        this(System.getProperty("user.home") + "/.h2/cacher");
+        this(System.getProperty("user.home") + "/.H2/cacher");
     }
 
     public H2ShootingMXBeanImpl(String dbPath) {
@@ -26,7 +27,6 @@ public class H2ShootingMXBeanImpl extends AbstractDBShootingMXBean {
     @Override
     protected Supplier<JdbcOperations> operationsSupplier(String dbPath) {
         return () -> {
-            // 不使用EmbeddedDatabaseBuilder(), 使之有更多的控制
             SingleConnectionDataSource dataSource = new SingleConnectionDataSource();
             dataSource.setDriverClassName("org.h2.Driver");
             dataSource.setUrl("jdbc:h2:" + dbPath + ";AUTO_SERVER=TRUE;AUTO_RECONNECT=TRUE;AUTO_SERVER=TRUE");
@@ -56,5 +56,10 @@ public class H2ShootingMXBeanImpl extends AbstractDBShootingMXBean {
 
             return dataDO;
         });
+    }
+
+    @PreDestroy
+    public void tearDown() {
+        super.tearDown();
     }
 }

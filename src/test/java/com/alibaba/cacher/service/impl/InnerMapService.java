@@ -4,7 +4,6 @@ import com.alibaba.cacher.CacheKey;
 import com.alibaba.cacher.Cached;
 import com.alibaba.cacher.domain.User;
 import com.alibaba.cacher.enums.Expire;
-import com.google.common.collect.ImmutableMap;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -51,13 +50,13 @@ public class InnerMapService {
         return Collections.checkedNavigableMap(map, Integer.class, User.class);
     }
 
-    @Cached(expire = Expire.TEN_MIN)
+    @Cached(prefix = "map-", expire = Expire.TEN_MIN)
     public Map<Integer, User> immutableMap(@CacheKey(prefix = "id:", multi = true) List<Integer> ids) {
         TreeMap<Integer, User> map = new TreeMap<>();
         for (Integer id : ids) {
             map.put(id, new User(id, "name" + id, new Date(), id, ""));
         }
 
-        return ImmutableMap.copyOf(map);
+        return Collections.unmodifiableMap(map);
     }
 }

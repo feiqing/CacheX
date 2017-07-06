@@ -7,6 +7,7 @@ import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 
+import javax.annotation.PreDestroy;
 import javax.sql.DataSource;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
@@ -37,7 +38,7 @@ public class DerbyShootingMXBeanImpl extends AbstractDBShootingMXBean {
     private static final String DERBY_POM_JAR_REGEX = ".*/derby-([\\d\\.]+)\\.jar";
 
     public DerbyShootingMXBeanImpl() {
-        this(System.getProperty("user.home") + "/.derby");
+        this(System.getProperty("user.home") + "/.Derby");
     }
 
     public DerbyShootingMXBeanImpl(String derbyFilePath) {
@@ -88,6 +89,10 @@ public class DerbyShootingMXBeanImpl extends AbstractDBShootingMXBean {
         });
     }
 
+    @PreDestroy
+    public void tearDown() {
+        super.tearDown();
+    }
 
     // --------------------- //
     // -- 注册Derby Driver -- //

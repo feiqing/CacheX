@@ -2,9 +2,12 @@ package com.alibaba.cacher.support.shooting;
 
 import com.alibaba.cacher.ShootingMXBean;
 import com.alibaba.cacher.domain.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.yaml.snakeyaml.Yaml;
 
+import javax.annotation.PreDestroy;
 import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.*;
@@ -20,6 +23,8 @@ import java.util.stream.Stream;
  * @since 2017/6/12 下午12:55.
  */
 public abstract class AbstractDBShootingMXBean implements ShootingMXBean {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractDBShootingMXBean.class);
 
     private static final ExecutorService executor = Executors.newSingleThreadExecutor(r -> {
         Thread thread = new Thread(r);
@@ -57,7 +62,7 @@ public abstract class AbstractDBShootingMXBean implements ShootingMXBean {
      */
     protected abstract Stream<DataDO> transferResults(List<Map<String, Object>> mapResults);
 
-    public AbstractDBShootingMXBean(String dbPath) {
+    protected AbstractDBShootingMXBean(String dbPath) {
         InputStream resource = this.getClass().getClassLoader().getResourceAsStream("sql.yaml");
         this.configs = new Yaml().loadAs(resource, Properties.class);
 
@@ -72,12 +77,14 @@ public abstract class AbstractDBShootingMXBean implements ShootingMXBean {
 
     @Override
     public void hitIncr(String pattern, int count) {
-        hitQueue.add(Pair.of(pattern, count));
+        if (count != 0)
+            hitQueue.add(Pair.of(pattern, count));
     }
 
     @Override
     public void requireIncr(String pattern, int count) {
-        requireQueue.add(Pair.of(pattern, count));
+        if (count != 0)
+            requireQueue.add(Pair.of(pattern, count));
     }
 
     @Override
@@ -181,6 +188,19 @@ public abstract class AbstractDBShootingMXBean implements ShootingMXBean {
         long lastCount = column.equals("hit_count") ? data.hitCount : data.requireCount;
 
         return lastCount + countOffset;
+    }
+
+    @PreDestroy
+    public void tearDown() {
+        while (hitQueue.size() > 0 || requireQueue.size() > 0) {
+            LOGGER.warn("shooting queue is not empty: [{}]-[{}], waiting...", hitQueue.size(), requireQueue.size());
+            try {
+                TimeUnit.SECONDS.sleep(1);
+            } catch (InterruptedException ignored) {
+            }
+        }
+
+        isShutdown = true;
     }
 
     protected static final class DataDO {

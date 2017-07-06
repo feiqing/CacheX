@@ -40,8 +40,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Cached(prefix = "list")
-    public List<User> returnList(@CacheKey(prefix = "ids:", multi = true, id = "id") List<Integer> ids, String name, Object non) {
+    @Cached(prefix = "list-")
+    public List<User> returnList(@CacheKey(prefix = "ids:", multi = true, id = "id") List<Integer> ids, @CacheKey(prefix = "-name:") String name, Object non) {
         List<User> list = new LinkedList<>();
         for (int id : ids) {
             Utils.delay(5);
@@ -54,7 +54,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Invalid(prefix = "list")
-    public void batchUpdateList(@CacheKey(prefix = "ids:", multi = true, spel = "id") List<User> users) {
+    public void batchUpdateList(@CacheKey(prefix = "id:", multi = true, spel = "id") List<User> users) {
         List<Integer> ids = new ArrayList<>(users.size());
         for (User user : users) {
             ids.add(user.getId());
