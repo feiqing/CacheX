@@ -128,7 +128,7 @@ public class ZKShootingMXBeanImpl implements ShootingMXBean {
             }
         });
 
-        result.put(getSummaryName(), ShootingDO.newInstance(totalHit.get(), totalRequire.get()));
+        result.put(summaryName(), ShootingDO.newInstance(totalHit.get(), totalRequire.get()));
 
         return result;
     }

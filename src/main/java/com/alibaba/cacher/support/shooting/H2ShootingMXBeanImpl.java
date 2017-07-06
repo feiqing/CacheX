@@ -25,11 +25,11 @@ public class H2ShootingMXBeanImpl extends AbstractDBShootingMXBean {
     }
 
     @Override
-    protected Supplier<JdbcOperations> operationsSupplier(String dbPath) {
+    protected Supplier<JdbcOperations> jdbcOperationsSupplier(String dbPath) {
         return () -> {
             SingleConnectionDataSource dataSource = new SingleConnectionDataSource();
             dataSource.setDriverClassName("org.h2.Driver");
-            dataSource.setUrl("jdbc:h2:" + dbPath + ";AUTO_SERVER=TRUE;AUTO_RECONNECT=TRUE;AUTO_SERVER=TRUE");
+            dataSource.setUrl(String.format("jdbc:h2:%s;AUTO_SERVER=TRUE;AUTO_RECONNECT=TRUE;AUTO_SERVER=TRUE", dbPath));
             dataSource.setUsername("cacher");
             dataSource.setPassword("cacher");
 

@@ -46,9 +46,9 @@ public class DerbyShootingMXBeanImpl extends AbstractDBShootingMXBean {
     }
 
     @Override
-    protected Supplier<JdbcOperations> operationsSupplier(String dbPath) {
+    protected Supplier<JdbcOperations> jdbcOperationsSupplier(String dbPath) {
         return () -> {
-            registerDriver();
+            registerDerbyDriver();
             SingleConnectionDataSource dataSource = new SingleConnectionDataSource();
             dataSource.setUrl(String.format("jdbc:derby:%s;create=true", dbPath));
             JdbcOperations jdbcOperations = new JdbcTemplate(dataSource);
@@ -62,7 +62,7 @@ public class DerbyShootingMXBeanImpl extends AbstractDBShootingMXBean {
                             "version       BIGINT      NOT NULL     DEFAULT 0)");
                 }
             } catch (SQLException e) {
-                throw new CacherException(e);
+                throw new CacherException("derby create table: T_HIT_RATE error", e);
             }
 
             return jdbcOperations;
@@ -89,15 +89,10 @@ public class DerbyShootingMXBeanImpl extends AbstractDBShootingMXBean {
         });
     }
 
-    @PreDestroy
-    public void tearDown() {
-        super.tearDown();
-    }
-
     // --------------------- //
-    // -- 注册Derby Driver -- //
+    // ---- Derby Driver --- //
     // --------------------- //
-    private void registerDriver() {
+    private void registerDerbyDriver() {
         // 如果当前classpath下没有derby jar包, 则动态加载JAVA_HOME下的jar
         if (!containsDerbyJar()) {
             String jarFilePath = String.format(DERBY_JAR_PATTERN, System.getProperty("java.home"));
@@ -109,7 +104,8 @@ public class DerbyShootingMXBeanImpl extends AbstractDBShootingMXBean {
         try {
             Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
         } catch (ClassNotFoundException e) {
-            throw new CacherException("derby.jar is not in classpath and not in $JAVA_HOME/db/lib directory", e);
+            throw new CacherException("derby.jar is not in classpath and not in ${JAVA_HOME}/db/lib directory, "
+                    + "please make sure derby's drive has loaded in classpath", e);
         }
     }
 
@@ -145,5 +141,10 @@ public class DerbyShootingMXBeanImpl extends AbstractDBShootingMXBean {
             addURLMethod.invoke(loader, new URL("file://" + javaFile));
         } catch (IllegalAccessException | InvocationTargetException | MalformedURLException ignored) {
         }
+    }
+
+    @PreDestroy
+    public void tearDown() {
+        super.tearDown();
     }
 }
