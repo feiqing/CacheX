@@ -14,7 +14,7 @@ import java.util.List;
  * @author jifang.zjf
  * @since 2017/6/21 下午7:34.
  */
-public class InnerMapTC extends TestBase {
+public class InnerMapTest extends TestBase {
 
     @Resource
     private InnerMapService service;

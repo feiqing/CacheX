@@ -16,7 +16,7 @@ import java.util.stream.Stream;
  * @author jifang
  * @since 2016/11/30 下午2:19.
  */
-public class MultiCase extends TestBase {
+public class MultiTest extends TestBase {
 
     @Autowired
     private UserService service;

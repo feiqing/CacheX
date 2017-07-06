@@ -12,7 +12,7 @@ import java.util.Date;
  * @author jifang
  * @since 16/7/20 上午10:51.
  */
-public class SingleCase extends TestBase {
+public class SingleTest extends TestBase {
 
     @Autowired
     private UserService service;

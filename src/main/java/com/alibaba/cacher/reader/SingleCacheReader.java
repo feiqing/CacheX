@@ -12,9 +12,6 @@ import com.alibaba.cacher.supplier.PatternSupplier;
 import com.alibaba.cacher.supplier.PreventObjectSupplier;
 import com.alibaba.cacher.utils.KeyGenerators;
 
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
 /**
  * @author jifang
  * @since 2016/11/5 下午3:10.
@@ -30,8 +27,6 @@ public class SingleCacheReader extends AbstractCacheReader {
 
     @Inject(optional = true)
     private ShootingMXBean shootingMXBean;
-
-    private ConcurrentMap<Class<?>, Object> preventObjectMap = new ConcurrentHashMap<>();
 
     @Override
     public Object read(CacheKeyHolder cacheKeyHolder, CacheMethodHolder cacheMethodHolder, Invoker invoker, boolean needWrite) throws Throwable {
