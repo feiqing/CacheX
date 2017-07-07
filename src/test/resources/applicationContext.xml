@@ -20,14 +20,14 @@
     <bean class="com.alibaba.cacher.CacherAspect">
         <constructor-arg name="caches">
             <map key-type="java.lang.String" value-type="com.alibaba.cacher.ICache">
-                <entry key="tair" value-ref="tair"/>
+                <entry key="tair" value-ref="ehCache"/>
             </map>
         </constructor-arg>
         <constructor-arg name="config" type="com.alibaba.cacher.core.Config">
             <bean class="com.alibaba.cacher.core.Config">
                 <constructor-arg name="open" value="true"/>
                 <constructor-arg name="preventBreakdown" value="true"/>
-                <constructor-arg name="shootingMXBean" ref="zkShootingMXBean"/>
+                <constructor-arg name="shootingMXBean" ref="h2ShootingMXBean"/>
             </bean>
         </constructor-arg>
         <!-- 开启缓存命中率分组统计功能, 注入基于zk的实现-->
@@ -46,23 +46,22 @@
         <constructor-arg name="namespace" value="180"/>
     </bean>
 
-    <!--<bean id="noOpCache" class="com.alibaba.cacher.support.cache.NoOpCache" lazy-init="true"/>-->
+    <bean id="noOpCache" class="com.alibaba.cacher.support.cache.NoOpCache" lazy-init="true"/>
     <!--<bean id="jdkConcurrentMapCache" class="com.alibaba.cacher.support.cache.JdkConcurrentMapCache" lazy-init="true"/>-->
-    <!--<bean id="guavaCache" class="com.alibaba.cacher.support.cache.GuavaCache" lazy-init="true">-->
-    <!--<constructor-arg name="size" value="1000"/>-->
-    <!--<constructor-arg name="expire" value="6000"/>-->
-    <!--</bean>-->
+    <bean id="guavaCache" class="com.alibaba.cacher.support.cache.GuavaCache" lazy-init="true">
+        <constructor-arg name="size" value="1000"/>
+        <constructor-arg name="expire" value="6000"/>
+    </bean>
     <!--<bean id="mapDBCache" class="com.alibaba.cacher.support.cache.MapDBCache" lazy-init="true">-->
     <!--<constructor-arg name="interval" value="1000000"/>-->
     <!--<constructor-arg name="maxSize" value="1000000"/>-->
     <!--<constructor-arg name="maxStoreSize" value="2"/>-->
     <!--</bean>-->
-    <!--<bean id="ehCache" class="com.alibaba.cacher.support.cache.EhCache" lazy-init="true">-->
-    <!--<constructor-arg name="heapEntries" value="20"/>-->
-    <!--<constructor-arg name="offHeapMBSize" value="512"/>-->
-    <!--<constructor-arg name="diskPath" value="/data/cache"/>-->
-    <!--<constructor-arg name="diskGBSize" value="1"/>-->
-    <!--</bean>-->
+    <bean id="ehCache" class="com.alibaba.cacher.support.cache.EhCache" lazy-init="true">
+        <constructor-arg name="heapEntries" value="20"/>
+        <constructor-arg name="offHeapMBSize" value="512"/>
+        <constructor-arg name="diskGBSize" value="1"/>
+    </bean>
     <!--
         <bean id="vRedisPoolCache" class="com.vdian.cacher.support.cache.VRedisPoolCache">
             <constructor-arg name="namespace" value="ares"/>
