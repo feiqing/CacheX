@@ -4,7 +4,7 @@ import com.alibaba.cacher.ShootingMXBean;
 import com.alibaba.cacher.core.Config;
 import com.alibaba.cacher.di.Inject;
 import com.alibaba.cacher.di.Singleton;
-import com.alibaba.cacher.domain.BatchReadResult;
+import com.alibaba.cacher.domain.CacheReadResult;
 import com.alibaba.cacher.domain.CacheKeyHolder;
 import com.alibaba.cacher.domain.CacheMethodHolder;
 import com.alibaba.cacher.invoker.Invoker;
@@ -41,32 +41,32 @@ public class MultiCacheReader extends AbstractCacheReader {
 
         // request cache
         Set<String> keys = keyIdMap.keySet();
-        BatchReadResult batchReadResult = cacheManager.readBatch(cacheKeyHolder.getCache(), keys);
-        doRecord(batchReadResult, cacheKeyHolder);
+        CacheReadResult cacheReadResult = cacheManager.readBatch(cacheKeyHolder.getCache(), keys);
+        doRecord(cacheReadResult, cacheKeyHolder);
 
         Object result;
         // have miss keys : part hit || all not hit
-        if (!batchReadResult.getMissKeys().isEmpty()) {
-            result = handlePartHit(invoker, batchReadResult, cacheKeyHolder, cacheMethodHolder, pair, needWrite);
+        if (!cacheReadResult.getMissKeySet().isEmpty()) {
+            result = handlePartHit(invoker, cacheReadResult, cacheKeyHolder, cacheMethodHolder, pair, needWrite);
         }
         // no miss keys : all hit || empty key
         else {
-            Map<String, Object> keyValueMap = batchReadResult.getHitKeyValueMap();
+            Map<String, Object> keyValueMap = cacheReadResult.getHitKeyMap();
             result = handleFullHit(invoker, keyValueMap, cacheMethodHolder, keyIdMap);
         }
 
         return result;
     }
 
-    private Object handlePartHit(Invoker invoker, BatchReadResult batchReadResult,
+    private Object handlePartHit(Invoker invoker, CacheReadResult cacheReadResult,
                                  CacheKeyHolder cacheKeyHolder, CacheMethodHolder cacheMethodHolder,
                                  Map[] pair, boolean needWrite) throws Throwable {
 
         Map<Object, String> id2Key = pair[0];
         Map<String, Object> key2Id = pair[1];
 
-        Set<String> missKeys = batchReadResult.getMissKeys();
-        Map<String, Object> hitKeyValueMap = batchReadResult.getHitKeyValueMap();
+        Set<String> missKeys = cacheReadResult.getMissKeySet();
+        Map<String, Object> hitKeyValueMap = cacheReadResult.getHitKeyMap();
 
         // 用未命中的keys调用方法
         Object[] missArgs = toMissArgs(missKeys, key2Id, invoker.getArgs(), cacheKeyHolder.getMultiIndex());
@@ -146,11 +146,11 @@ public class MultiCacheReader extends AbstractCacheReader {
         return args;
     }
 
-    private void doRecord(BatchReadResult batchReadResult, CacheKeyHolder cacheKeyHolder) {
-        Set<String> missKeys = batchReadResult.getMissKeys();
+    private void doRecord(CacheReadResult cacheReadResult, CacheKeyHolder cacheKeyHolder) {
+        Set<String> missKeys = cacheReadResult.getMissKeySet();
 
         // 计数
-        int hitCount = batchReadResult.getHitKeyValueMap().size();
+        int hitCount = cacheReadResult.getHitKeyMap().size();
         int totalCount = hitCount + missKeys.size();
         LOGGER.info("multi cache hit rate: {}/{}, missed keys: {}",
                 hitCount, totalCount, missKeys);

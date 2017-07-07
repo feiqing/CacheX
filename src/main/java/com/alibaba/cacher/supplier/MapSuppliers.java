@@ -38,6 +38,9 @@ public class MapSuppliers {
 
     private static final ConcurrentMap<Class<?>, Function<Optional<Map>, Map>> modifiableMapSuppliers
             = new ConcurrentHashMap<Class<?>, Function<Optional<Map>, Map>>() {
+
+        private static final long serialVersionUID = 5174717280250679252L;
+
         {
             // ************************** //
             // need replace until the end //
@@ -75,6 +78,8 @@ public class MapSuppliers {
     };
 
     private static final ConcurrentMap<Class<?>, Function<Map, Map>> mapConverters = new ConcurrentHashMap<Class<?>, Function<Map, Map>>() {
+        private static final long serialVersionUID = -943909356197572729L;
+
         {
             // unmodifiable
             put(unmodifiableMap(EMPTY_MAP).getClass(), Collections::unmodifiableMap);

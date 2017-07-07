@@ -1,7 +1,7 @@
 package com.alibaba.cacher.manager;
 
 import com.alibaba.cacher.ICache;
-import com.alibaba.cacher.domain.BatchReadResult;
+import com.alibaba.cacher.domain.CacheReadResult;
 import com.alibaba.cacher.domain.Pair;
 import com.alibaba.cacher.exception.CacherException;
 import com.alibaba.cacher.di.Singleton;
@@ -74,10 +74,10 @@ public class CacheManager {
         }
     }
 
-    public BatchReadResult readBatch(String cache, Collection<String> keys) {
-        BatchReadResult batchReadResult;
+    public CacheReadResult readBatch(String cache, Collection<String> keys) {
+        CacheReadResult cacheReadResult;
         if (keys.isEmpty()) {
-            batchReadResult = new BatchReadResult();
+            cacheReadResult = new CacheReadResult();
         } else {
             try {
                 Pair<String, ICache> cacheImpl = getCacheImpl(cache);
@@ -101,15 +101,15 @@ public class CacheManager {
                     }
                 }
 
-                batchReadResult = new BatchReadResult(hitValueMap, notHitKeys);
+                cacheReadResult = new CacheReadResult(hitValueMap, notHitKeys);
             } catch (Throwable e) {
                 ROOT_LOGGER.error("read multi cache failed, keys: {}", keys, e);
                 CACHER_LOGGER.error("read multi cache failed, keys: {}", keys, e);
-                batchReadResult = new BatchReadResult();
+                cacheReadResult = new CacheReadResult();
             }
         }
 
-        return batchReadResult;
+        return cacheReadResult;
     }
 
     public void writeBatch(String cache, Map<String, Object> keyValueMap, int expire) {

@@ -47,6 +47,8 @@ public class CollectionSupplier {
 
     private static final ConcurrentMap<Class<?>, Function<Optional<Collection>, Collection>> collectionSuppliers
             = new ConcurrentHashMap<Class<?>, Function<Optional<Collection>, Collection>>() {
+        private static final long serialVersionUID = 2056027356709029973L;
+
         {
             // ************************** //
             // need replace until the end //
@@ -95,6 +97,8 @@ public class CollectionSupplier {
 
     private static final ConcurrentMap<Class<?>, Function<Collection, Collection>> collectionConverters =
             new ConcurrentHashMap<Class<?>, Function<Collection, Collection>>() {
+                private static final long serialVersionUID = -1471325700617121737L;
+
                 {
                     // unmodifiable
                     put(unmodifiableCollection(EMPTY_SET).getClass(), Collections::unmodifiableCollection);

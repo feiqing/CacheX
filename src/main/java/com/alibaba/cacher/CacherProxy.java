@@ -18,7 +18,7 @@ import java.util.Map;
  * @author jifang.zjf
  * @since 2017/6/22 上午11:04.
  */
-public class HSFConsumerCacherProxyBean implements FactoryBean, InitializingBean {
+public class CacherProxy implements FactoryBean, InitializingBean {
 
     private Object target;
 
@@ -34,19 +34,19 @@ public class HSFConsumerCacherProxyBean implements FactoryBean, InitializingBean
 
     private boolean open = true;
 
-    public HSFConsumerCacherProxyBean(Object target, String cacheName, ICache cache) {
+    public CacherProxy(Object target, String cacheName, ICache cache) {
         this(target, Collections.singletonMap(cacheName, cache));
     }
 
-    public HSFConsumerCacherProxyBean(Object target, Map<String, ICache> caches) {
+    public CacherProxy(Object target, Map<String, ICache> caches) {
         this(target, target.getClass().getInterfaces()[0], caches);
     }
 
-    public HSFConsumerCacherProxyBean(Object target, Class<?> type, Map<String, ICache> caches) {
+    public CacherProxy(Object target, Class<?> type, Map<String, ICache> caches) {
         this(target, new Class[]{type}, caches, true);
     }
 
-    public HSFConsumerCacherProxyBean(Object target, Class<?>[] types, Map<String, ICache> caches, boolean open) {
+    public CacherProxy(Object target, Class<?>[] types, Map<String, ICache> caches, boolean open) {
         this.target = target;
         if (types == null || types.length == 0) {
             isNeedCGLIB = true;
