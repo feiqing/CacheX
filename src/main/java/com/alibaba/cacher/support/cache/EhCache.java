@@ -68,7 +68,6 @@ public class EhCache implements ICache {
             map.put(key, ehcache.get(key));
         }
 
-
         return map;
     }
 
