@@ -49,10 +49,11 @@ public abstract class AbstractDBShootingMXBean implements ShootingMXBean {
      * 1. create JdbcOperations
      * 2. init db(like: load sql script, create table, init table...)
      *
-     * @param dbPath :EmbeddedDatabase file temporary storage directory.
+     * @param dbPath  :EmbeddedDatabase file temporary storage directory or remove database.
+     * @param context :other parameters from constructor
      * @return initiated JdbOperations object
      */
-    protected abstract Supplier<JdbcOperations> jdbcOperationsSupplier(String dbPath);
+    protected abstract Supplier<JdbcOperations> jdbcOperationsSupplier(String dbPath, Map<String, Object> context);
 
     /**
      * convert DB Map Result to DataDO(Stream)
@@ -62,11 +63,11 @@ public abstract class AbstractDBShootingMXBean implements ShootingMXBean {
      */
     protected abstract Stream<DataDO> transferResults(List<Map<String, Object>> mapResults);
 
-    protected AbstractDBShootingMXBean(String dbPath) {
+    protected AbstractDBShootingMXBean(String dbPath, Map<String, Object> context) {
         InputStream resource = this.getClass().getClassLoader().getResourceAsStream("sql.yaml");
         this.sqls = new Yaml().loadAs(resource, Properties.class);
 
-        this.jdbcOperations = jdbcOperationsSupplier(dbPath).get();
+        this.jdbcOperations = jdbcOperationsSupplier(dbPath, context).get();
         executor.submit(() -> {
             while (!isShutdown) {
                 dumpToDB(hitQueue, "hit_count");

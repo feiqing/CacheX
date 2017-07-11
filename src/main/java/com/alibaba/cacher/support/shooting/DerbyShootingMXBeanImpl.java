@@ -16,6 +16,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -42,11 +43,11 @@ public class DerbyShootingMXBeanImpl extends AbstractDBShootingMXBean {
     }
 
     public DerbyShootingMXBeanImpl(String derbyFilePath) {
-        super(derbyFilePath);
+        super(derbyFilePath, Collections.emptyMap());
     }
 
     @Override
-    protected Supplier<JdbcOperations> jdbcOperationsSupplier(String dbPath) {
+    protected Supplier<JdbcOperations> jdbcOperationsSupplier(String dbPath, Map<String, Object> context) {
         return () -> {
             registerDerbyDriver();
             SingleConnectionDataSource dataSource = new SingleConnectionDataSource();

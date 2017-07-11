@@ -1,10 +1,10 @@
 package com.alibaba.cacher.support.shooting;
 
+import com.google.common.base.StandardSystemProperty;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 
-import javax.annotation.PreDestroy;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -13,15 +13,15 @@ import java.util.stream.Stream;
 
 /**
  * @author jifang.zjf
- * @since 2017/6/8 下午9:41.
+ * @since 2017/7/10 下午5:52.
  */
-public class H2ShootingMXBeanImpl extends AbstractDBShootingMXBean {
+public class SqliteShootingMXBeanImpl extends AbstractDBShootingMXBean {
 
-    public H2ShootingMXBeanImpl() {
-        this(System.getProperty("user.home") + "/.H2/cacher");
+    public SqliteShootingMXBeanImpl() {
+        this(StandardSystemProperty.USER_HOME.value() + "/.sqlite.db");
     }
 
-    public H2ShootingMXBeanImpl(String dbPath) {
+    public SqliteShootingMXBeanImpl(String dbPath) {
         super(dbPath, Collections.emptyMap());
     }
 
@@ -29,10 +29,8 @@ public class H2ShootingMXBeanImpl extends AbstractDBShootingMXBean {
     protected Supplier<JdbcOperations> jdbcOperationsSupplier(String dbPath, Map<String, Object> context) {
         return () -> {
             SingleConnectionDataSource dataSource = new SingleConnectionDataSource();
-            dataSource.setDriverClassName("org.h2.Driver");
-            dataSource.setUrl(String.format("jdbc:h2:%s;AUTO_SERVER=TRUE;AUTO_RECONNECT=TRUE;AUTO_SERVER=TRUE", dbPath));
-            dataSource.setUsername("cacher");
-            dataSource.setPassword("cacher");
+            dataSource.setDriverClassName("org.sqlite.JDBC");
+            dataSource.setUrl(String.format("jdbc:sqlite:%s", dbPath));
 
             JdbcTemplate template = new JdbcTemplate(dataSource);
             template.execute("CREATE TABLE IF NOT EXISTS t_hit_rate(" +
@@ -48,19 +46,14 @@ public class H2ShootingMXBeanImpl extends AbstractDBShootingMXBean {
 
     @Override
     protected Stream<DataDO> transferResults(List<Map<String, Object>> mapResults) {
-        return mapResults.stream().map((map) -> {
-            AbstractDBShootingMXBean.DataDO dataDO = new AbstractDBShootingMXBean.DataDO();
-            dataDO.setPattern((String) map.get("PATTERN"));
-            dataDO.setHitCount((long) map.get("HIT_COUNT"));
-            dataDO.setRequireCount((long) map.get("REQUIRE_COUNT"));
-            dataDO.setVersion((long) map.get("VERSION"));
+        return mapResults.stream().map(result -> {
+            DataDO dataDO = new DataDO();
+            dataDO.setHitCount((Integer) result.get("hit_count"));
+            dataDO.setPattern((String) result.get("pattern"));
+            dataDO.setRequireCount((Integer) result.get("require_count"));
+            dataDO.setVersion((Integer) result.get("version"));
 
             return dataDO;
         });
-    }
-
-    @PreDestroy
-    public void tearDown() {
-        super.tearDown();
     }
 }
