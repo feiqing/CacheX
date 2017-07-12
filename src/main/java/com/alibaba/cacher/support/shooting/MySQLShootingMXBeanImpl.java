@@ -1,5 +1,6 @@
 package com.alibaba.cacher.support.shooting;
 
+import com.alibaba.cacher.utils.StringFormatter;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
@@ -17,6 +18,14 @@ import java.util.stream.Stream;
  */
 public class MySQLShootingMXBeanImpl extends AbstractDBShootingMXBean {
 
+    private static final String DRIVER_MYSQL = "com.mysql.jdbc.Driver";
+
+    private static final String URL_MYSQL = "jdbc:mysql://${host}:${port}/${database}";
+
+    public MySQLShootingMXBeanImpl(String username, String password) {
+        this("127.0.0.1", 3306, username, password);
+    }
+
     public MySQLShootingMXBeanImpl(String host, long port, String username, String password) {
         this(host, port,
                 System.getProperty("product.name", "unnamed"),
@@ -24,24 +33,31 @@ public class MySQLShootingMXBeanImpl extends AbstractDBShootingMXBean {
     }
 
     public MySQLShootingMXBeanImpl(String host, long port, String database, String username, String password) {
-        super(database, newMap(
-                "host", host,
-                "port", port,
-                "username", username,
-                "password", password
-        ));
+        super(database,
+                newHashMap(
+                        "host", host,
+                        "port", port,
+                        "username", username,
+                        "password", password
+                ));
     }
 
-    private MySQLShootingMXBeanImpl(String hotsPortDataBase) {
-        super(hotsPortDataBase, Collections.emptyMap());
+    /**
+     * could not use.
+     *
+     * @param database
+     */
+    private MySQLShootingMXBeanImpl(String database) {
+        super(database, Collections.emptyMap());
     }
 
     @Override
     protected Supplier<JdbcOperations> jdbcOperationsSupplier(String dbPath, Map<String, Object> context) {
         return () -> {
+            context.put("database", dbPath);
             SingleConnectionDataSource dataSource = new SingleConnectionDataSource();
-            dataSource.setDriverClassName("com.mysql.jdbc.Driver");
-            dataSource.setUrl(String.format("jdbc:mysql://%s:%s/%s", context.get("host"), context.get("port"), dbPath));
+            dataSource.setDriverClassName(DRIVER_MYSQL);
+            dataSource.setUrl(StringFormatter.format(URL_MYSQL, context));
             dataSource.setUsername((String) context.get("username"));
             dataSource.setPassword((String) context.get("password"));
 
@@ -70,8 +86,8 @@ public class MySQLShootingMXBeanImpl extends AbstractDBShootingMXBean {
         });
     }
 
-    private static Map<String, Object> newMap(Object... keyValues) {
-        Map<String, Object> map = new HashMap<>(keyValues.length / 2);
+    private static HashMap<String, Object> newHashMap(Object... keyValues) {
+        HashMap<String, Object> map = new HashMap<>(keyValues.length / 2);
         for (int i = 0; i < keyValues.length; i += 2) {
             String key = (String) keyValues[i];
             Object value = keyValues[i + 1];
