@@ -63,7 +63,6 @@ public class StringFormatter {
         return string;
     }
 
-
     public static void main(String[] args) {
         String template = "jdbc:mysql://${host}:${port}/${database}";
         System.out.println(format(template, "127.0.0.1", 3306, "testdb"));
