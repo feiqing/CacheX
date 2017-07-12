@@ -28,6 +28,7 @@ public class StringFormatter {
 
     public static String format(String template, Object... args) {
         Matcher matcher = pattern.matcher(template);
+
         int index = 0;
         while (matcher.find()) {
             String exp = matcher.group();
@@ -57,7 +58,7 @@ public class StringFormatter {
             string = string.substring("${".length());
 
         if (string.endsWith("}"))
-            string = string.substring(0, string.length() - 1);
+            string = string.substring(0, string.length() - "}".length());
 
         return string;
     }
