@@ -20,7 +20,7 @@
 ---
 
 ## I. 架构
-![](https://private-alipayobjects.alipay.com/alipay-rmsdeploy-image/skylark/png/16257/370eee6562be41fa.png)
+![](http://7xrgh9.com1.z0.glb.clouddn.com/17-11-15/26560785.jpg)
 
 ---
 ## II. 简单使用
@@ -69,7 +69,7 @@
 #### 1. 添加缓存(`@Cached` & `@CacheKey`)
 - 在想要添加缓存的方法上标`@Cached`注解
 - 在想要组装为key的方法参数上标`@CacheKey`注解
-![](https://private-alipayobjects.alipay.com/alipay-rmsdeploy-image/skylark/png/16257/93bab91896ccc8b3.png)
+![](http://7xrgh9.com1.z0.glb.clouddn.com/17-11-15/37122658.jpg)
 
 可以看到单key的方法已经只剩下了步骤2(省掉了步骤0、1、3), 多key的方法只剩下了步骤4(省掉了步骤0、1、2、3、5);
 生成key、查询缓存、写入缓存的操作框架已经全部帮你完成了(而且还帮你省掉了一个生成key的`genCacheKey()`方法).
@@ -80,7 +80,7 @@
 #### 2. 缓存失效(`@Invalid` & `@CacheKey`)
 如果一个用户的信息(`User`)修改了怎么办? 按照原先的想法是 *在修改用户信息代码后添加缓存更新/失效的逻辑, 在用户更新的同时让缓存刷新/失效*. 这种方法依然会导致在业务逻辑中充斥大量跟缓存有关的逻辑, 极不优雅!
 
-![](https://private-alipayobjects.alipay.com/alipay-rmsdeploy-image/skylark/png/16257/c9f95a8ef39801be.png)
+![](http://7xrgh9.com1.z0.glb.clouddn.com/17-11-15/41363097.jpg)
 
 框架会在你的用户信息更新方法执行后去自动的失效缓存.
 
@@ -243,7 +243,7 @@ public @interface CacheKey {
 ### 附
 cacher目前版本支持的**缓存产品实现**、**序列化类型**、**命中率统计实现**们 ~
 
-![support.png](https://private-alipayobjects.alipay.com/alipay-rmsdeploy-image/skylark/png/16257/ec31139eb928e352.png) 
+![support.png](http://7xrgh9.com1.z0.glb.clouddn.com/17-11-15/58610258.jpg) 
 
 ---
 - *by* 菜鸟-翡青
