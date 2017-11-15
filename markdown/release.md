@@ -73,5 +73,36 @@
     - 添加`@Cacheds`、`@Invalids`两个注解, 使`@Cached`、`@Invalid`支持Java8重复注解, 定义多级缓存目标.
 - 1.5.3
     - 添加`com.alibaba.cacher.support.serialize.KryoSerializer`序列化实现
+- 1.5.4
+    - 消除[限制4](limit.md#4-各类怪异的内部容器类调用), 支持:
+    
+    | Map | Collection | 
+    :------- | ------- |
+    | `Collections.emptyMap()` | `Collections.emptyList()` |
+    | `Collections.emptyNavigableMap()` | `Collections.emptySet()` | 
+    | `Collections.emptySortedMap()` | `Collections.emptySortedSet()` |
+    | `Collections.singletonMap()`   | `Collections.emptyNavigableSet()` |
+    | `Collections.unmodifiableMap()` | `Collections.singletonList()` |
+    | `Collections.unmodifiableNavigableMap()` | `Collections.singleton()` |
+    | `Collections.unmodifiableSortedMap()` | `Arrays.asList()` | 
+    | `Collections.synchronizedMap()` | `Collections.unmodifiableCollection()` |
+    | `Collections.synchronizedNavigableMap()` | `Collections.unmodifiableList()` |
+    | `Collections.synchronizedSortedMap()` | `Collections.unmodifiableSet()` |
+    | `Collections.checkedMap()` | `Collections.unmodifiableSortedSet()` |
+    | `Collections.checkedNavigableMap()` | `Collections.unmodifiableNavigableSet()` |
+    | `Collections.checkedSortedMap()` | `Collections.synchronizedCollection()` |
+    | | `Collections.synchronizedList()` |
+    | | `Collections.synchronizedSet()` |
+    | | `Collections.synchronizedNavigableSet()` |
+    | | `Collections.synchronizedSortedSet()` |
+    | | `Collections.checkedCollection()` |
+    | | `Collections.checkedList()` |
+    | | `Collections.checkedSet()` |
+    | | `Collections.checkedNavigableSet()` |
+    | | `Collections.checkedSortedSet()` |
+    | | `Collections.checkedQueue()` |
+- 1.5.5
+    - 删除`@Cached`/`@Invalid`/`@CachedGet`内的`seperator`属性, 似缓存key拼装更简单
+    - 添加缓存防击穿策略(开启后: 如果执行方法返回`null`, 则向缓存内写入一个空对象, 下次不走DB)
 
 ---

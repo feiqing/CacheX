@@ -5,7 +5,8 @@ select : SELECT
            version
          FROM t_hit_rate
          WHERE pattern = ?
-selectAll : SELECT
+
+select_all : SELECT
                pattern,
                hit_count,
                require_count,
@@ -21,6 +22,6 @@ update : UPDATE t_hit_rate
 insert :  INSERT INTO t_hit_rate (pattern, %s, version)
           VALUES (?, ?, 0)
 
-delete: DELETE FROM t_hit_rate WHERE pattern = ?
+delete : DELETE FROM t_hit_rate WHERE pattern = ?
 
 truncate : TRUNCATE TABLE t_hit_rate

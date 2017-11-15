@@ -18,14 +18,19 @@
             caches: 只要实现了ICache接口的cache产品均可被Cacher托管
      -->
     <bean class="com.alibaba.cacher.CacherAspect">
-        <constructor-arg name="open" value="true"/>
         <constructor-arg name="caches">
             <map key-type="java.lang.String" value-type="com.alibaba.cacher.ICache">
-                <entry key="level" value-ref="level"/>
+                <entry key="tair" value-ref="ehCache"/>
             </map>
         </constructor-arg>
+        <constructor-arg name="config" type="com.alibaba.cacher.core.Config">
+            <bean class="com.alibaba.cacher.core.Config">
+                <constructor-arg name="open" value="true"/>
+                <constructor-arg name="preventBreakdown" value="true"/>
+                <constructor-arg name="shootingMXBean" ref="mySQLShootingMXBean"/>
+            </bean>
+        </constructor-arg>
         <!-- 开启缓存命中率分组统计功能, 注入基于zk的实现-->
-        <constructor-arg name="shootingMXBean" ref="derbyShootingMXBean"/>
     </bean>
 
     <bean id="level" class="com.alibaba.cacher.support.cache.LevelDBCache" lazy-init="true" destroy-method="tearDown">
@@ -41,23 +46,22 @@
         <constructor-arg name="namespace" value="180"/>
     </bean>
 
-    <!--<bean id="noOpCache" class="com.alibaba.cacher.support.cache.NoOpCache" lazy-init="true"/>-->
+    <bean id="noOpCache" class="com.alibaba.cacher.support.cache.NoOpCache" lazy-init="true"/>
     <!--<bean id="jdkConcurrentMapCache" class="com.alibaba.cacher.support.cache.JdkConcurrentMapCache" lazy-init="true"/>-->
-    <!--<bean id="guavaCache" class="com.alibaba.cacher.support.cache.GuavaCache" lazy-init="true">-->
-    <!--<constructor-arg name="size" value="1000"/>-->
-    <!--<constructor-arg name="expire" value="6000"/>-->
-    <!--</bean>-->
+    <bean id="guavaCache" class="com.alibaba.cacher.support.cache.GuavaCache" lazy-init="true">
+        <constructor-arg name="size" value="1000"/>
+        <constructor-arg name="expire" value="6000"/>
+    </bean>
     <!--<bean id="mapDBCache" class="com.alibaba.cacher.support.cache.MapDBCache" lazy-init="true">-->
     <!--<constructor-arg name="interval" value="1000000"/>-->
     <!--<constructor-arg name="maxSize" value="1000000"/>-->
     <!--<constructor-arg name="maxStoreSize" value="2"/>-->
     <!--</bean>-->
-    <!--<bean id="ehCache" class="com.alibaba.cacher.support.cache.EhCache" lazy-init="true">-->
-    <!--<constructor-arg name="heapEntries" value="20"/>-->
-    <!--<constructor-arg name="offHeapMBSize" value="512"/>-->
-    <!--<constructor-arg name="diskPath" value="/data/cache"/>-->
-    <!--<constructor-arg name="diskGBSize" value="1"/>-->
-    <!--</bean>-->
+    <bean id="ehCache" class="com.alibaba.cacher.support.cache.EhCache" lazy-init="true">
+        <constructor-arg name="heapEntries" value="20"/>
+        <constructor-arg name="offHeapMBSize" value="512"/>
+        <constructor-arg name="diskGBSize" value="1"/>
+    </bean>
     <!--
         <bean id="vRedisPoolCache" class="com.vdian.cacher.support.cache.VRedisPoolCache">
             <constructor-arg name="namespace" value="ares"/>
@@ -81,16 +85,24 @@
     <!--</bean>-->
 
     <!-- 命中率统计: 根据具体业务场景选择一款实现注入即可 -->
+    <bean id="mySQLShootingMXBean" class="com.alibaba.cacher.support.shooting.MySQLShootingMXBeanImpl">
+        <constructor-arg name="host" value="139.129.9.166"/>
+        <constructor-arg name="port" value="3306"/>
+        <constructor-arg name="database" value="testdb"/>
+        <constructor-arg name="username" value="admin"/>
+        <constructor-arg name="password" value="admin"/>
+    </bean>
     <bean id="memoryShootingMXBean" class="com.alibaba.cacher.support.shooting.MemoryShootingMXBeanImpl"
           lazy-init="true"/>
     <bean id="derbyShootingMXBean" class="com.alibaba.cacher.support.shooting.DerbyShootingMXBeanImpl"
           lazy-init="true"/>
     <bean id="h2ShootingMXBean" class="com.alibaba.cacher.support.shooting.H2ShootingMXBeanImpl"
           lazy-init="true"/>
+    <bean id="sqliteShootingMXBean" class="com.alibaba.cacher.support.shooting.SqliteShootingMXBeanImpl"
+          lazy-init="true"/>
     <bean id="zkShootingMXBean" class="com.alibaba.cacher.support.shooting.ZKShootingMXBeanImpl"
           destroy-method="tearDown"
           lazy-init="true">
-        <constructor-arg name="productName" value="cacher-tester"/>
         <constructor-arg name="zkServers" value="139.129.9.166:2181"/>
     </bean>
 

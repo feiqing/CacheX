@@ -1,21 +1,20 @@
 package com.alibaba.cacher.reader;
 
-import com.alibaba.cacher.Cached;
-import com.alibaba.cacher.config.Inject;
-import com.alibaba.cacher.config.Singleton;
-import com.alibaba.cacher.domain.BatchReadResult;
-import com.alibaba.cacher.domain.CacheKeyHolder;
-import com.alibaba.cacher.domain.MethodInfoHolder;
 import com.alibaba.cacher.ShootingMXBean;
+import com.alibaba.cacher.core.Config;
+import com.alibaba.cacher.di.Inject;
+import com.alibaba.cacher.di.Singleton;
+import com.alibaba.cacher.domain.CacheReadResult;
+import com.alibaba.cacher.domain.CacheKeyHolder;
+import com.alibaba.cacher.domain.CacheMethodHolder;
+import com.alibaba.cacher.invoker.Invoker;
 import com.alibaba.cacher.manager.CacheManager;
+import com.alibaba.cacher.supplier.CollectionSupplier;
+import com.alibaba.cacher.supplier.PatternSupplier;
 import com.alibaba.cacher.utils.*;
-import org.aspectj.lang.ProceedingJoinPoint;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author jifang
@@ -23,125 +22,110 @@ import java.util.Set;
  */
 @Singleton
 @SuppressWarnings("unchecked")
-public class MultiCacheReader implements CacheReader {
+public class MultiCacheReader extends AbstractCacheReader {
 
     @Inject
     private CacheManager cacheManager;
+
+    @Inject
+    private Config config;
 
     @Inject(optional = true)
     private ShootingMXBean shootingMXBean;
 
     @Override
-    public Object read(CacheKeyHolder holder, Cached cached, ProceedingJoinPoint pjp, MethodInfoHolder ret) throws Throwable {
-
+    public Object read(CacheKeyHolder cacheKeyHolder, CacheMethodHolder cacheMethodHolder, Invoker invoker, boolean needWrite) throws Throwable {
         // compose keys
-        Map[] pair = KeysCombineUtil.toMultiKey(holder, cached.separator(), pjp.getArgs());
-        String keyPattern = KeyPatternsCombineUtil.getKeyPattern(holder, cached.separator());
-
+        Map[] pair = KeyGenerators.generateMultiKey(cacheKeyHolder, invoker.getArgs());
         Map<String, Object> keyIdMap = pair[1];
 
         // request cache
         Set<String> keys = keyIdMap.keySet();
-        BatchReadResult batchReadResult = cacheManager.readBatch(cached.cache(), keys);
-        doRecord(batchReadResult, keyPattern);
+        CacheReadResult cacheReadResult = cacheManager.readBatch(cacheKeyHolder.getCache(), keys);
+        doRecord(cacheReadResult, cacheKeyHolder);
 
         Object result;
-        // have miss keys : part shooting || all not shooting
-        if (batchReadResult.getMissKeys().size() > 0) {
-            result = handlePartHit(pjp, batchReadResult, holder, ret, cached, pair);
+        // have miss keys : part hit || all not hit
+        if (!cacheReadResult.getMissKeySet().isEmpty()) {
+            result = handlePartHit(invoker, cacheReadResult, cacheKeyHolder, cacheMethodHolder, pair, needWrite);
         }
-        // no miss keys : all hits || empty key
+        // no miss keys : all hit || empty key
         else {
-            Map<String, Object> keyValueMap = batchReadResult.getHitKeyValueMap();
-            result = handleFullHit(pjp, keyValueMap, ret, keyIdMap);
+            Map<String, Object> keyValueMap = cacheReadResult.getHitKeyMap();
+            result = handleFullHit(invoker, keyValueMap, cacheMethodHolder, keyIdMap);
         }
 
         return result;
     }
 
-    private Object handlePartHit(ProceedingJoinPoint pjp, BatchReadResult batchReadResult,
-                                 CacheKeyHolder rule, MethodInfoHolder ret, Cached cached,
-                                 Map[] pair) throws Throwable {
+    private Object handlePartHit(Invoker invoker, CacheReadResult cacheReadResult,
+                                 CacheKeyHolder cacheKeyHolder, CacheMethodHolder cacheMethodHolder,
+                                 Map[] pair, boolean needWrite) throws Throwable {
 
-        Map<Object, String> id_key = pair[0];
-        Map<String, Object> key_id = pair[1];
+        Map<Object, String> id2Key = pair[0];
+        Map<String, Object> key2Id = pair[1];
 
-        Set<String> missKeys = batchReadResult.getMissKeys();
-        Map<String, Object> hitKeyValueMap = batchReadResult.getHitKeyValueMap();
+        Set<String> missKeys = cacheReadResult.getMissKeySet();
+        Map<String, Object> hitKeyValueMap = cacheReadResult.getHitKeyMap();
 
-        // invoke method use missed keys
-        Object[] missArgs = toMissArgs(missKeys, key_id, pjp.getArgs(), rule.getMultiIndex());
-        long start = 0;
-        if (LOGGER.isDebugEnabled()) {
-            start = System.currentTimeMillis();
-        }
-        Object proceed = pjp.proceed(missArgs);
-
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("method invoke total cost [{}] ms", (System.currentTimeMillis() - start));
-        }
+        // 用未命中的keys调用方法
+        Object[] missArgs = toMissArgs(missKeys, key2Id, invoker.getArgs(), cacheKeyHolder.getMultiIndex());
+        Object proceed = doLogInvoke(() -> invoker.proceed(missArgs));
 
         Object result;
         if (proceed != null) {
             Class<?> returnType = proceed.getClass();
-            ret.setType(returnType);
-            // 兼容各种内部类
-
+            cacheMethodHolder.setReturnType(returnType);
             if (Map.class.isAssignableFrom(returnType)) {
                 Map proceedIdValueMap = (Map) proceed;
 
-                Map<String, Object> keyValueMap = KeyValueConverts.idValueMap2KeyValue(proceedIdValueMap, id_key);
-                // write proceed map to cache
-                cacheManager.writeBatch(cached.cache(), keyValueMap, cached.expire());
-
-                // merge map by key-id-map order
-                result = ResultMergeUtils.mapMerge(key_id, returnType, proceedIdValueMap, hitKeyValueMap);
+                // @since 1.5.4 为了兼容@CachedGet注解, 客户端缓存
+                if (needWrite) {
+                    // 将方法调用返回的map转换成key_value_map写入Cache
+                    Map<String, Object> keyValueMap = KVConvertUtils.mapToKeyValue(proceedIdValueMap, missKeys, id2Key, config.isPreventBreakdown());
+                    cacheManager.writeBatch(cacheKeyHolder.getCache(), keyValueMap, cacheKeyHolder.getExpire());
+                }
+                // 将方法调用返回的map与从Cache中读取的key_value_map合并返回
+                result = ResultMergeUtils.mergeMap(key2Id, returnType, proceedIdValueMap, hitKeyValueMap);
             } else {
                 Collection proceedCollection = (Collection) proceed;
-                String idExp = rule.getIdentifier();
 
-                Map<String, Object> keyValueMap = KeyValueConverts.collection2KeyValue(proceedCollection, idExp, id_key);
-
-                cacheManager.writeBatch(cached.cache(), keyValueMap, cached.expire());
-
-                result = ResultMergeUtils.collectionMerge(key_id.keySet(), returnType, keyValueMap, hitKeyValueMap);
+                // @since 1.5.4 为了兼容@CachedGet注解, 客户端缓存
+                if (needWrite) {
+                    // 将方法调用返回的collection转换成key_value_map写入Cache
+                    Map<String, Object> keyValueMap = KVConvertUtils.collectionToKeyValue(proceedCollection, cacheKeyHolder.getId(), missKeys, id2Key, config.isPreventBreakdown());
+                    cacheManager.writeBatch(cacheKeyHolder.getCache(), keyValueMap, cacheKeyHolder.getExpire());
+                }
+                // 将方法调用返回的collection与从Cache中读取的key_value_map合并返回
+                result = ResultMergeUtils.mergeCollection(returnType, proceedCollection, hitKeyValueMap);
             }
         } else {
             // read as full shooting
-            result = handleFullHit(pjp, hitKeyValueMap, ret, key_id);
+            result = handleFullHit(invoker, hitKeyValueMap, cacheMethodHolder, key2Id);
         }
 
         return result;
     }
 
-    private Object handleFullHit(ProceedingJoinPoint pjp, Map<String, Object> keyValueMap,
-                                 MethodInfoHolder ret, Map<String, Object> keyIdMap)
-            throws Throwable {
+    private Object handleFullHit(Invoker invoker, Map<String, Object> keyValueMap,
+                                 CacheMethodHolder cacheMethodHolder, Map<String, Object> key2Id) throws Throwable {
 
         Object result;
-        Class<?> returnType = ret.getType();
+        Class<?> returnType = cacheMethodHolder.getReturnType();
 
         // when method return type not cached. case: full shooting when application restart
         if (returnType == null) {
-
-            long start = 0;
-            if (LOGGER.isDebugEnabled()) {
-                start = System.currentTimeMillis();
-            }
-            result = pjp.proceed();
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("method invoke total cost [{}] ms", (System.currentTimeMillis() - start));
-            }
+            result = doLogInvoke(invoker::proceed);
 
             // catch return type for next time
             if (result != null) {
-                ret.setType(result.getClass());
+                cacheMethodHolder.setReturnType(result.getClass());
             }
         } else {
-            if (ret.isCollection()) {
-                result = ResultTranslateUtils.toCollection(returnType, keyValueMap.values());
+            if (cacheMethodHolder.isCollection()) {
+                result = ResultConvertUtils.toCollection(returnType, keyValueMap);
             } else {
-                result = ResultTranslateUtils.toMap(returnType, keyValueMap, keyIdMap);
+                result = ResultConvertUtils.toMap(key2Id, returnType, keyValueMap);
             }
         }
 
@@ -149,37 +133,34 @@ public class MultiCacheReader implements CacheReader {
     }
 
     private Object[] toMissArgs(Set<String> missKeys, Map<String, Object> keyIdMap,
-                                Object[] args, int batchIndex)
-            throws
-            NoSuchMethodException, IllegalAccessException,
-            InvocationTargetException, InstantiationException {
+                                Object[] args, int batchIndex) {
 
-        Collection<Object> missIds = new ArrayList<>(missKeys.size());
-        for (String key : missKeys) {
-            Object id = keyIdMap.get(key);
-            missIds.add(id);
-        }
+        List<Object> missIds = missKeys.stream()
+                .map(keyIdMap::get)
+                .collect(Collectors.toList());
 
-        Object batchArg = args[batchIndex];
-        Class<?> batchArgClass = batchArg.getClass();
-
-        args[batchIndex] = batchArgClass.getConstructor(Collection.class).newInstance(missIds);
+        Collection collection = CollectionSupplier.newInstance(args[batchIndex].getClass());
+        collection.addAll(missIds);
+        args[batchIndex] = collection;
 
         return args;
     }
 
-    private void doRecord(BatchReadResult batchReadResult, String keyPattern) {
+    private void doRecord(CacheReadResult cacheReadResult, CacheKeyHolder cacheKeyHolder) {
+        Set<String> missKeys = cacheReadResult.getMissKeySet();
+
+        // 计数
+        int hitCount = cacheReadResult.getHitKeyMap().size();
+        int totalCount = hitCount + missKeys.size();
+        LOGGER.info("multi cache hit rate: {}/{}, missed keys: {}",
+                hitCount, totalCount, missKeys);
+
         if (this.shootingMXBean != null) {
-            Set<String> missKeys = batchReadResult.getMissKeys();
+            // 分组模板
+            String pattern = PatternSupplier.getPattern(cacheKeyHolder);
 
-            int hitCount = batchReadResult.getHitKeyValueMap().size();
-            int totalCount = hitCount + missKeys.size();
-
-            this.shootingMXBean.hitIncr(keyPattern, hitCount);
-            this.shootingMXBean.requireIncr(keyPattern, totalCount);
-
-            LOGGER.info("multi cache hit shooting: {}/{}, missed keys: {}",
-                    hitCount, totalCount, missKeys);
+            this.shootingMXBean.hitIncr(pattern, hitCount);
+            this.shootingMXBean.requireIncr(pattern, totalCount);
         }
     }
 }

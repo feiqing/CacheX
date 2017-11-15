@@ -1,7 +1,8 @@
 package com.alibaba.cacher.support.shooting;
 
-import com.alibaba.cacher.exception.CacherException;
 import com.alibaba.cacher.ShootingMXBean;
+import com.alibaba.cacher.domain.Pair;
+import com.alibaba.cacher.exception.CacherException;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.recipes.atomic.AtomicValue;
@@ -15,13 +16,8 @@ import javax.annotation.PreDestroy;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 
 /**
  * @author jifang.zjf
@@ -31,13 +27,20 @@ public class ZKShootingMXBeanImpl implements ShootingMXBean {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ZKShootingMXBeanImpl.class);
 
+    private static final ExecutorService executor = Executors.newSingleThreadExecutor(r -> {
+        Thread thread = new Thread(r);
+        thread.setName("cacher:zk-shooting-uploader");
+        thread.setDaemon(true);
+        return thread;
+    });
+
     private static final String NAME_SPACE = "cacher";
 
-    private static final long _5S = 5 * 1000;
+    private volatile boolean isShutdown = false;
 
-    private ConcurrentMap<String, AtomicLong> hitMap = new ConcurrentHashMap<>();
+    private BlockingQueue<Pair<String, Integer>> hitQueue = new LinkedTransferQueue<>();
 
-    private ConcurrentMap<String, AtomicLong> requireMap = new ConcurrentHashMap<>();
+    private BlockingQueue<Pair<String, Integer>> requireQueue = new LinkedTransferQueue<>();
 
     private Map<String, DistributedAtomicLong> hitCounterMap = new HashMap<>();
 
@@ -45,15 +48,15 @@ public class ZKShootingMXBeanImpl implements ShootingMXBean {
 
     private CuratorFramework client;
 
-    private String hitPrefix;
+    private String hitPathPrefix;
 
-    private String requirePrefix;
+    private String requirePathPrefix;
 
-    public ZKShootingMXBeanImpl(String zkServers, String productName) {
-        this(zkServers, productName, _5S);
+    public ZKShootingMXBeanImpl(String zkServers) {
+        this(zkServers, System.getProperty("product.name", "unnamed"));
     }
 
-    public ZKShootingMXBeanImpl(String zkServers, String uniqueProductName, long uploadingMs) {
+    public ZKShootingMXBeanImpl(String zkServers, String productName) {
         this.client = CuratorFrameworkFactory.builder()
                 .connectString(zkServers)
                 .retryPolicy(new RetryNTimes(3, 0))
@@ -61,67 +64,50 @@ public class ZKShootingMXBeanImpl implements ShootingMXBean {
                 .build();
         client.start();
 
-        // create prefix path
-        uniqueProductName = processProductName(uniqueProductName);
-        this.hitPrefix = String.format("%s%s", uniqueProductName, "hit");
-        this.requirePrefix = String.format("%s%s", uniqueProductName, "require");
+        // append prefix and suffix
+        String uniqueProductName = processProductName(productName);
+        this.hitPathPrefix = String.format("%s%s", uniqueProductName, "hit");
+        this.requirePathPrefix = String.format("%s%s", uniqueProductName, "require");
         try {
-            client.create().creatingParentsIfNeeded().forPath(hitPrefix);
-            client.create().creatingParentContainersIfNeeded().forPath(requirePrefix);
-            LOGGER.info("create path:[{}],[{}] on namespace: [{}]", hitPrefix, requirePrefix, NAME_SPACE);
+            client.create().creatingParentsIfNeeded().forPath(hitPathPrefix);
+            client.create().creatingParentsIfNeeded().forPath(requirePathPrefix);
+            LOGGER.info("create path:[{}],[{}] on namespace: [{}] success", hitPathPrefix, requirePathPrefix, NAME_SPACE);
         } catch (KeeperException.NodeExistsException ignored) {
-            LOGGER.warn("path: [{}], [{}] on namespace: [{}] is exits", hitPrefix, requirePrefix, NAME_SPACE);
-
+            LOGGER.warn("path: [{}], [{}] on namespace: [{}] is exits, please make product name:{} is unique", hitPathPrefix, requirePathPrefix, NAME_SPACE, productName);
         } catch (Exception e) {
-            throw new CacherException("create path: " + hitPrefix + ", " + requirePrefix + " on namespace: " + NAME_SPACE + " error", e);
+            throw new CacherException("create path: " + hitPathPrefix + ", " + requirePathPrefix + " on namespace: " + NAME_SPACE + " error", e);
         }
 
-        // register schedule executor
-        Executors.newSingleThreadScheduledExecutor(r -> {
-            Thread thread = new Thread(r);
-            thread.setName("cacher:shooting-data-uploader-thread");
-            thread.setDaemon(true);
-            return thread;
-        }).scheduleAtFixedRate(this::execute, uploadingMs, uploadingMs, TimeUnit.MILLISECONDS);
+        executor.submit(() -> {
+            while (!isShutdown) {
+                dumpToZK(hitQueue, hitCounterMap, hitPathPrefix);
+                dumpToZK(requireQueue, requireCounterMap, requirePathPrefix);
+            }
+        });
     }
 
-    private void execute() {
-        Map<String, AtomicLong> hitMapTS = new HashMap<>(hitMap);
-        hitMap.clear();
-        Map<String, AtomicLong> requireMapTS = new HashMap<>(requireMap);
-        requireMap.clear();
+    private String processProductName(String productName) {
+        if (!productName.startsWith("/")) {
+            productName = "/" + productName;
+        }
 
-        hitMapTS.forEach((pattern, count) -> {
-            DistributedAtomicLong counter = hitCounterMap.computeIfAbsent(pattern, new AtomicLongInitFunction(hitPrefix));
-            try {
-                LOGGER.info("hit pattern: {} current value : {}", pattern, counter.add(count.get()).postValue());
-            } catch (Exception e) {
-                LOGGER.error("update hit pattern: {} count offset:{} error", pattern, count);
-            }
-        });
+        if (!productName.endsWith("/")) {
+            productName = productName + "/";
+        }
 
-        requireMapTS.forEach((pattern, count) -> {
-            DistributedAtomicLong counter = requireCounterMap.computeIfAbsent(pattern, new AtomicLongInitFunction(requirePrefix));
-            try {
-                LOGGER.info("require pattern: {} current value : {}", pattern, counter.add(count.get()).postValue());
-            } catch (Exception e) {
-                LOGGER.error("update require pattern: {} count offset:{} error", pattern, count);
-            }
-        });
+        return productName;
     }
 
     @Override
     public void hitIncr(String pattern, int count) {
-        hitMap.computeIfAbsent(pattern,
-                (k) -> new AtomicLong(0L))
-                .addAndGet(count);
+        if (count != 0)
+            hitQueue.add(Pair.of(pattern, count));
     }
 
     @Override
     public void requireIncr(String pattern, int count) {
-        requireMap.computeIfAbsent(pattern,
-                (k) -> new AtomicLong(0L))
-                .addAndGet(count);
+        if (count != 0)
+            requireQueue.add(Pair.of(pattern, count));
     }
 
     @Override
@@ -144,33 +130,9 @@ public class ZKShootingMXBeanImpl implements ShootingMXBean {
             }
         });
 
-        result.put(getSummaryName(), ShootingDO.newInstance(totalHit.get(), totalRequire.get()));
+        result.put(summaryName(), ShootingDO.newInstance(totalHit.get(), totalRequire.get()));
 
         return result;
-    }
-
-    @Override
-    public void reset(String pattern) {
-        hitCounterMap.computeIfPresent(pattern, resetFunction);
-        requireCounterMap.computeIfPresent(pattern, resetFunction);
-    }
-
-    @Override
-    public void resetAll() {
-        hitCounterMap.forEach(this::doReset);
-        requireCounterMap.forEach(this::doReset);
-    }
-
-    private String processProductName(String productName) {
-        if (!productName.startsWith("/")) {
-            productName = "/" + productName;
-        }
-
-        if (!productName.endsWith("/")) {
-            productName = productName + "/";
-        }
-
-        return productName;
     }
 
     private long getValue(Object value) throws Exception {
@@ -188,42 +150,62 @@ public class ZKShootingMXBeanImpl implements ShootingMXBean {
         return result;
     }
 
-    private BiFunction<String, DistributedAtomicLong, DistributedAtomicLong> resetFunction = (pattern, counter) -> {
-        doReset(pattern, counter);
-        return null;
-    };
+    @Override
+    public void reset(String pattern) {
+        hitCounterMap.computeIfPresent(pattern, this::doReset);
+        requireCounterMap.computeIfPresent(pattern, this::doReset);
+    }
 
-    private void doReset(String pattern, DistributedAtomicLong counter) {
+    @Override
+    public void resetAll() {
+        hitCounterMap.forEach(this::doReset);
+        requireCounterMap.forEach(this::doReset);
+    }
+
+    private DistributedAtomicLong doReset(String pattern, DistributedAtomicLong counter) {
         try {
             counter.forceSet(0L);
         } catch (Exception e) {
-            LOGGER.error("reset zk pattern: {} counter value error", pattern, e);
-        }
-    }
-
-    private class AtomicLongInitFunction implements Function<String, DistributedAtomicLong> {
-
-        private String pathDirPrefix;
-
-        public AtomicLongInitFunction(String pathDirPrefix) {
-            this.pathDirPrefix = pathDirPrefix;
+            LOGGER.error("reset zk pattern: {} error", pattern, e);
         }
 
-        @Override
-        public DistributedAtomicLong apply(String pattern) {
-            String counterPath = String.format("%s/%s", pathDirPrefix, pattern);
-            return new DistributedAtomicLong(client, counterPath, new RetryNTimes(10, 10));
-        }
+        return null;
     }
 
     @PreDestroy
     public void tearDown() {
-        while (hitMap.size() > 0 || this.requireMap.size() > 0) {
-            LOGGER.warn("shooting temporary store map is not empty: [{}]-[{}], waiting...", hitMap.size(), requireMap.size());
+        while (hitQueue.size() > 0 || requireQueue.size() > 0) {
+            LOGGER.warn("shooting queue is not empty: [{}]-[{}], waiting...", hitQueue.size(), requireQueue.size());
             try {
                 TimeUnit.SECONDS.sleep(1);
             } catch (InterruptedException ignored) {
             }
         }
+
+        isShutdown = true;
+    }
+
+    private void dumpToZK(BlockingQueue<Pair<String, Integer>> queue, Map<String, DistributedAtomicLong> counterMap, String zkPrefix) {
+        long count = 0;
+        Pair<String, Integer> head;
+
+        // 将queue中所有的 || 前100条数据聚合到一个暂存Map中
+        Map<String, AtomicLong> holdMap = new HashMap<>();
+        while ((head = queue.poll()) != null && count <= 100) {
+            holdMap
+                    .computeIfAbsent(head.getLeft(), (key) -> new AtomicLong(0L))
+                    .addAndGet(head.getRight());
+            ++count;
+        }
+
+        holdMap.forEach((pattern, atomicCount) -> {
+            String zkPath = String.format("%s/%s", zkPrefix, pattern);
+            DistributedAtomicLong counter = counterMap.computeIfAbsent(pattern, (key) -> new DistributedAtomicLong(client, zkPath, new RetryNTimes(10, 10)));
+            try {
+                LOGGER.info("zkPath: {} current value : {}", zkPath, counter.add(atomicCount.get()).postValue());
+            } catch (Exception e) {
+                LOGGER.error("update zkPath: {} count offset:{} error", zkPath, atomicCount);
+            }
+        });
     }
 }

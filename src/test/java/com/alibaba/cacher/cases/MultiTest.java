@@ -8,10 +8,7 @@ import com.google.common.collect.Lists;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -19,7 +16,7 @@ import java.util.stream.Stream;
  * @author jifang
  * @since 2016/11/30 下午2:19.
  */
-public class MultiCase extends TestBase {
+public class MultiTest extends TestBase {
 
     @Autowired
     private UserService service;
@@ -27,16 +24,14 @@ public class MultiCase extends TestBase {
     @Test
     public void testReturnMap() throws InterruptedException {
         List<Integer> ids = new LinkedList<>();
-        for (int i = 0; i < 200; ++i) {
+        for (int i = 0; i < 3; ++i) {
             ids.add(i);
         }
         Map<Integer, User> map = service.returnMap("name", ids, "ok");
-        //System.out.println(map);
-
         map = service.returnMap("name", ids, "ok");
-        //System.out.println(map);
 
-        //Thread.sleep(10000000);
+        ids.add(new Random().nextInt());
+        map = service.returnMap("name", ids, "ok");
     }
 
     @Test
@@ -71,6 +66,9 @@ public class MultiCase extends TestBase {
     public void testReturnList() {
         List<Integer> ids = Lists.newArrayList(1, 2, 3, 4);
         service.returnList(ids, "ss", new Object());
+        service.returnList(ids, "ss", new Object());
+
+        ids.add(new Random().nextInt());
         service.returnList(ids, "ss", new Object());
     }
 

@@ -1,7 +1,7 @@
 package com.alibaba.cacher.support.cache;
 
-import com.google.common.collect.Sets;
 import com.alibaba.cacher.ICache;
+import com.google.common.collect.Sets;
 import org.ehcache.Cache;
 import org.ehcache.PersistentCacheManager;
 import org.ehcache.config.CacheConfiguration;
@@ -26,6 +26,10 @@ public class EhCache implements ICache {
 
     private PersistentCacheManager cacheManager;
     private Cache<String, Serializable> ehcache;
+
+    public EhCache(long heapEntries, long offHeapMBSize, long diskGBSize) {
+        this(heapEntries, offHeapMBSize, System.getProperty("user.home") + "/.EhCache", diskGBSize);
+    }
 
     public EhCache(long heapEntries, long offHeapMBSize, String diskPath, long diskGBSize) {
 
@@ -63,8 +67,6 @@ public class EhCache implements ICache {
         for (String key : keys) {
             map.put(key, ehcache.get(key));
         }
-
-
 
         return map;
     }

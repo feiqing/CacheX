@@ -1,18 +1,12 @@
-package com.alibaba.cacher.utils;
+package com.alibaba.cacher.di;
 
-import com.alibaba.cacher.config.Inject;
-import com.alibaba.cacher.config.Singleton;
 import com.alibaba.cacher.exception.CacherException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLDecoder;
@@ -27,7 +21,7 @@ import java.util.jar.JarFile;
  * @since 2016/10/27 上午9:38.
  */
 @SuppressWarnings("unchecked")
-public class CacherInitUtil {
+public class CacherDIContainer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("com.alibaba.cacher");
 
@@ -38,6 +32,18 @@ public class CacherInitUtil {
     private static ConcurrentMap<String, Object> nameBeanMap = new ConcurrentHashMap<>();
 
     private static ConcurrentMap<Class<?>, Object> classBeanMap = new ConcurrentHashMap<>();
+
+    public static void init(Object rootBean, String... packageNames) throws IOException {
+        Class<?> rootBeanClass = rootBean.getClass();
+        Set<Class<?>> classes = new HashSet<>();
+        for (String packageName : packageNames) {
+            classes.addAll(packageScan(packageName));
+        }
+
+        savePackageBeanInstance(classes, rootBeanClass, rootBean);
+
+        injectBeanField();
+    }
 
     public static <T> T getBeanInstance(Class<T> clazz) {
         Object bean = classBeanMap.get(clazz);
@@ -62,33 +68,8 @@ public class CacherInitUtil {
         nameBeanMap.put(getBeanId(clazz), bean);
     }
 
-
-    public static void beanInit(String packageName, Object rootBean) throws IOException {
-        Class<?> rootBeanClass = rootBean.getClass();
-        Set<Class<?>> classes = packageScan(packageName);
-
-        savePackageBeanInstance(classes, rootBeanClass, rootBean);
-        //saveConfigJavaBeanInstance(BeanInitor.class);
-
-        injectBeanField();
-    }
-
-    private static void saveConfigJavaBeanInstance(Class<?> configClass) {
-        Method[] methods = configClass.getDeclaredMethods();
-        for (Method method : methods) {
-            method.setAccessible(true);
-            try {
-                Object beanInstance = method.invoke(null);
-
-                nameBeanMap.put(method.getName(), beanInstance);
-                classBeanMap.put(beanInstance.getClass(), beanInstance);
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                throw new CacherException("shit, my fucking wrong!!!");
-            }
-        }
-    }
-
     private static void savePackageBeanInstance(Set<Class<?>> classes, Class<?> rootBeanClass, Object rootBean) {
+        classes.add(rootBeanClass);
         Map<String, Object> nameBeanMap = new HashMap<>(classes.size());
         Map<Class<?>, Object> classBeanMap = new HashMap<>(classes.size());
 
@@ -101,8 +82,8 @@ public class CacherInitUtil {
             classBeanMap.put(clazz, beanInstance);
         }
 
-        CacherInitUtil.nameBeanMap.putAll(nameBeanMap);
-        CacherInitUtil.classBeanMap.putAll(classBeanMap);
+        CacherDIContainer.nameBeanMap.putAll(nameBeanMap);
+        CacherDIContainer.classBeanMap.putAll(classBeanMap);
     }
 
     private static Object newBeanInstance(Class<?> clazz, Class<?> rootBeanClass, Object rootBean) {
@@ -121,25 +102,23 @@ public class CacherInitUtil {
     }
 
     private static void injectBeanField() {
-        for (Map.Entry<Class<?>, Object> entry : classBeanMap.entrySet()) {
-            Object beanInstance = entry.getValue();
+        classBeanMap.forEach((clazz, beanInstance) -> {
+            Set<Field> fields = new HashSet<>();
 
-            Field[] fields = entry.getKey().getDeclaredFields();
+            while (clazz != Object.class) {
+                fields.addAll(Arrays.asList(clazz.getDeclaredFields()));
+                clazz = clazz.getSuperclass();
+            }
 
             injectField(beanInstance, fields);
-        }
+        });
     }
 
-    private static void injectField(Object beanInstance, Field[] fields) {
-        for (Field field : fields) {
-            if (!Modifier.isStatic(field.getModifiers())
-                    && !Modifier.isFinal(field.getModifiers())
-                    && !Modifier.isVolatile(field.getModifiers())) {
-
-                Inject inject = field.getAnnotation(Inject.class);
-                if (inject != null) {
-                    Class<?> filedType = field.getType();
-
+    private static void injectField(Object beanInstance, Set<Field> fields) {
+        fields.stream()
+                .filter((field) -> field.isAnnotationPresent(Inject.class))
+                .forEach((field) -> {
+                    Inject inject = field.getAnnotation(Inject.class);
 
                     Object bean = nameBeanMap.get(inject.qualifierName());
                     if (bean == null) {
@@ -148,10 +127,10 @@ public class CacherInitUtil {
                     if (bean == null) {
                         bean = classBeanMap.get(inject.qualifierClass());
                     }
+                    Class<?> filedType = field.getType();
                     if (bean == null) {
                         bean = getBeanInstance(filedType);
                     }
-
                     if (bean == null) {
                         if (inject.optional()) {
                             LOGGER.warn("field {}.{} not injected, because no related bean instance",
@@ -169,9 +148,7 @@ public class CacherInitUtil {
                             // no chance
                         }
                     }
-                }
-            }
-        }
+                });
     }
 
 
@@ -215,12 +192,7 @@ public class CacherInitUtil {
         File packageDirFile = new File(packageDirPath);
         if (packageDirFile.exists() && packageDirFile.isDirectory()) {
 
-            File[] subFiles = packageDirFile.listFiles(new FileFilter() {
-                @Override
-                public boolean accept(File pathname) {
-                    return pathname.isDirectory() || pathname.getName().endsWith(CLASS_SUFFIX);
-                }
-            });
+            File[] subFiles = packageDirFile.listFiles(pathname -> pathname.isDirectory() || pathname.getName().endsWith(CLASS_SUFFIX));
 
             assert subFiles != null;
             for (File subFile : subFiles) {

@@ -1,6 +1,11 @@
 package com.alibaba.cacher.utils;
 
-import java.util.*;
+import com.alibaba.cacher.supplier.CollectionSupplier;
+import com.alibaba.cacher.supplier.MapSuppliers;
+import com.alibaba.cacher.supplier.PreventObjectSupplier;
+
+import java.util.Collection;
+import java.util.Map;
 
 /**
  * @author jifang
@@ -9,44 +14,30 @@ import java.util.*;
 @SuppressWarnings("unchecked")
 public class ResultMergeUtils {
 
-    public static Map mapMerge(Map<String, Object> keyIdMap, Class<?> returnType,
-                               Map idValueMap, Map<String, Object> keyValueMap)
-            throws IllegalAccessException, InstantiationException {
+    public static Map mergeMap(Map<String, Object> keyIdMap, Class<?> mapType,
+                               Map proceedMap,
+                               Map<String, Object> cacheMap) {
 
-        Map mergedMap = (Map) returnType.newInstance();
+        Map mergedMap = MapSuppliers.newInstance(mapType, proceedMap);
+        cacheMap.entrySet().stream()
+                .filter(entry -> !PreventObjectSupplier.isGeneratePreventObject(entry.getValue()))  // 将防击穿Object过滤掉
+                .forEach(entry -> {
+                    // 将key转换为id
+                    Object id = keyIdMap.get(entry.getKey());
+                    mergedMap.put(id, entry.getValue());
+                });
 
-        // keep maps order
-        for (Map.Entry<String, Object> keyIdEntry : keyIdMap.entrySet()) {
-            Object id = keyIdEntry.getValue();
-
-            // get idValueMap first
-            Object value = idValueMap.get(id);
-            if (value == null) {
-                String key = keyIdEntry.getKey();
-                value = keyValueMap.get(key);
-            }
-
-            mergedMap.put(id, value);
-        }
-
-        return mergedMap;
+        return MapSuppliers.convertInstanceType(mapType, mergedMap);
     }
 
-    public static Collection collectionMerge(Set<String> keys, Class<?> returnType,
-                                             Map<String, Object> keyValueMap1, Map<String, Object> keyValueMap2)
-            throws IllegalAccessException, InstantiationException {
+    public static Collection mergeCollection(Class<?> collectionType,
+                                             Collection proceedCollection,
+                                             Map<String, Object> cacheMap) {
+        Collection mergedCollection = CollectionSupplier.newInstance(collectionType, proceedCollection);
+        cacheMap.values().stream()
+                .filter(value -> !PreventObjectSupplier.isGeneratePreventObject(value)) // 将防击穿Object过滤掉
+                .forEach(mergedCollection::add);
 
-        Collection mergedCollection = (Collection) returnType.newInstance();
-
-        for (String key : keys) {
-            Object value = keyValueMap1.get(key);
-            if (value == null) {
-                value = keyValueMap2.get(key);
-            }
-
-            mergedCollection.add(value);
-        }
-
-        return mergedCollection;
+        return CollectionSupplier.convertInstanceType(collectionType, mergedCollection);
     }
 }

@@ -38,20 +38,19 @@ public class MemoryShootingMXBeanImpl implements ShootingMXBean {
     public Map<String, ShootingDO> getShooting() {
         Map<String, ShootingDO> result = new LinkedHashMap<>();
 
-        AtomicLong totalHit = new AtomicLong(0);
-        AtomicLong totalRequire = new AtomicLong(0);
+        AtomicLong statisticsHit = new AtomicLong(0);
+        AtomicLong statisticsRequired = new AtomicLong(0);
         requireMap.forEach((pattern, count) -> {
-            long hit = hitMap.getOrDefault(pattern, new AtomicLong(0)).get();
+            long hit = hitMap.computeIfAbsent(pattern, (key) -> new AtomicLong(0)).get();
             long require = count.get();
 
-            totalHit.addAndGet(hit);
-            totalRequire.addAndGet(require);
+            statisticsHit.addAndGet(hit);
+            statisticsRequired.addAndGet(require);
 
             result.put(pattern, ShootingDO.newInstance(hit, require));
         });
 
-        // 全局命中率
-        result.put(getSummaryName(), ShootingDO.newInstance(totalHit.get(), totalRequire.get()));
+        result.put(summaryName(), ShootingDO.newInstance(statisticsHit.get(), statisticsRequired.get()));
 
         return result;
     }

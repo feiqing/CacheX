@@ -4,7 +4,6 @@ package com.alibaba.cacher.service.impl;
 import com.alibaba.cacher.CacheKey;
 import com.alibaba.cacher.Cached;
 import com.alibaba.cacher.Invalid;
-import com.alibaba.cacher.Utils;
 import com.alibaba.cacher.domain.User;
 import com.alibaba.cacher.enums.Expire;
 import com.alibaba.cacher.service.UserService;
@@ -26,11 +25,11 @@ public class UserServiceImpl implements UserService {
     @Override
     @Cached(prefix = "map", expire = Expire.TEN_MIN)
     public Map<Integer, User> returnMap(@CacheKey(prefix = "app:") String app, @CacheKey(prefix = "id:", multi = true) List<Integer> ids, Object noKey) {
-        Map<Integer, User> map = new TreeMap<>();
+        Map<Integer, User> map = new HashMap<>();
         for (Integer id : ids) {
             map.put(id, new User(id, "name" + id, new Date(), id, noKey.toString()));
         }
-        return map;
+        return Collections.synchronizedMap(map);
     }
 
     @Override
@@ -40,21 +39,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Cached(prefix = "list")
-    public List<User> returnList(@CacheKey(prefix = "ids:", multi = true, id = "id") List<Integer> ids, String name, Object non) {
-        List<User> list = new LinkedList<>();
-        for (int id : ids) {
-            Utils.delay(5);
-            User user = new User(id, name, new Date(), id, non.toString());
-            list.add(user);
-        }
+    @Cached(prefix = "list-")
+    public List<User> returnList(@CacheKey(prefix = "ids:", multi = true, id = "id") List<Integer> ids, @CacheKey(prefix = "-name:") String name, Object non) {
+        User[] users = ids.stream().map((id) -> new User(id, name + id)).toArray(User[]::new);
 
-        return list;
+        return Arrays.asList(users);
     }
 
     @Override
     @Invalid(prefix = "list")
-    public void batchUpdateList(@CacheKey(prefix = "ids:", multi = true, spel = "id") List<User> users) {
+    public void batchUpdateList(@CacheKey(prefix = "id:", multi = true, spel = "id") List<User> users) {
         List<Integer> ids = new ArrayList<>(users.size());
         for (User user : users) {
             ids.add(user.getId());
@@ -101,7 +95,6 @@ public class UserServiceImpl implements UserService {
     public void noCacheKey(Object o) {
 
     }
-
 
     @Cached
     @Override

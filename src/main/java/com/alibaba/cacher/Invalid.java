@@ -31,9 +31,4 @@ public @interface Invalid {
      * @since 0.3
      */
     String condition() default "";
-
-    /**
-     * @return as {@code @Cached}
-     */
-    String separator() default "-";
 }
