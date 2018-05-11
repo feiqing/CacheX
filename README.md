@@ -28,7 +28,7 @@
 - pom.xml
 ```xml
 <dependency>
-      <groupId>com.alibaba.cachex</groupId>
+      <groupId>com.github.cachex</groupId>
       <artifactId>cachex</artifactId>
       <version>1.5.2-SNAPSHOT</version>
 </dependency>
@@ -48,15 +48,15 @@
         <!-- 注入CacheX切面:
                 caches: 只要实现了ICache接口的cache产品均可被CacheX托管
          -->
-        <bean class="com.alibaba.cachex.CacheXAspect">
+        <bean class="com.github.cachex.CacheXAspect">
             <constructor-arg name="caches">
-                <map key-returnType="java.lang.String" value-returnType="com.alibaba.cachex.ICache">
+                <map key-returnType="java.lang.String" value-returnType="com.github.cachex.ICache">
                     <entry key="tair" value-ref="tair"/>
                 </map>
             </constructor-arg>
         </bean>
     
-        <bean id="tair" class="com.alibaba.cachex.support.cache.TairCache" lazy-init="true">
+        <bean id="tair" class="com.github.cachex.support.cache.TairCache" lazy-init="true">
             <constructor-arg name="configId" value="mdbcomm-daily"/>
             <constructor-arg name="namespace" value="180"/>
         </bean>

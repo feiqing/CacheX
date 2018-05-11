@@ -8,7 +8,7 @@
 [INFO] Deleting /Users/jifang.zjf/IdeaProjects/cacher/target
 [INFO] 
 [INFO] --- maven-dependency-plugin:2.8:tree (default-cli) @ cacher ---
-[INFO] com.alibaba.cacher:cacher:jar:1.5.3-SNAPSHOT
+[INFO] com.github.cacher:cacher:jar:1.5.3-SNAPSHOT
 [INFO] +- com.google.guava:guava:jar:19.0:compile
 [INFO] +- org.springframework:spring-expression:jar:4.3.8.RELEASE:compile
 [INFO] +- org.aspectj:aspectjweaver:jar:1.8.9:compile
@@ -17,7 +17,7 @@
 [INFO] +- org.apache.commons:commons-proxy:jar:1.0:compile
 [INFO] +- org.apache.commons:commons-lang3:jar:3.4:compile
 [INFO] +- cglib:cglib-nodep:jar:3.2.0:compile
-[INFO] +- com.alibaba:fastjson:jar:1.2.32:compile
+[INFO] +- com.github:fastjson:jar:1.2.32:compile
 [INFO] +- com.caucho:hessian:jar:4.0.38:compile
 [INFO] +- com.esotericsoftware:kryo:jar:4.0.0:compile
 [INFO] |  +- com.esotericsoftware:reflectasm:jar:1.11.3:compile
@@ -50,7 +50,7 @@
 [INFO] |  |  +- com.taobao.diamond:diamond-utils:jar:3.2.0:compile
 [INFO] |  |  |  \- org.codehaus.jackson:jackson-mapper-lgpl:jar:1.9.6:compile
 [INFO] |  |  |     \- org.codehaus.jackson:jackson-core-lgpl:jar:1.9.6:compile
-[INFO] |  |  \- com.alibaba.middleware:metrics-core-api:jar:1.0.0:compile
+[INFO] |  |  \- com.github.middleware:metrics-core-api:jar:1.0.0:compile
 [INFO] |  +- com.taobao.common:fulllinkstresstesting:jar:0.9.9.2:compile
 [INFO] |  \- com.taobao.vipserver:vipserver-client:jar:4.6.2:compile
 [INFO] +- org.iq80.leveldb:leveldb:jar:0.9:compile

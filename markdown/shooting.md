@@ -18,10 +18,10 @@
             open: 定义Cacher的全局开关
             caches: 只要实现了ICache接口的cache产品均可被Cacher托管
      -->
-    <bean class="com.alibaba.cacher.CacherAspect">
+    <bean class="com.github.cacher.CacherAspect">
         <constructor-arg name="open" value="true"/>
         <constructor-arg name="caches">
-            <map key-returnType="java.lang.String" value-returnType="com.alibaba.cacher.ICache">
+            <map key-returnType="java.lang.String" value-returnType="com.github.cacher.ICache">
                 <entry key="tair" value-ref="tair"/>
             </map>
         </constructor-arg>
@@ -30,20 +30,20 @@
     </bean>
 
     <!-- 命中率统计: 根据具体业务场景选择一款实现注入即可 -->
-    <bean id="memoryShootingMXBean" class="com.alibaba.cacher.support.shooting.MemoryShootingMXBeanImpl"
+    <bean id="memoryShootingMXBean" class="com.github.cacher.support.shooting.MemoryShootingMXBeanImpl"
           lazy-init="true"/>
-    <bean id="derbyShootingMXBean" class="com.alibaba.cacher.support.shooting.DerbyShootingMXBeanImpl"
+    <bean id="derbyShootingMXBean" class="com.github.cacher.support.shooting.DerbyShootingMXBeanImpl"
           lazy-init="true"/>
-    <bean id="h2ShootingMXBean" class="com.alibaba.cacher.support.shooting.H2ShootingMXBeanImpl"
+    <bean id="h2ShootingMXBean" class="com.github.cacher.support.shooting.H2ShootingMXBeanImpl"
           lazy-init="true"/>
-    <bean id="zkShootingMXBean" class="com.alibaba.cacher.support.shooting.ZKShootingMXBeanImpl"
+    <bean id="zkShootingMXBean" class="com.github.cacher.support.shooting.ZKShootingMXBeanImpl"
           destroy-method="tearDown"
           lazy-init="true">
         <constructor-arg name="productName" value="cacher-tester"/>
         <constructor-arg name="zkServers" value="139.129.9.166:2181"/>
     </bean>
     
-    <bean id="tair" class="com.alibaba.cacher.support.cache.TairCache" lazy-init="true">
+    <bean id="tair" class="com.github.cacher.support.cache.TairCache" lazy-init="true">
         <constructor-arg name="configId" value="mdbcomm-daily"/>
         <constructor-arg name="namespace" value="180"/>
     </bean>
