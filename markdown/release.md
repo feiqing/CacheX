@@ -58,7 +58,7 @@
 ---
 ### 1.4.x
 - 1.4.0
-    - Cacher部分配置代码重构, 自定义IoC容器: 使`@Singleton`, `@Inject`生效;
+    - CacheX部分配置代码重构, 自定义IoC容器: 使`@Singleton`, `@Inject`生效;
     - 添加`TairCache`缓存实现, 支持Tair **MDB/LDB**开箱即用;
     - 添加`LevelDBCache`缓存实现, 集成LevelDB的高性能大数据量写入;
 

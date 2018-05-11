@@ -1,11 +1,11 @@
-# cacher 声明式注解缓存框架(1.5.x版本)
+# CacheX 声明式注解缓存框架(1.5.x版本)
 
 > 愿景: 让你的代码中没有一行缓存相关代码!!!
 - 目前已接入10+应用, 欢迎同学们使用并给出宝贵建议~~
 
 - [版本历史](./markdown/release.md)
 - [下一里程碑版本目标](./markdown/target.md)
-- [why cacher?](markdown/whycachex.md)
+- [why cachex?](markdown/whycachex.md)
 - [命中率分组统计](./markdown/shooting.md)
 - [使用限制](./markdown/limit.md)
 - [dependency](dependency.txt)
@@ -28,8 +28,8 @@
 - pom.xml
 ```xml
 <dependency>
-      <groupId>com.alibaba.cacher</groupId>
-      <artifactId>cacher</artifactId>
+      <groupId>com.alibaba.cachex</groupId>
+      <artifactId>cachex</artifactId>
       <version>1.5.2-SNAPSHOT</version>
 </dependency>
 ```
@@ -45,18 +45,18 @@
         <!-- 启用自动代理: 如果已经开启则不必重复开启 -->
         <aop:aspectj-autoproxy/>
     
-        <!-- 注入Cacher切面:
-                caches: 只要实现了ICache接口的cache产品均可被Cacher托管
+        <!-- 注入CacheX切面:
+                caches: 只要实现了ICache接口的cache产品均可被CacheX托管
          -->
-        <bean class="com.alibaba.cacher.CacherAspect">
+        <bean class="com.alibaba.cachex.CacheXAspect">
             <constructor-arg name="caches">
-                <map key-returnType="java.lang.String" value-returnType="com.alibaba.cacher.ICache">
+                <map key-returnType="java.lang.String" value-returnType="com.alibaba.cachex.ICache">
                     <entry key="tair" value-ref="tair"/>
                 </map>
             </constructor-arg>
         </bean>
     
-        <bean id="tair" class="com.alibaba.cacher.support.cache.TairCache" lazy-init="true">
+        <bean id="tair" class="com.alibaba.cachex.support.cache.TairCache" lazy-init="true">
             <constructor-arg name="configId" value="mdbcomm-daily"/>
             <constructor-arg name="namespace" value="180"/>
         </bean>
@@ -74,7 +74,7 @@
 可以看到单key的方法已经只剩下了步骤2(省掉了步骤0、1、3), 多key的方法只剩下了步骤4(省掉了步骤0、1、2、3、5);
 生成key、查询缓存、写入缓存的操作框架已经全部帮你完成了(而且还帮你省掉了一个生成key的`genCacheKey()`方法).
 > 仅从代码量上看: 基于单key的查询方法**由14行减到了2行**, 而批量查询则更加恐怖的**从30/40行降到了3/4行**, 而你所付出的成本, 则只是添加两个注解`@Cached`和`@CacheKey`.
-(附: 具体步骤编号可参考[why cacher?](markdown/whycachex.md))
+(附: 具体步骤编号可参考[why cachex?](markdown/whycachex.md))
 
 ---
 #### 2. 缓存失效(`@Invalid` & `@CacheKey`)
@@ -88,7 +88,7 @@
 
 ---
 ## III. 注解详解
-> cacher一共提供三个注解`@Cached`、`@Invalid`、`@CacheKey`.
+> CacheX一共提供三个注解`@Cached`、`@Invalid`、`@CacheKey`.
 
 ---
 ### @Cached
@@ -143,9 +143,9 @@ public @interface Cached {
 
 | 属性 | 描述 | Ext |
 :-------: | ------- | ------- 
-| `cache` | 指定使用的缓存产品, 值为`CacherAspect.caches`参数的一个key | 选填: 默认为注入Cacher的第一个缓存实现, 即在`caches` Map的第一个Entry实例 |
+| `cache` | 指定使用的缓存产品, 值为`CacheXAspect.caches`参数的一个key | 选填: 默认为注入CacheX的第一个缓存实现, 即在`caches` Map的第一个Entry实例 |
 | `prefix` | 缓存**key**的统一前缀 | 选填: 默认为`""`, 即不添加前缀, 若方法没有参数 or 方法没有`@CacheKey`注解, 则必须在此配置一个`prefix`, 令其成为该方法的***静态常量key***, 以后每次执行都走这个唯一的key |
-| `condition` | SpEL表达式 | 选填: 默认为`""`, 即默认为`true`, 在Cacher执行前会首先计算该表达式的值, 只有当返回值为`true`时, 才会经过缓存, 在表达式执行前, Cacher会将方法的参数以`参数名` - `参数值`的**key-value**形式导入到表达式的环境中 |
+| `condition` | SpEL表达式 | 选填: 默认为`""`, 即默认为`true`, 在CacheX执行前会首先计算该表达式的值, 只有当返回值为`true`时, 才会经过缓存, 在表达式执行前, CacheX会将方法的参数以`参数名` - `参数值`的**key-value**形式导入到表达式的环境中 |
 | `expire` |  缓存过期时间, 单位秒 | 选填: 默认为`Expire.FOREVER` 永不过期, `Expire`提供了一些推荐值 |
 | `separator` | 如果一个缓存Key由多个方法参数组成, 可由`separator`在中间作为分隔符 | 选填: 默认`-` |
 
@@ -235,14 +235,14 @@ public @interface CacheKey {
 :-------: | ------- | -------
 | `prefix` | (选填: 默认为`""`) 指定Key的前缀, 目的是防止key冲突, 且便于在在后台查看缓存内容.  | |
 | `spel` | (选填: 默认为`""`) 一段SpEL表达式, 如果方法形参为一个`JavaBean`, 且只希望将该Bean的一个属性(或一部分内容)作为缓存的Key时, 指定一段SpEL表达式, 框架会在拼装缓存Key时解析该表达式以及传入的参数对象, 拿到你指定的某一部分. | 曾经见过的高级用法`spel="'id:'+id+'-name:'+name+'-address:'+getAddress()+'-time:'+getBirthday()"` |
-| `multi` | (选填: 默认为`false`) 指明该方法是否走批量缓存(如调用Redis的`mget`而非`get`), 其具体含义可参考**why cacher**部分的批量版本的`getFromDBOrHttp()`方法 |
+| `multi` | (选填: 默认为`false`) 指明该方法是否走批量缓存(如调用Redis的`mget`而非`get`), 其具体含义可参考**why cachex**部分的批量版本的`getFromDBOrHttp()`方法 |
 | `id` | (选填: 默认为`""`) 也是一段SpEL表达式, `multi = true`时生效. 如果方法返回一个`Collection`实例, 需要由`id`来指定该`Collection`的单个元素的哪个属性与该`@CacheKey`参数关联 | |
 
 
 ---
 ### 附
 
-cacher目前版本支持的**缓存产品实现**、**序列化类型**、**命中率统计实现**们 ~
+CacheX目前版本支持的**缓存产品实现**、**序列化类型**、**命中率统计实现**们 ~
 
 ![support.png](http://7xrgh9.com1.z0.glb.clouddn.com/17-11-15/58610258.jpg) 
 
