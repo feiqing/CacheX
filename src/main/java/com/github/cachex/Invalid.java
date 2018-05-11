@@ -1,6 +1,5 @@
 package com.github.cachex;
 
-import com.github.cachex.support.annotation.Invalids;
 
 import java.lang.annotation.*;
 
@@ -9,7 +8,6 @@ import java.lang.annotation.*;
  * @since 16/7/19 下午4:21.
  */
 @Documented
-@Repeatable(Invalids.class)
 @Target(value = ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Invalid {

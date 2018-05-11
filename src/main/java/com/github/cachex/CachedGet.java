@@ -1,6 +1,5 @@
 package com.github.cachex;
 
-import com.github.cachex.support.annotation.CachedGets;
 
 import java.lang.annotation.*;
 
@@ -9,7 +8,6 @@ import java.lang.annotation.*;
  * @since 2017/6/22 下午2:02.
  */
 @Documented
-@Repeatable(CachedGets.class)
 @Target(value = ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface CachedGet {

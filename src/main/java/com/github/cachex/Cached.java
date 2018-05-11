@@ -1,7 +1,6 @@
 package com.github.cachex;
 
 import com.github.cachex.enums.Expire;
-import com.github.cachex.support.annotation.Cacheds;
 
 import java.lang.annotation.*;
 
@@ -10,7 +9,6 @@ import java.lang.annotation.*;
  * @since 2016/11/2 下午2:22.
  */
 @Documented
-@Repeatable(Cacheds.class)
 @Target(value = ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Cached {
