@@ -35,7 +35,7 @@ import java.util.Set;
 @SuppressWarnings("unchecked")
 public class CacheXCore {
 
-    protected static final Logger LOGGER = LoggerFactory.getLogger("com.alibaba.cachex");
+    protected static final Logger LOGGER = LoggerFactory.getLogger("com.github.cachex");
 
     @Inject
     private AbstractCacheReader singleCacheReader;
@@ -76,7 +76,7 @@ public class CacheXCore {
         if (config.getShootingMXBean() != null) {
             CacheXDIContainer.registerBeanInstance(config.getShootingMXBean());
             this.mBeanServer = ManagementFactory.getPlatformMBeanServer();
-            this.mBeanServer.registerMBean(config.getShootingMXBean(), new ObjectName("com.alibaba.cachex:name=shooting"));
+            this.mBeanServer.registerMBean(config.getShootingMXBean(), new ObjectName("com.github.cachex:name=shooting"));
         }
 
         CacheXDIContainer.init(this,
@@ -179,7 +179,7 @@ public class CacheXCore {
             InstanceNotFoundException {
 
         if (this.mBeanServer != null) {
-            this.mBeanServer.unregisterMBean(new ObjectName("com.alibaba.cachex:name=shooting"));
+            this.mBeanServer.unregisterMBean(new ObjectName("com.github.cachex:name=shooting"));
         }
     }
 }

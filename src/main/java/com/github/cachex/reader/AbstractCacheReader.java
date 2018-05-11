@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class AbstractCacheReader {
 
-    protected static final Logger LOGGER = LoggerFactory.getLogger("com.alibaba.cachex");
+    protected static final Logger LOGGER = LoggerFactory.getLogger("com.github.cachex");
 
     public abstract Object read(CacheKeyHolder cacheKeyHolder, CacheMethodHolder cacheMethodHolder, Invoker invoker, boolean needWrite) throws Throwable;
 

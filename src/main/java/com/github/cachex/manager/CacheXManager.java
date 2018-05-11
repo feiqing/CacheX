@@ -22,7 +22,7 @@ public class CacheXManager {
 
     private static final Logger ROOT_LOGGER = LoggerFactory.getLogger(CacheXManager.class);
 
-    private static final Logger CACHEX_LOGGER = LoggerFactory.getLogger("com.alibaba.cachex");
+    private static final Logger CACHEX_LOGGER = LoggerFactory.getLogger("com.github.cachex");
 
     private Pair<String, ICache> defaultCacheImpl;
 

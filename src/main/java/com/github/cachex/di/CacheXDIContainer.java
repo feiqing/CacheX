@@ -23,7 +23,7 @@ import java.util.jar.JarFile;
 @SuppressWarnings("unchecked")
 public class CacheXDIContainer {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("com.alibaba.cachex");
+    private static final Logger LOGGER = LoggerFactory.getLogger("com.github.cachex");
 
     private static final String CLASS_SUFFIX = ".class";
     private static final String FILE_PROTOCOL = "file";

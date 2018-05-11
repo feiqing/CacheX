@@ -6,7 +6,7 @@ package com.github.cachex.constant;
  */
 public interface Constant {
 
-    String PACKAGE_MANAGER = "com.alibaba.cachex.manager";
+    String PACKAGE_MANAGER = "com.github.cachex.manager";
 
-    String PACKAGE_READER = "com.alibaba.cachex.reader";
+    String PACKAGE_READER = "com.github.cachex.reader";
 }
