@@ -5,22 +5,22 @@
     - feedcenter-push
     - feedcenter-admin
 - 文档
-    - [redis-annotation 文档](https://github.com/feiqing/Cacher/wiki/redisCli-annotation-%E6%96%87%E6%A1%A3)
-    - [redis-annotation 分享](https://github.com/feiqing/Cacher/wiki/redisCli-annotation-%E5%88%86%E4%BA%AB)
+    - [redis-annotation 文档](https://github.com/feiqing/CacheX/wiki/redisCli-annotation-%E6%96%87%E6%A1%A3)
+    - [redis-annotation 分享](https://github.com/feiqing/CacheX/wiki/redisCli-annotation-%E5%88%86%E4%BA%AB)
 
 ---
 ### 1.0.x(0.1.x)
 - 1.0.0
-    - 重构为cacher
+    - 重构为CacheX
         - 开放`ICache`接口, 不再强依赖某一特定缓存产品, 而是作为`ICache`接口的一个具体实现, 以支持更多的缓存服务(如Memcached、Redis、Guava、`ConcurrentHashMap`...);
     - 添加`NoOpCache`无操作缓存;
     - 添加`GuavaCache`的LocalCache实现;
     - 添加`RedisPoolCache`作为基于Pool模式Redis单机缓存实现
     - 添加`RedisClusterCache`作为Redis分布式缓存实现;
 - 1.0.1
-    - 添加全局缓存开关`open`参数, 支持Cacher动态开关;
+    - 添加全局缓存开关`open`参数, 支持CacheX动态开关;
 - 1.0.2
-    - 开放`com.alibaba.cacher.IObjectSerializer`缓存序列化接口;
+    - 开放`com.alibaba.cachex.IObjectSerializer`缓存序列化接口;
     - 提供基于Hession2和Jdk的两种序列化实现;
 - 1.0.3
     - 开放`RedisPoolCache`连接池设置策略;
@@ -34,7 +34,7 @@
 ---
 ### 1.2.x(0.3.x)
 - 1.2.0
-    - `@Cached`/`@Invalidate`添加`cache`属性, 使cacher支持管理多个缓存实现;
+    - `@Cached`/`@Invalidate`添加`cache`属性, 使CacheX支持管理多个缓存实现;
     - `@Cached`添加`condition`属性: 条件缓存, 支持SpEL表达式, 当表达式结果为`true`时缓存;
     - `@Cached`添加`prefix`属性, 为为当前方法的所有缓存添加统一前缀, 且支持无参方法缓存;
 - 1.2.1
@@ -65,14 +65,14 @@
 ---
 ### 1.5.x
 - 1.5.1
-    - 抽象并开放出`com.alibaba.cacher.ShootingMXBean`接口, 支持自定义缓存分组命中率统计实现;
+    - 抽象并开放出`com.alibaba.cachex.ShootingMXBean`接口, 支持自定义缓存分组命中率统计实现;
     - 添加`MemoryShootingMXBeanImpl`, 支持基于内存计数的缓存命中率统计((以机器为单位, 重启历史数据丢失));
 - 1.5.2
     - 添加`DerbyShootingMXBeanImpl`、`H2ShootingMXBeanImpl`实现, 支持基于嵌入式DB的缓存命中率统计(以机器为单位, 重启历史数据不丢失; 其中Derby实现可以动态加载jdk提供的derby.jar包, 实现0依赖配置)
     - 添加`ZKShootingMXBeanImpl`实现, 支持基于ZooKeeper的异步命中率统计, 可以做到统一应用共享计数器(以应用为单位, 重启历史数据不丢失);
     - 添加`@Cacheds`、`@Invalids`两个注解, 使`@Cached`、`@Invalid`支持Java8重复注解, 定义多级缓存目标.
 - 1.5.3
-    - 添加`com.alibaba.cacher.support.serialize.KryoSerializer`序列化实现
+    - 添加`com.alibaba.cachex.support.serialize.KryoSerializer`序列化实现
 - 1.5.4
     - 消除[限制4](limit.md#4-各类怪异的内部容器类调用), 支持:
     

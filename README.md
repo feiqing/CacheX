@@ -5,7 +5,7 @@
 
 - [版本历史](./markdown/release.md)
 - [下一里程碑版本目标](./markdown/target.md)
-- [why cacher?](./markdown/whycacher.md)
+- [why cacher?](markdown/whycachex.md)
 - [命中率分组统计](./markdown/shooting.md)
 - [使用限制](./markdown/limit.md)
 - [dependency](dependency.txt)
@@ -74,7 +74,7 @@
 可以看到单key的方法已经只剩下了步骤2(省掉了步骤0、1、3), 多key的方法只剩下了步骤4(省掉了步骤0、1、2、3、5);
 生成key、查询缓存、写入缓存的操作框架已经全部帮你完成了(而且还帮你省掉了一个生成key的`genCacheKey()`方法).
 > 仅从代码量上看: 基于单key的查询方法**由14行减到了2行**, 而批量查询则更加恐怖的**从30/40行降到了3/4行**, 而你所付出的成本, 则只是添加两个注解`@Cached`和`@CacheKey`.
-(附: 具体步骤编号可参考[why cacher?](./markdown/whycacher.md))
+(附: 具体步骤编号可参考[why cacher?](markdown/whycachex.md))
 
 ---
 #### 2. 缓存失效(`@Invalid` & `@CacheKey`)
@@ -108,7 +108,7 @@ public @interface Cached {
 
     /**
      * @return Specifies the <b>Used cache implementation</b>,
-     * default the first {@code caches} config in {@code CacherAspect}
+     * default the first {@code caches} config in {@codeCacheXAspect}
      * @since 0.3
      */
     String cache() default "";
