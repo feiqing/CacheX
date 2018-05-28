@@ -2,7 +2,7 @@ package com.github.cachex.utils;
 
 import com.github.cachex.CacheKey;
 import com.github.cachex.domain.CacheKeyHolder;
-import com.github.cachex.supplier.ParameterNamesSupplier;
+import com.github.cachex.supplier.ArgNameSupplier;
 import com.github.cachex.supplier.SpelValueSupplier;
 
 import java.util.Arrays;
@@ -17,19 +17,12 @@ import java.util.Map;
 public class KeyGenerators {
 
     public static String generateSingleKey(CacheKeyHolder cacheKeyHolder, Object[] args) {
-        String[] parameterNames = ParameterNamesSupplier.getParameterNames(cacheKeyHolder.getMethod());
+        String[] parameterNames = ArgNameSupplier.getArgNames(cacheKeyHolder.getMethod());
         StringBuilder sb = new StringBuilder(cacheKeyHolder.getPrefix());
-        // -> "keyExp"
-
         cacheKeyHolder.getCacheKeyMap().forEach((index, cacheKey) -> {
-            // append key keyExp (like: "id:")
             sb.append(cacheKey.prefix());
-            // -> "keyExp-id:"
-
-            // append argValue (like: "[id-value]、[name-value]")
             Object argValue = SpelValueSupplier.calcSpelValue(cacheKey.spel(), parameterNames, args, args[index]);
             sb.append(argValue);
-            // -> "keyExp-id:101791"
         });
 
         return sb.toString();
@@ -45,7 +38,7 @@ public class KeyGenerators {
         int multiIndex = cacheKeyHolder.getMultiIndex();
         String prefix = cacheKeyHolder.getPrefix();
         Map<Integer, CacheKey> cacheKeyMap = cacheKeyHolder.getCacheKeyMap();
-        String[] parameterNames = (String[]) appendArray(ParameterNamesSupplier.getParameterNames(cacheKeyHolder.getMethod()), "index");
+        String[] parameterNames = (String[]) appendArray(ArgNameSupplier.getArgNames(cacheKeyHolder.getMethod()), "index");
         Object multiArg = args[cacheKeyHolder.getMultiIndex()];
 
         // -- 开始拼装 -- //
@@ -70,23 +63,18 @@ public class KeyGenerators {
                                         String[] parameterNames, Object[] parameterValues,
                                         Object multiArgEntry, int multiArgEntryIndex) {
         StringBuilder sb = new StringBuilder(prefix);
-        // -> "keyExp"
 
-        // 将被spel计算出来的value值作为与result一对一的id
+
         for (Map.Entry<Integer, CacheKey> entry : cacheKeyMap.entrySet()) {
             int parameterIndex = entry.getKey();
             CacheKey cacheKey = entry.getValue();
-            // append key keyExp (like: "id:")
             sb.append(cacheKey.prefix());
-            // -> "keyExp-id:"
 
-            // append argValue (like: "[id-value]、[name-value]")
             Object argEntryValue = SpelValueSupplier.calcSpelValue(cacheKey.spel(),
                     parameterNames, () -> appendArray(parameterValues, multiArgEntryIndex),
                     parameterIndex == multiIndex ? multiArgEntry : parameterValues[parameterIndex]);
 
             sb.append(argEntryValue);
-            // -> "keyExp-id:101791"
         }
 
         return sb.toString();

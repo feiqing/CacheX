@@ -1,7 +1,6 @@
 package com.github.cachex.supplier;
 
 import com.github.cachex.domain.CacheKeyHolder;
-import com.github.cachex.utils.CacheXUtils;
 
 import java.lang.reflect.Method;
 import java.util.concurrent.ConcurrentHashMap;
@@ -23,16 +22,9 @@ public class PatternSupplier {
 
     private static String doPatternCombiner(CacheKeyHolder cacheKeyHolder) {
         StringBuilder sb = new StringBuilder(cacheKeyHolder.getPrefix());
-        // -> "keyExp"
-
         cacheKeyHolder.getCacheKeyMap().forEach((index, cacheKey) -> {
-            // append key keyExp (like: "id:")
             sb.append(cacheKey.prefix());
-            // -> "keyExp-id:"
-
-            // append placeholder (like: "[*]")
             sb.append(PATTERN_PLACEHOLDER);
-            // -> "keyExp-id:[*]"
         });
 
         return sb.toString();

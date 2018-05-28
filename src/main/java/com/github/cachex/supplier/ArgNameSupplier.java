@@ -1,16 +1,10 @@
 package com.github.cachex.supplier;
 
-import com.github.cachex.exception.CacheXException;
-import javassist.*;
-import javassist.bytecode.LocalVariableAttribute;
-import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
+import com.github.cachex.utils.CacheXLogger;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.SortedMap;
-import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -18,23 +12,29 @@ import java.util.concurrent.ConcurrentMap;
  * @author jifang.zjf
  * @since 2017/6/23 上午10:17.
  */
-public class ParameterNamesSupplier {
+public class ArgNameSupplier {
 
-    private static final ConcurrentMap<Method, String[]> methodParameterNamesMap = new ConcurrentHashMap<>();
+    private static boolean isFirst = true;
 
-    public static String[] getParameterNames(Method method) {
-        return methodParameterNamesMap.computeIfAbsent(method, ParameterNamesSupplier::doGetParameterNamesJava8);
+    private static final ConcurrentMap<Method, String[]> methodParameterNames = new ConcurrentHashMap<>();
+
+    public static String[] getArgNames(Method method) {
+        return methodParameterNames.computeIfAbsent(method, ArgNameSupplier::doGetArgNamesWithJava8);
     }
 
-    // Java1.8之后提供了获取参数名方法, 但需要编译时添加`–parameters`参数支持, 如`javac –parameters`
-    private static String[] doGetParameterNamesJava8(Method method) {
+    // Java1.8之后提供了获取参数名方法, 但需要编译时添加`–parameters`参数支持, 如`javac –parameters`, 不然参数名为'arg0'
+    private static String[] doGetArgNamesWithJava8(Method method) {
         Parameter[] parameters = method.getParameters();
-        return Arrays.stream(parameters).map(Parameter::getName).toArray(String[]::new);
+        String[] argNames = Arrays.stream(parameters).map(Parameter::getName).toArray(String[]::new);
+        if (isFirst && argNames.length != 0 && argNames[0].equals("arg0")) {
+            CacheXLogger.CACHEX.warn("compile not set '–parameters', used default method parameter names");
+            isFirst = false;
+        }
+
+        return argNames;
     }
 
-    /**
-     * 静态内部类: 防止过早引入Spring、Javassist包
-     */
+    /*
     private static class SpringInnerClass {
 
         private static LocalVariableTableParameterNameDiscoverer discoverer =
@@ -52,7 +52,7 @@ public class ParameterNamesSupplier {
         static {
             pool = ClassPool.getDefault();
             // 自定义ClassLoader情况
-            pool.insertClassPath(new ClassClassPath(ParameterNamesSupplier.class));
+            pool.insertClassPath(new ClassClassPath(ArgNameSupplier.class));
         }
 
         private static String[] doGetParameterNames(Method method) {
@@ -102,4 +102,5 @@ public class ParameterNamesSupplier {
             return InnerJavassistClass.pool.getCtClass(clazz.getName());
         }
     }
+    */
 }
