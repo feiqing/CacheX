@@ -13,17 +13,26 @@
     <!-- 启用自动代理: 如果已经开启则不必重复开启 -->
     <aop:aspectj-autoproxy/>
 
+    <!--
+    <bean class="com.github.cachex.CacheXProxy">
+        <constructor-arg name="target" >
+            <bean class="com.github.cachex.service.impl.UserServiceImpl"/>
+        </constructor-arg>
+        <constructor-arg name="caches" ref="caches"/>
+    </bean>
+    -->
+
+    <util:map id="caches" map-class="java.util.LinkedHashMap">
+        <entry key="guava" value-ref="guavaCache"/>
+    </util:map>
+
     <bean class="com.github.cachex.CacheXAspect">
         <constructor-arg name="config">
             <bean class="com.github.cachex.core.CacheXConfig">
-                <property name="caches">
-                    <map key-type="java.lang.String" value-type="com.github.cachex.ICache">
-                        <entry key="guava" value-ref="guavaCache"/>
-                    </map>
-                </property>
+                <property name="caches" ref="caches"/>
                 <property name="cachex" value="ON"/>
                 <property name="protect" value="ON"/>
-                <!--<property name="shootingMXBean" ref="memoryShootingMXBean"/>-->
+                <property name="shootingMXBean" ref="memoryShootingMXBean"/>
             </bean>
         </constructor-arg>
     </bean>

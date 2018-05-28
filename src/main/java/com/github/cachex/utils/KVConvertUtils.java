@@ -1,7 +1,7 @@
 package com.github.cachex.utils;
 
 import com.github.cachex.core.CacheXConfig;
-import com.github.cachex.supplier.PreventObjectSupplier;
+import com.github.cachex.supplier.ProtectObjects;
 import com.github.cachex.supplier.SpelValueSupplier;
 import com.google.common.base.Strings;
 
@@ -30,7 +30,7 @@ public class KVConvertUtils {
 
         // 触发防击穿逻辑
         if (protect == CacheXConfig.Switch.ON && !missKeys.isEmpty()) {
-            missKeys.forEach(key -> keyValueMap.put(key, PreventObjectSupplier.generatePreventObject()));
+            missKeys.forEach(key -> keyValueMap.put(key, ProtectObjects.getProtectObject()));
         }
 
         return keyValueMap;
@@ -50,7 +50,7 @@ public class KVConvertUtils {
         }
 
         if (protect == CacheXConfig.Switch.ON && !missKeys.isEmpty()) {
-            missKeys.forEach(key -> keyValueMap.put(key, PreventObjectSupplier.generatePreventObject()));
+            missKeys.forEach(key -> keyValueMap.put(key, ProtectObjects.getProtectObject()));
         }
 
         return keyValueMap;

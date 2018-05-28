@@ -8,6 +8,7 @@ import com.github.cachex.domain.User;
 import com.github.cachex.enums.Expire;
 import com.github.cachex.service.UserService;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -16,7 +17,7 @@ import java.util.stream.Collectors;
  * @author jifang
  * @since 16/3/20 下午5:49.
  */
-@Component
+@Service
 public class UserServiceImpl implements UserService {
 
     /**

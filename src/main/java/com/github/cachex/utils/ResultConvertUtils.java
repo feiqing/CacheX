@@ -2,7 +2,7 @@ package com.github.cachex.utils;
 
 import com.github.cachex.supplier.CollectionSupplier;
 import com.github.cachex.supplier.MapSuppliers;
-import com.github.cachex.supplier.PreventObjectSupplier;
+import com.github.cachex.supplier.ProtectObjects;
 
 import java.util.Collection;
 import java.util.Map;
@@ -19,7 +19,7 @@ public class ResultConvertUtils {
 
         Map resultMap = MapSuppliers.newInstance(mapType);
         cacheMap.entrySet().stream()
-                .filter(entry -> !PreventObjectSupplier.isGeneratePreventObject(entry.getValue()))  //将防击穿Object过滤掉
+                .filter(entry -> !ProtectObjects.isProtect(entry.getValue()))  //将防击穿Object过滤掉
                 .forEach(entry -> {
                     Object id = keyIdMap.get(entry.getKey());
                     resultMap.put(id, entry.getValue());
@@ -33,7 +33,7 @@ public class ResultConvertUtils {
 
         Collection resultCollection = CollectionSupplier.newInstance(collectionType);
         cacheMap.values().stream()
-                .filter(value -> !PreventObjectSupplier.isGeneratePreventObject(value)) // 将防击穿Object过滤掉
+                .filter(value -> !ProtectObjects.isProtect(value)) // 将防击穿Object过滤掉
                 .forEach(resultCollection::add);
 
         return CollectionSupplier.convertInstanceType(collectionType, resultCollection);

@@ -16,12 +16,12 @@ import com.github.cachex.utils.SwitcherUtils;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Set;
+
+import static com.github.cachex.utils.SwitcherUtils.isSwitchOn;
 
 /**
  * @author jifang.zjf
@@ -46,7 +46,7 @@ public class CacheXCore {
 
     public Object read(CachedGet cachedGet, Method method, Invoker invoker) throws Throwable {
         Object result;
-        if (SwitcherUtils.isSwitchOn(config, cachedGet, method, invoker.getArgs())) {
+        if (isSwitchOn(config, cachedGet, method, invoker.getArgs())) {
             result = doReadWrite(method, invoker, false);
         } else {
             result = invoker.proceed();
@@ -55,19 +55,44 @@ public class CacheXCore {
         return result;
     }
 
-    public void write() {
-        // TODO on @CachedPut
-    }
-
     public Object readWrite(Cached cached, Method method, Invoker invoker) throws Throwable {
         Object result;
-        if (SwitcherUtils.isSwitchOn(config, cached, method, invoker.getArgs())) {
+        if (isSwitchOn(config, cached, method, invoker.getArgs())) {
             result = doReadWrite(method, invoker, true);
         } else {
             result = invoker.proceed();
         }
 
         return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    public void remove(Invalid invalid, Method method, Object[] args) {
+        if (isSwitchOn(config, invalid, method, args)) {
+
+            long start = 0;
+            if (CacheXLogger.CACHEX.isDebugEnabled()) {
+                start = System.currentTimeMillis();
+            }
+
+            CacheKeyHolder cacheKeyHolder = CacheXInfoSupplier.getMethodInfo(method).getLeft();
+            if (cacheKeyHolder.isMulti()) {
+                Map[] keyIdPair = KeyGenerators.generateMultiKey(cacheKeyHolder, args);
+                Set<String> keys = ((Map<String, Object>) keyIdPair[1]).keySet();
+                cacheManager.remove(invalid.cache(), keys.toArray(new String[keys.size()]));
+
+                CacheXLogger.CACHEX.info("multi cache clear, keys: {}", keys);
+            } else {
+                String key = KeyGenerators.generateSingleKey(cacheKeyHolder, args);
+                cacheManager.remove(invalid.cache(), key);
+
+                CacheXLogger.CACHEX.info("single cache clear, key: {}", key);
+            }
+
+            if (CacheXLogger.CACHEX.isDebugEnabled()) {
+                CacheXLogger.CACHEX.info("cachex clear total cost [{}] ms", (System.currentTimeMillis() - start));
+            }
+        }
     }
 
     private Object doReadWrite(Method method, Invoker invoker, boolean needWrite) throws Throwable {
@@ -94,32 +119,7 @@ public class CacheXCore {
         return result;
     }
 
-    @SuppressWarnings("unchecked")
-    public void remove(Invalid invalid, Method method, Object[] args) {
-        if (SwitcherUtils.isSwitchOn(config, invalid, method, args)) {
-
-            long start = 0;
-            if (CacheXLogger.CACHEX.isDebugEnabled()) {
-                start = System.currentTimeMillis();
-            }
-
-            CacheKeyHolder cacheKeyHolder = CacheXInfoSupplier.getMethodInfo(method).getLeft();
-            if (cacheKeyHolder.isMulti()) {
-                Map[] keyIdPair = KeyGenerators.generateMultiKey(cacheKeyHolder, args);
-                Set<String> keys = ((Map<String, Object>) keyIdPair[1]).keySet();
-                cacheManager.remove(invalid.cache(), keys.toArray(new String[keys.size()]));
-
-                CacheXLogger.CACHEX.info("multi cache clear, keys: {}", keys);
-            } else {
-                String key = KeyGenerators.generateSingleKey(cacheKeyHolder, args);
-                cacheManager.remove(invalid.cache(), key);
-
-                CacheXLogger.CACHEX.info("single cache clear, key: {}", key);
-            }
-
-            if (CacheXLogger.CACHEX.isDebugEnabled()) {
-                CacheXLogger.CACHEX.info("cachex clear total cost [{}] ms", (System.currentTimeMillis() - start));
-            }
-        }
+    public void write() {
+        // TODO on @CachedPut
     }
 }

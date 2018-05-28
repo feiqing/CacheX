@@ -25,6 +25,10 @@ public class CacheXConfig {
     // 是否开启缓存防击穿
     private Switch protect;
 
+    public boolean isProtectOn() {
+        return protect != null && protect == Switch.ON;
+    }
+
     public static CacheXConfig newConfig(Map<String, ICache> caches) {
         CacheXConfig config = new CacheXConfig();
         config.caches = caches;

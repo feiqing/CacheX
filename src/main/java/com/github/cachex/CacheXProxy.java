@@ -26,21 +26,30 @@ public class CacheXProxy<T> implements FactoryBean<T> {
 
     private Class<T> type;
 
+    private CacheXConfig.Switch cglib = CacheXConfig.Switch.OFF;
+
     private CacheXCore cacheXCore;
 
     public CacheXProxy(Object target, Map<String, ICache> caches) {
-        this(target, (Class<T>) target.getClass().getInterfaces()[0], caches);
+        this(target, (Class<T>) target.getClass().getInterfaces()[0], caches, CacheXConfig.Switch.OFF);
     }
 
-    public CacheXProxy(Object target, Class<T> type, Map<String, ICache> caches) {
+    public CacheXProxy(Object target, Class<T> type, Map<String, ICache> caches, CacheXConfig.Switch cglib) {
         this.target = target;
         this.type = type;
+        this.cglib = cglib;
         this.proxy = newProxy();
         this.cacheXCore = CacheXModule.coreInstance(CacheXConfig.newConfig(caches));
     }
 
     private Object newProxy() {
-        ProxyFactory factory = this.type.isInterface() ? new ProxyFactory() : new CglibProxyFactory();
+        ProxyFactory factory;
+        if (cglib == CacheXConfig.Switch.ON || !this.type.isInterface()) {
+            factory = new CglibProxyFactory();
+        } else {
+            factory = new ProxyFactory();
+        }
+
         return factory.createInterceptorProxy(target, interceptor, new Class[]{type});
     }
 
@@ -48,24 +57,25 @@ public class CacheXProxy<T> implements FactoryBean<T> {
 
         @Override
         public Object intercept(Invocation invocation) throws Throwable {
-            Cached cached;
-            CachedGet cachedGet;
-            Invalid invalid;
 
             Method method = invocation.getMethod();
-            Object result;
+            Cached cached;
             if ((cached = method.getAnnotation(Cached.class)) != null) {
-                result = cacheXCore.readWrite(cached, method, new InvocationInvokerAdapter(target, invocation));
-            } else if ((cachedGet = method.getAnnotation(CachedGet.class)) != null) {
-                result = cacheXCore.read(cachedGet, method, new InvocationInvokerAdapter(target, invocation));
-            } else if ((invalid = method.getAnnotation(Invalid.class)) != null) {
-                cacheXCore.remove(invalid, method, invocation.getArguments());
-                result = null;
-            } else {
-                result = invocation.proceed();
+                return cacheXCore.readWrite(cached, method, new InvocationInvokerAdapter(target, invocation));
             }
 
-            return result;
+            CachedGet cachedGet;
+            if ((cachedGet = method.getAnnotation(CachedGet.class)) != null) {
+                return cacheXCore.read(cachedGet, method, new InvocationInvokerAdapter(target, invocation));
+            }
+
+            Invalid invalid;
+            if ((invalid = method.getAnnotation(Invalid.class)) != null) {
+                cacheXCore.remove(invalid, method, invocation.getArguments());
+                return null;
+            }
+
+            return invocation.proceed();
         }
     };
 
@@ -75,7 +85,7 @@ public class CacheXProxy<T> implements FactoryBean<T> {
     }
 
     @Override
-    public Class<?> getObjectType() {
+    public Class<T> getObjectType() {
         return type;
     }
 

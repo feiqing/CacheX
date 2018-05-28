@@ -7,6 +7,7 @@ import com.github.cachex.core.CacheXConfig;
 import com.github.cachex.enums.Expire;
 import com.github.cachex.supplier.ParameterNamesSupplier;
 import com.github.cachex.supplier.SpelValueSupplier;
+import com.google.common.base.Strings;
 
 import java.lang.reflect.Method;
 
@@ -17,27 +18,39 @@ import java.lang.reflect.Method;
 public class SwitcherUtils {
 
     public static boolean isSwitchOn(CacheXConfig config, Cached cached, Method method, Object[] args) {
-        return isSwitchOn(config.getCachex() == CacheXConfig.Switch.ON, cached, method, args);
+        return doIsSwitchOn(config.getCachex() == CacheXConfig.Switch.ON,
+                cached.expire(), cached.condition(),
+                method, args);
     }
 
-    public static boolean isSwitchOn(boolean openStat, Cached cached, Method method, Object[] args) {
-        return doIsSwitchOn(openStat, cached.expire(), cached.condition(), method, args);
-    }
 
     public static boolean isSwitchOn(CacheXConfig config, Invalid invalid, Method method, Object[] args) {
-        return doIsSwitchOn(config.getCachex() == CacheXConfig.Switch.ON, Expire.FOREVER, invalid.condition(), method, args);
+        return doIsSwitchOn(config.getCachex() == CacheXConfig.Switch.ON,
+                Expire.FOREVER, invalid.condition(),
+                method, args);
     }
 
     public static boolean isSwitchOn(CacheXConfig config, CachedGet cachedGet, Method method, Object[] args) {
-        return doIsSwitchOn(config.getCachex() == CacheXConfig.Switch.ON, Expire.FOREVER, cachedGet.condition(), method, args);
+        return doIsSwitchOn(config.getCachex() == CacheXConfig.Switch.ON,
+                Expire.FOREVER, cachedGet.condition(),
+                method, args);
     }
 
     private static boolean doIsSwitchOn(boolean openStat,
                                         int expire,
                                         String condition, Method method, Object[] args) {
-        return openStat
-                && expire != Expire.NO
-                && (boolean) SpelValueSupplier.calcSpelValue(condition, () -> ParameterNamesSupplier.getParameterNames(method), args, true);
+        if (!openStat) {
+            return false;
+        }
 
+        if (expire == Expire.NO) {
+            return false;
+        }
+
+        if (Strings.isNullOrEmpty(condition)) {
+            return true;
+        }
+
+        return (boolean) SpelValueSupplier.calcSpelValue(condition, () -> ParameterNamesSupplier.getParameterNames(method), args, true);
     }
 }

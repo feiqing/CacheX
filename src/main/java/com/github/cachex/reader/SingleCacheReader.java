@@ -7,7 +7,7 @@ import com.github.cachex.domain.CacheMethodHolder;
 import com.github.cachex.invoker.Invoker;
 import com.github.cachex.manager.CacheManager;
 import com.github.cachex.supplier.PatternSupplier;
-import com.github.cachex.supplier.PreventObjectSupplier;
+import com.github.cachex.supplier.ProtectObjects;
 import com.github.cachex.utils.CacheXLogger;
 import com.github.cachex.utils.KeyGenerators;
 import com.google.inject.Inject;
@@ -32,33 +32,42 @@ public class SingleCacheReader extends AbstractCacheReader {
     @Override
     public Object read(CacheKeyHolder cacheKeyHolder, CacheMethodHolder cacheMethodHolder, Invoker invoker, boolean needWrite) throws Throwable {
         String key = KeyGenerators.generateSingleKey(cacheKeyHolder, invoker.getArgs());
-        Object result = cacheManager.readSingle(cacheKeyHolder.getCache(), key);
+        Object readResult = cacheManager.readSingle(cacheKeyHolder.getCache(), key);
 
-        doRecord(result, key, cacheKeyHolder);
+        doRecord(readResult, key, cacheKeyHolder);
+        // 命中
+        if (readResult != null) {
+            // 是放击穿对象
+            if (ProtectObjects.isProtect(readResult)) {
+                return null;
+            }
+
+            return readResult;
+        }
+
+
         // not hit
-        if (result == null) {
-            // invoke method
-            result = doLogInvoke(invoker::proceed);
-            if (result != null && cacheMethodHolder.getInnerReturnType() == null) {
-                cacheMethodHolder.setInnerReturnType(result.getClass());
-            }
-
-            // @since 1.5.4 为了兼容@CachedGet注解, 客户端缓存
-            if (needWrite) {
-
-                // 触发缓存防击穿策略
-                if (result == null && config.getProtect() == CacheXConfig.Switch.ON) {
-                    result = PreventObjectSupplier.generatePreventObject();
-                }
-                cacheManager.writeSingle(cacheKeyHolder.getCache(), key, result, cacheKeyHolder.getExpire());
-            }
-        }
-        // 虽然命中, 但如果是防击穿对象, 则需要将result转换为null返回
-        else if (PreventObjectSupplier.isGeneratePreventObject(result)) {
-            result = null;
+        // invoke method
+        Object invokeResult = doLogInvoke(invoker::proceed);
+        if (invokeResult != null && cacheMethodHolder.getInnerReturnType() == null) {
+            cacheMethodHolder.setInnerReturnType(invokeResult.getClass());
         }
 
-        return result;
+        if (!needWrite) {
+            return invokeResult;
+        }
+
+        if (invokeResult != null) {
+            cacheManager.writeSingle(cacheKeyHolder.getCache(), key, invokeResult, cacheKeyHolder.getExpire());
+            return invokeResult;
+        }
+
+        // invokeResult is null
+        if (config.isProtectOn()) {
+            cacheManager.writeSingle(cacheKeyHolder.getCache(), key, ProtectObjects.getProtectObject(), cacheKeyHolder.getExpire());
+        }
+
+        return null;
     }
 
     private void doRecord(Object result, String key, CacheKeyHolder cacheKeyHolder) {
