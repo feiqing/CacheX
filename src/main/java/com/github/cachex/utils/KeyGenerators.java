@@ -31,51 +31,53 @@ public class KeyGenerators {
 
     //array[]: {id2Key, key2Id}
     public static Map[] generateMultiKey(CacheKeyHolder cacheKeyHolder, Object[] args) {
-        Map<Object, String> id2Key = new LinkedHashMap<>();
+        Map<Object/*这里就要求Multi-Collection内的元素必须实现的hashcode & equals方法*/, String> id2Key = new LinkedHashMap<>();
         Map<String, Object> key2Id = new LinkedHashMap<>();
 
         // -- 准备要拼装key所需的原材料 -- //
         int multiIndex = cacheKeyHolder.getMultiIndex();
         String prefix = cacheKeyHolder.getPrefix();
         Map<Integer, CacheKey> cacheKeyMap = cacheKeyHolder.getCacheKeyMap();
-        String[] parameterNames = (String[]) appendArray(ArgNameSupplier.getArgNames(cacheKeyHolder.getMethod()), "index");
+        String[] parameterNames = (String[]) appendArray(ArgNameSupplier.getArgNames(cacheKeyHolder.getMethod()), "forEachIndex");
         Object multiArg = args[cacheKeyHolder.getMultiIndex()];
 
         // -- 开始拼装 -- //
         if (multiArg != null) {
-            Collection multiArgEntries = multiArg instanceof Collection ? (Collection) multiArg : ((Map) multiArg).keySet();     // 被标记为multi的参数值
+            Collection multiElements = multiArg instanceof Collection ? (Collection) multiArg : ((Map) multiArg).keySet();     // 被标记为multi的参数值
 
-            int multiArgEntryIndex = 0;
-            for (Object multiArgEntry : multiArgEntries) {
-                String key = doGenerateKey(multiIndex, prefix, cacheKeyMap,
-                        parameterNames, args,
-                        multiArgEntry, multiArgEntryIndex++);
+            int forEachIndex = 0;
+            for (Object multiElement : multiElements) {
+                String key = doGenerateMultiKey(prefix,
+                        multiIndex, forEachIndex,
+                        cacheKeyMap,
+                        parameterNames, args, multiElement);
 
-                key2Id.put(key, multiArgEntry);
-                id2Key.put(multiArgEntry, key);
+                key2Id.put(key, multiElement);
+                id2Key.put(multiElement, key);
+                ++forEachIndex;
             }
         }
 
         return new Map[]{id2Key, key2Id};
     }
 
-    private static String doGenerateKey(int multiIndex, String prefix, Map<Integer, CacheKey> cacheKeyMap,
-                                        String[] parameterNames, Object[] parameterValues,
-                                        Object multiArgEntry, int multiArgEntryIndex) {
+    private static String doGenerateMultiKey(String prefix,
+                                             int multiIndex, int forEachIndex,
+                                             Map<Integer, CacheKey> index2Key,
+                                             String[] argNames, Object[] argValues,
+                                             Object multiArgElement) {
+
         StringBuilder sb = new StringBuilder(prefix);
+        index2Key.forEach((argIndex, argCacheKey) -> {
+            sb.append(argCacheKey.prefix());
 
-
-        for (Map.Entry<Integer, CacheKey> entry : cacheKeyMap.entrySet()) {
-            int parameterIndex = entry.getKey();
-            CacheKey cacheKey = entry.getValue();
-            sb.append(cacheKey.prefix());
-
-            Object argEntryValue = SpelValueSupplier.calcSpelValue(cacheKey.spel(),
-                    parameterNames, () -> appendArray(parameterValues, multiArgEntryIndex),
-                    parameterIndex == multiIndex ? multiArgEntry : parameterValues[parameterIndex]);
+            Object defaultValue = (argIndex != multiIndex ? argValues[argIndex] : multiArgElement);
+            Object argEntryValue = SpelValueSupplier.calcSpelValue(argCacheKey.spel(),
+                    argNames, () -> appendArray(argValues, forEachIndex),
+                    defaultValue);
 
             sb.append(argEntryValue);
-        }
+        });
 
         return sb.toString();
     }

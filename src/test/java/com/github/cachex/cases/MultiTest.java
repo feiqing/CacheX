@@ -8,9 +8,11 @@ import com.google.common.collect.Lists;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.List;
+import java.util.Random;
 import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.toList;
 
 /**
  * @author jifang
@@ -22,61 +24,57 @@ public class MultiTest extends TestBase {
     private UserService service;
 
     @Test
-    public void testReturnMap() throws InterruptedException {
-        List<Integer> ids = new LinkedList<>();
-        for (int i = 0; i < 3; ++i) {
-            ids.add(i);
-        }
-        Map<Integer, User> map = service.returnMap("name", ids, "ok");
-        map = service.returnMap("name", ids, "ok");
-
+    public void testReturnList() {
+        List<Integer> ids = Lists.newArrayList(1, 2, 3, 4);
+        service.returnList(ids, "ss", new Object());
+        System.out.println("---");
+        service.returnList(ids, "ss", new Object());
+        System.out.println("---");
         ids.add(new Random().nextInt());
-        map = service.returnMap("name", ids, "ok");
+        List<User> users = service.returnList(ids, "ss", new Object());
+        System.out.println("---");
+        service.invalidList(users);
+        System.out.println("---");
+        service.returnList(ids, "ss", new Object());
+    }
+
+    @Test
+    public void testReturnMap() {
+        List<Integer> ids = Lists.newArrayList(0, 1, 2);
+        service.returnMap("name", ids, "ok");
+        System.out.println("---");
+        service.returnMap("name", ids, "ok");
+        System.out.println("---");
+        ids.add(new Random().nextInt());
+        service.returnMap("name", ids, "ok");
+        System.out.println("---");
+        service.invalidMap("name", ids);
+        System.out.println("---");
+        service.returnMap("name", ids, "ok");
+        System.out.println("---");
+        service.returnMap("name", ids, "ok");
     }
 
     @Test
     public void testRandomGet() {
-        for (int i = 0; i < 1000; ++i) {
-            List<Integer> ids = Stream.generate(this::nextRandom).limit(nextLitterRandom()).collect(Collectors.toList());
-            service.returnList(ids, "name", new Object());
-            service.returnMap("app", ids, new Object());
 
-            Utils.delay(10000);
+
+
+        for (int i = 0; i < 1000; ++i) {
+//            List<Integer> ids = Stream.generate(this::nextRandom).limit(nextLitterRandom()).collect(Collectors.toList());
+            List<Integer> collect = Stream.generate(this::nextRandom).limit(100).collect(toList());
+            service.returnList(collect, "name", new Object());
+            // service.returnMap("app", ids, new Object());
+
+            Utils.delay(1000);
         }
     }
 
     private int nextRandom() {
-        return (int) (Math.random() * 1000);
+        return (int) (Math.random() * 100);
     }
 
     private int nextLitterRandom() {
         return (int) (Math.random() * 100);
-    }
-
-    @Test
-    public void multiInvalidate() {
-        List<Integer> ids = new LinkedList<>();
-        for (int i = 0; i < 2; ++i) {
-            ids.add(i);
-        }
-        service.multiInvalid("name", ids);
-    }
-
-    @Test
-    public void testReturnList() {
-        List<Integer> ids = Lists.newArrayList(1, 2, 3, 4);
-        service.returnList(ids, "ss", new Object());
-        service.returnList(ids, "ss", new Object());
-
-        ids.add(new Random().nextInt());
-        service.returnList(ids, "ss", new Object());
-    }
-
-    @Test
-    public void testUpdateList() {
-        List<User> users = new ArrayList<>();
-        users.add(new User(1, null, null, 1, null));
-        users.add(new User(2, null, null, 1, null));
-        service.batchUpdateList(users);
     }
 }

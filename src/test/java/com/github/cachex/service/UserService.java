@@ -3,6 +3,7 @@ package com.github.cachex.service;
 
 import com.github.cachex.domain.User;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -17,11 +18,11 @@ public interface UserService {
      ***/
     Map<Integer, User> returnMap(String app, List<Integer> ids, Object noKey);
 
-    void multiInvalid(String apps, List<Integer> ids);
+    void invalidMap(String apps, List<Integer> ids);
 
-    List<User> returnList(List<Integer> ids, String name, Object non);
+    List<User> returnList(Collection<Integer> ids, String name, Object non);
 
-    void batchUpdateList(List<User> users);
+    void invalidList(List<User> users);
 
     /***
      * single

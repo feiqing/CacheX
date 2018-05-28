@@ -37,14 +37,6 @@ public class SingleTest extends TestBase {
     }
 
     @Test
-    public void testUpdateSingleKey() {
-        User user = new User();
-        user.setId(1);
-        String name = "fq";
-        userService.updateUser(user, name, "not");
-    }
-
-    @Test
     public void testSpEL() {
         User user = new User(1, "feiqing", new Date(), 1, "hangz");
         userService.spelCompose(user);
