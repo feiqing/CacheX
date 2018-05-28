@@ -3,8 +3,7 @@ package com.github.cachex.reader;
 import com.github.cachex.domain.CacheKeyHolder;
 import com.github.cachex.domain.CacheMethodHolder;
 import com.github.cachex.invoker.Invoker;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.github.cachex.utils.CacheXLogger;
 
 /**
  * @author jifang
@@ -12,27 +11,25 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class AbstractCacheReader {
 
-    protected static final Logger LOGGER = LoggerFactory.getLogger("com.github.cachex");
-
     public abstract Object read(CacheKeyHolder cacheKeyHolder, CacheMethodHolder cacheMethodHolder, Invoker invoker, boolean needWrite) throws Throwable;
 
-    protected Object doLogInvoke(Supplier<Object> supplier) throws Throwable {
+    Object doLogInvoke(ThrowableSupplier<Object> throwableSupplier) throws Throwable {
         long start = 0;
-        if (LOGGER.isDebugEnabled()) {
+        if (CacheXLogger.CACHEX.isDebugEnabled()) {
             start = System.currentTimeMillis();
         }
 
-        Object result = supplier.get();
+        Object result = throwableSupplier.get();
 
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("method invoke total cost [{}] ms", (System.currentTimeMillis() - start));
+        if (CacheXLogger.CACHEX.isDebugEnabled()) {
+            CacheXLogger.CACHEX.debug("method invoke total cost [{}] ms", (System.currentTimeMillis() - start));
         }
 
         return result;
     }
 
     @FunctionalInterface
-    protected interface Supplier<T> {
+    protected interface ThrowableSupplier<T> {
         T get() throws Throwable;
     }
 }

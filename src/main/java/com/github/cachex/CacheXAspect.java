@@ -1,7 +1,8 @@
 package com.github.cachex;
 
+import com.github.cachex.core.CacheXConfig;
 import com.github.cachex.core.CacheXCore;
-import com.github.cachex.core.Config;
+import com.github.cachex.core.CacheXModule;
 import com.github.cachex.invoker.adapter.JoinPointInvokerAdapter;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -10,10 +11,6 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.management.*;
-import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.Map;
 
@@ -22,40 +19,23 @@ import java.util.Map;
  * @since 2016/11/2 下午2:34.
  */
 @Aspect
-public class CacheXAspect extends CacheXCore {
+public class CacheXAspect {
 
-    private volatile Map<String, ICache> caches;
-
-    private Config config;
+    private CacheXCore core;
 
     public CacheXAspect(Map<String, ICache> caches) {
-        this(caches, new Config(true, false, null));
+        this(new CacheXConfig(caches));
     }
 
-    public CacheXAspect(Map<String, ICache> caches, Config config) {
-        this.caches = caches;
-        this.config = config;
-    }
-
-    public Config getConfig() {
-        return config;
-    }
-
-    @PostConstruct
-    public void init()
-            throws MalformedObjectNameException,
-            NotCompliantMBeanException,
-            InstanceAlreadyExistsException,
-            MBeanRegistrationException, IOException {
-        super.init(caches, config);
+    public CacheXAspect(CacheXConfig config) {
+        core = CacheXModule.coreInstance(config);
     }
 
     @Around("@annotation(com.github.cachex.CachedGet)")
     public Object read(ProceedingJoinPoint pjp) throws Throwable {
         Method method = getMethod(pjp);
         CachedGet cachedGet = method.getAnnotation(CachedGet.class);
-
-        return super.read(config.isOpen(), cachedGet, method, new JoinPointInvokerAdapter(pjp));
+        return core.read(cachedGet, method, new JoinPointInvokerAdapter(pjp));
     }
 
     @Around("@annotation(com.github.cachex.Cached)")
@@ -63,19 +43,14 @@ public class CacheXAspect extends CacheXCore {
         Method method = getMethod(pjp);
         Cached cached = method.getAnnotation(Cached.class);
 
-        return super.readWrite(config.isOpen(), cached, method, new JoinPointInvokerAdapter(pjp));
+        return core.readWrite(cached, method, new JoinPointInvokerAdapter(pjp));
     }
 
     @After("@annotation(com.github.cachex.Invalid)")
     public void remove(JoinPoint pjp) throws Throwable {
         Method method = getMethod(pjp);
         Invalid invalid = method.getAnnotation(Invalid.class);
-        super.remove(config.isOpen(), invalid, method, pjp.getArgs());
-    }
-
-    @PreDestroy
-    public void tearDown() throws MalformedObjectNameException, InstanceNotFoundException, MBeanRegistrationException {
-        super.tearDown();
+        core.remove(invalid, method, pjp.getArgs());
     }
 
     private Method getMethod(JoinPoint pjp) throws NoSuchMethodException {

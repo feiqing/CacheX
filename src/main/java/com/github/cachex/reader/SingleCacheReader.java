@@ -1,16 +1,17 @@
 package com.github.cachex.reader;
 
 import com.github.cachex.ShootingMXBean;
-import com.github.cachex.core.Config;
-import com.github.cachex.di.Inject;
-import com.github.cachex.di.Singleton;
+import com.github.cachex.core.CacheXConfig;
 import com.github.cachex.domain.CacheKeyHolder;
 import com.github.cachex.domain.CacheMethodHolder;
 import com.github.cachex.invoker.Invoker;
-import com.github.cachex.manager.CacheXManager;
+import com.github.cachex.manager.CacheManager;
 import com.github.cachex.supplier.PatternSupplier;
 import com.github.cachex.supplier.PreventObjectSupplier;
+import com.github.cachex.utils.CacheXLogger;
 import com.github.cachex.utils.KeyGenerators;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 /**
  * @author jifang
@@ -20,10 +21,10 @@ import com.github.cachex.utils.KeyGenerators;
 public class SingleCacheReader extends AbstractCacheReader {
 
     @Inject
-    private CacheXManager cacheManager;
+    private CacheManager cacheManager;
 
     @Inject
-    private Config config;
+    private CacheXConfig config;
 
     @Inject(optional = true)
     private ShootingMXBean shootingMXBean;
@@ -46,7 +47,7 @@ public class SingleCacheReader extends AbstractCacheReader {
             if (needWrite) {
 
                 // 触发缓存防击穿策略
-                if (result == null && config.isPreventBreakdown()) {
+                if (result == null && config.getProtect() == CacheXConfig.Switch.ON) {
                     result = PreventObjectSupplier.generatePreventObject();
                 }
                 cacheManager.writeSingle(cacheKeyHolder.getCache(), key, result, cacheKeyHolder.getExpire());
@@ -61,7 +62,7 @@ public class SingleCacheReader extends AbstractCacheReader {
     }
 
     private void doRecord(Object result, String key, CacheKeyHolder cacheKeyHolder) {
-        LOGGER.info("single cache hit rate: {}/1, key: {}", result == null ? 0 : 1, key);
+        CacheXLogger.CACHEX.info("single cache hit rate: {}/1, key: {}", result == null ? 0 : 1, key);
         if (this.shootingMXBean != null) {
             String pattern = PatternSupplier.getPattern(cacheKeyHolder);
 

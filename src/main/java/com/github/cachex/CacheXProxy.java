@@ -1,7 +1,6 @@
 package com.github.cachex;
 
 import com.github.cachex.core.CacheXCore;
-import com.github.cachex.di.CacheXDIContainer;
 import com.github.cachex.invoker.adapter.InvocationInvokerAdapter;
 import org.apache.commons.proxy.Interceptor;
 import org.apache.commons.proxy.Invocation;
@@ -18,6 +17,7 @@ import java.util.Map;
  * @author jifang.zjf
  * @since 2017/6/22 上午11:04.
  */
+/*
 public class CacheXProxy implements FactoryBean, InitializingBean {
 
     private Object target;
@@ -108,3 +108,4 @@ public class CacheXProxy implements FactoryBean, InitializingBean {
         return true;
     }
 }
+*/

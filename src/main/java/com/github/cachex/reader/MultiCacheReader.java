@@ -1,20 +1,17 @@
 package com.github.cachex.reader;
 
 import com.github.cachex.ShootingMXBean;
-import com.github.cachex.core.Config;
-import com.github.cachex.di.Inject;
-import com.github.cachex.di.Singleton;
+import com.github.cachex.core.CacheXConfig;
 import com.github.cachex.domain.CacheKeyHolder;
 import com.github.cachex.domain.CacheMethodHolder;
 import com.github.cachex.domain.CacheReadResult;
 import com.github.cachex.invoker.Invoker;
-import com.github.cachex.manager.CacheXManager;
+import com.github.cachex.manager.CacheManager;
 import com.github.cachex.supplier.CollectionSupplier;
 import com.github.cachex.supplier.PatternSupplier;
-import com.github.cachex.utils.KVConvertUtils;
-import com.github.cachex.utils.KeyGenerators;
-import com.github.cachex.utils.ResultConvertUtils;
-import com.github.cachex.utils.ResultMergeUtils;
+import com.github.cachex.utils.*;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 import java.util.Collection;
 import java.util.List;
@@ -31,10 +28,10 @@ import java.util.stream.Collectors;
 public class MultiCacheReader extends AbstractCacheReader {
 
     @Inject
-    private CacheXManager cacheManager;
+    private CacheManager cacheManager;
 
     @Inject
-    private Config config;
+    private CacheXConfig config;
 
     @Inject(optional = true)
     private ShootingMXBean shootingMXBean;
@@ -88,7 +85,7 @@ public class MultiCacheReader extends AbstractCacheReader {
                 // @since 1.5.4 为了兼容@CachedGet注解, 客户端缓存
                 if (needWrite) {
                     // 将方法调用返回的map转换成key_value_map写入Cache
-                    Map<String, Object> keyValueMap = KVConvertUtils.mapToKeyValue(proceedIdValueMap, missKeys, id2Key, config.isPreventBreakdown());
+                    Map<String, Object> keyValueMap = KVConvertUtils.mapToKeyValue(proceedIdValueMap, missKeys, id2Key, config.getProtect());
                     cacheManager.writeBatch(cacheKeyHolder.getCache(), keyValueMap, cacheKeyHolder.getExpire());
                 }
                 // 将方法调用返回的map与从Cache中读取的key_value_map合并返回
@@ -99,7 +96,7 @@ public class MultiCacheReader extends AbstractCacheReader {
                 // @since 1.5.4 为了兼容@CachedGet注解, 客户端缓存
                 if (needWrite) {
                     // 将方法调用返回的collection转换成key_value_map写入Cache
-                    Map<String, Object> keyValueMap = KVConvertUtils.collectionToKeyValue(proceedCollection, cacheKeyHolder.getId(), missKeys, id2Key, config.isPreventBreakdown());
+                    Map<String, Object> keyValueMap = KVConvertUtils.collectionToKeyValue(proceedCollection, cacheKeyHolder.getId(), missKeys, id2Key, config.getProtect());
                     cacheManager.writeBatch(cacheKeyHolder.getCache(), keyValueMap, cacheKeyHolder.getExpire());
                 }
                 // 将方法调用返回的collection与从Cache中读取的key_value_map合并返回
@@ -158,7 +155,7 @@ public class MultiCacheReader extends AbstractCacheReader {
         // 计数
         int hitCount = cacheReadResult.getHitKeyMap().size();
         int totalCount = hitCount + missKeys.size();
-        LOGGER.info("multi cache hit rate: {}/{}, missed keys: {}",
+        CacheXLogger.CACHEX.info("multi cache hit rate: {}/{}, missed keys: {}",
                 hitCount, totalCount, missKeys);
 
         if (this.shootingMXBean != null) {

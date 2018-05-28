@@ -15,10 +15,12 @@
     <url>http://maven.apache.org</url>
 
     <properties>
+        <lombok.version>1.16.20</lombok.version>
         <jbox.version>1.6.0-SNAPSHOT</jbox.version>
+        <guava.version>20.0</guava.version>
+        <guice.version>4.2.0</guice.version>
         <spring.version>4.3.8.RELEASE</spring.version>
         <slf4j.version>1.7.25</slf4j.version>
-        <guava.version>20.0</guava.version>
         <aspectj.version>1.8.9</aspectj.version>
         <javassist.version>3.20.0-GA</javassist.version>
         <commons.lang.version>3.4</commons.lang.version>
@@ -48,6 +50,12 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>com.github.jbox</groupId>
             <artifactId>jbox</artifactId>
             <version>${jbox.version}</version>
@@ -57,6 +65,17 @@
             <artifactId>guava</artifactId>
             <version>${guava.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.google.inject</groupId>
+            <artifactId>guice</artifactId>
+            <version>${guice.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.inject.extensions</groupId>
+            <artifactId>guice-multibindings</artifactId>
+            <version>${guice.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-expression</artifactId>

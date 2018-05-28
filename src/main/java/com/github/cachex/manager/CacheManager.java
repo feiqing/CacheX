@@ -1,12 +1,13 @@
 package com.github.cachex.manager;
 
 import com.github.cachex.ICache;
-import com.github.cachex.di.Singleton;
 import com.github.cachex.domain.CacheReadResult;
 import com.github.cachex.domain.Pair;
 import com.github.cachex.exception.CacheXException;
-import com.google.common.base.Preconditions;
+import com.github.cachex.utils.CacheXLogger;
 import com.google.common.base.Strings;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,22 +19,20 @@ import java.util.concurrent.ConcurrentHashMap;
  * @since 16/7/7.
  */
 @Singleton
-public class CacheXManager {
+public class CacheManager {
 
-    private static final Logger ROOT_LOGGER = LoggerFactory.getLogger(CacheXManager.class);
+    private static final Logger logger = LoggerFactory.getLogger(CacheManager.class);
 
-    private static final Logger CACHEX_LOGGER = LoggerFactory.getLogger("com.github.cachex");
-
-    private Pair<String, ICache> defaultCacheImpl;
+    // defaultCache和cachePool直接使用Pair实现, 减小new Object的损耗
+    private Pair<String, ICache> defaultCache;
 
     private Map<String, Pair<String, ICache>> cachePool = new ConcurrentHashMap<>();
 
-    public void initCachePool(Map<String, ICache> caches) {
-        Preconditions.checkArgument(!caches.isEmpty(), "CacheXAspect.caches param can not be empty!!!");
-
+    @Inject
+    public void setCachePool(Map<String, ICache> caches) {
         // default cache impl
         Map.Entry<String, ICache> entry = caches.entrySet().iterator().next();
-        this.defaultCacheImpl = Pair.of(entry.getKey(), entry.getValue());
+        this.defaultCache = Pair.of(entry.getKey(), entry.getValue());
 
         caches.forEach((name, cache) -> this.cachePool.put(name, Pair.of(name, cache)));
     }
@@ -44,14 +43,14 @@ public class CacheXManager {
 
             long start = System.currentTimeMillis();
             Object result = cacheImpl.getRight().read(key);
-            CACHEX_LOGGER.info("cache [{}] read single cost: [{}] ms",
+            CacheXLogger.CACHEX.info("cache [{}] read single cost: [{}] ms",
                     cacheImpl.getLeft(),
                     (System.currentTimeMillis() - start));
 
             return result;
         } catch (Throwable e) {
-            ROOT_LOGGER.error("read single cache failed, key: {} ", key, e);
-            CACHEX_LOGGER.error("read single cache failed, key: {} ", key, e);
+            logger.error("read single cache failed, key: {} ", key, e);
+            CacheXLogger.CACHEX.error("read single cache failed, key: {} ", key, e);
             return null;
         }
     }
@@ -63,13 +62,13 @@ public class CacheXManager {
 
                 long start = System.currentTimeMillis();
                 cacheImpl.getRight().write(key, value, expire);
-                CACHEX_LOGGER.info("cache [{}] write single cost: [{}] ms",
+                CacheXLogger.CACHEX.info("cache [{}] write single cost: [{}] ms",
                         cacheImpl.getLeft(),
                         (System.currentTimeMillis() - start));
 
             } catch (Throwable e) {
-                ROOT_LOGGER.error("write single cache failed, key: {} ", key, e);
-                CACHEX_LOGGER.error("write single cache failed, key: {} ", key, e);
+                logger.error("write single cache failed, key: {} ", key, e);
+                CacheXLogger.CACHEX.error("write single cache failed, key: {} ", key, e);
             }
         }
     }
@@ -84,7 +83,7 @@ public class CacheXManager {
 
                 long start = System.currentTimeMillis();
                 Map<String, Object> cacheMap = cacheImpl.getRight().read(keys);
-                CACHEX_LOGGER.info("cache [{}] read batch cost: [{}] ms",
+                CacheXLogger.CACHEX.info("cache [{}] read batch cost: [{}] ms",
                         cacheImpl.getLeft(),
                         (System.currentTimeMillis() - start));
 
@@ -103,8 +102,8 @@ public class CacheXManager {
 
                 cacheReadResult = new CacheReadResult(hitValueMap, notHitKeys);
             } catch (Throwable e) {
-                ROOT_LOGGER.error("read multi cache failed, keys: {}", keys, e);
-                CACHEX_LOGGER.error("read multi cache failed, keys: {}", keys, e);
+                logger.error("read multi cache failed, keys: {}", keys, e);
+                CacheXLogger.CACHEX.error("read multi cache failed, keys: {}", keys, e);
                 cacheReadResult = new CacheReadResult();
             }
         }
@@ -118,13 +117,13 @@ public class CacheXManager {
 
             long start = System.currentTimeMillis();
             cacheImpl.getRight().write(keyValueMap, expire);
-            CACHEX_LOGGER.info("cache [{}] write batch cost: [{}] ms",
+            CacheXLogger.CACHEX.info("cache [{}] write batch cost: [{}] ms",
                     cacheImpl.getLeft(),
                     (System.currentTimeMillis() - start));
 
         } catch (Exception e) {
-            ROOT_LOGGER.error("write map multi cache failed, keys: {}", keyValueMap.keySet(), e);
-            CACHEX_LOGGER.error("write map multi cache failed, keys: {}", keyValueMap.keySet(), e);
+            logger.error("write map multi cache failed, keys: {}", keyValueMap.keySet(), e);
+            CacheXLogger.CACHEX.error("write map multi cache failed, keys: {}", keyValueMap.keySet(), e);
         }
     }
 
@@ -135,29 +134,24 @@ public class CacheXManager {
 
                 long start = System.currentTimeMillis();
                 cacheImpl.getRight().remove(keys);
-                CACHEX_LOGGER.info("cache [{}] remove cost: [{}] ms",
+                CacheXLogger.CACHEX.info("cache [{}] remove cost: [{}] ms",
                         cacheImpl.getLeft(),
                         (System.currentTimeMillis() - start));
 
             } catch (Throwable e) {
-                ROOT_LOGGER.error("remove cache failed, keys: {}: ", keys, e);
-                CACHEX_LOGGER.error("remove cache failed, keys: {}: ", keys, e);
+                logger.error("remove cache failed, keys: {}: ", keys, e);
+                CacheXLogger.CACHEX.error("remove cache failed, keys: {}: ", keys, e);
             }
         }
     }
 
     private Pair<String, ICache> getCacheImpl(String cacheName) {
-        Pair<String, ICache> cachePair;
         if (Strings.isNullOrEmpty(cacheName)) {
-            cachePair = this.defaultCacheImpl;
+            return defaultCache;
         } else {
-            cachePair = this.cachePool.computeIfAbsent(cacheName, (key) -> {
-                throw new CacheXException(String.format("no ICache implementation named [%s], " +
-                                "please check the CacheXAspect.caches param config correct",
-                        key));
+            return cachePool.computeIfAbsent(cacheName, (key) -> {
+                throw new CacheXException(String.format("no cache implementation named [%s].", key));
             });
         }
-
-        return cachePair;
     }
 }

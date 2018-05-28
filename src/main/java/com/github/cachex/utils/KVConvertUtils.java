@@ -1,5 +1,6 @@
 package com.github.cachex.utils;
 
+import com.github.cachex.core.CacheXConfig;
 import com.github.cachex.supplier.PreventObjectSupplier;
 import com.github.cachex.supplier.SpelValueSupplier;
 import com.google.common.base.Strings;
@@ -16,7 +17,7 @@ import java.util.Set;
 @SuppressWarnings("unchecked")
 public class KVConvertUtils {
 
-    public static Map<String, Object> mapToKeyValue(Map proceedMap, Set<String> missKeys, Map<Object, String> id2Key, boolean preventBreakdown) {
+    public static Map<String, Object> mapToKeyValue(Map proceedMap, Set<String> missKeys, Map<Object, String> id2Key, CacheXConfig.Switch protect) {
         Map<String, Object> keyValueMap = new HashMap<>(proceedMap.size());
 
         proceedMap.forEach((id, value) -> {
@@ -28,14 +29,14 @@ public class KVConvertUtils {
         });
 
         // 触发防击穿逻辑
-        if (preventBreakdown && !missKeys.isEmpty()) {
+        if (protect == CacheXConfig.Switch.ON && !missKeys.isEmpty()) {
             missKeys.forEach(key -> keyValueMap.put(key, PreventObjectSupplier.generatePreventObject()));
         }
 
         return keyValueMap;
     }
 
-    public static Map<String, Object> collectionToKeyValue(Collection proceedCollection, String idSpel, Set<String> missKeys, Map<Object, String> id2Key, boolean preventBreakdown) {
+    public static Map<String, Object> collectionToKeyValue(Collection proceedCollection, String idSpel, Set<String> missKeys, Map<Object, String> id2Key, CacheXConfig.Switch protect) {
         Map<String, Object> keyValueMap = new HashMap<>(proceedCollection.size());
 
         for (Object value : proceedCollection) {
@@ -48,7 +49,7 @@ public class KVConvertUtils {
             }
         }
 
-        if (preventBreakdown && !missKeys.isEmpty()) {
+        if (protect == CacheXConfig.Switch.ON && !missKeys.isEmpty()) {
             missKeys.forEach(key -> keyValueMap.put(key, PreventObjectSupplier.generatePreventObject()));
         }
 
