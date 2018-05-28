@@ -1,71 +1,47 @@
 package com.github.cachex;
 
+import com.github.cachex.core.CacheXConfig;
 import com.github.cachex.core.CacheXCore;
+import com.github.cachex.core.CacheXModule;
 import com.github.cachex.invoker.adapter.InvocationInvokerAdapter;
 import org.apache.commons.proxy.Interceptor;
 import org.apache.commons.proxy.Invocation;
 import org.apache.commons.proxy.ProxyFactory;
 import org.apache.commons.proxy.factory.cglib.CglibProxyFactory;
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.beans.factory.InitializingBean;
 
 import java.lang.reflect.Method;
-import java.util.Collections;
 import java.util.Map;
 
 /**
  * @author jifang.zjf
  * @since 2017/6/22 上午11:04.
  */
-/*
-public class CacheXProxy implements FactoryBean, InitializingBean {
+@SuppressWarnings("unchecked")
+public class CacheXProxy<T> implements FactoryBean<T> {
 
     private Object target;
 
     private Object proxy;
 
-    private Class<?>[] types;
-
-    private Map<String, ICache> caches;
+    private Class<T> type;
 
     private CacheXCore cacheXCore;
 
-    private boolean isNeedCGLIB = false;
-
-    private boolean open = true;
-
-    public CacheXProxy(Object target, String cacheName, ICache cache) {
-        this(target, Collections.singletonMap(cacheName, cache));
-    }
-
     public CacheXProxy(Object target, Map<String, ICache> caches) {
-        this(target, target.getClass().getInterfaces()[0], caches);
+        this(target, (Class<T>) target.getClass().getInterfaces()[0], caches);
     }
 
-    public CacheXProxy(Object target, Class<?> type, Map<String, ICache> caches) {
-        this(target, new Class[]{type}, caches, true);
-    }
-
-    public CacheXProxy(Object target, Class<?>[] types, Map<String, ICache> caches, boolean open) {
+    public CacheXProxy(Object target, Class<T> type, Map<String, ICache> caches) {
         this.target = target;
-        if (types == null || types.length == 0) {
-            isNeedCGLIB = true;
-            types = new Class<?>[]{target.getClass()};
-        }
-        this.types = types;
-        this.caches = caches;
-        this.open = open;
+        this.type = type;
+        this.proxy = newProxy();
+        this.cacheXCore = CacheXModule.coreInstance(CacheXConfig.newConfig(caches));
     }
 
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        ProxyFactory factory = isNeedCGLIB ? new CglibProxyFactory() : new ProxyFactory();
-        this.proxy = factory.createInterceptorProxy(target, interceptor, types);
-        this.cacheXCore = CacheXDIContainer.getBeanInstance(CacheXCore.class);
-        if (cacheXCore == null || !this.cacheXCore.isInited()) {
-            cacheXCore = new CacheXCore();
-            cacheXCore.init(caches, null);
-        }
+    private Object newProxy() {
+        ProxyFactory factory = this.type.isInterface() ? new ProxyFactory() : new CglibProxyFactory();
+        return factory.createInterceptorProxy(target, interceptor, new Class[]{type});
     }
 
     private Interceptor interceptor = new Interceptor() {
@@ -79,11 +55,11 @@ public class CacheXProxy implements FactoryBean, InitializingBean {
             Method method = invocation.getMethod();
             Object result;
             if ((cached = method.getAnnotation(Cached.class)) != null) {
-                result = cacheXCore.readWrite(open, cached, method, new InvocationInvokerAdapter(target, invocation));
+                result = cacheXCore.readWrite(cached, method, new InvocationInvokerAdapter(target, invocation));
             } else if ((cachedGet = method.getAnnotation(CachedGet.class)) != null) {
-                result = cacheXCore.read(open, cachedGet, method, new InvocationInvokerAdapter(target, invocation));
+                result = cacheXCore.read(cachedGet, method, new InvocationInvokerAdapter(target, invocation));
             } else if ((invalid = method.getAnnotation(Invalid.class)) != null) {
-                cacheXCore.remove(open, invalid, method, invocation.getArguments());
+                cacheXCore.remove(invalid, method, invocation.getArguments());
                 result = null;
             } else {
                 result = invocation.proceed();
@@ -94,13 +70,13 @@ public class CacheXProxy implements FactoryBean, InitializingBean {
     };
 
     @Override
-    public Object getObject() throws Exception {
-        return proxy;
+    public T getObject() {
+        return (T) proxy;
     }
 
     @Override
     public Class<?> getObjectType() {
-        return types[0];
+        return type;
     }
 
     @Override
@@ -108,4 +84,3 @@ public class CacheXProxy implements FactoryBean, InitializingBean {
         return true;
     }
 }
-*/

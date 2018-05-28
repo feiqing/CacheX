@@ -2,9 +2,7 @@ package com.github.cachex.core;
 
 import com.github.cachex.ICache;
 import com.github.cachex.ShootingMXBean;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.util.Map;
 
@@ -13,8 +11,6 @@ import java.util.Map;
  * @since 2017/7/5 下午3:46.
  */
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class CacheXConfig {
 
     // ICache接口实现
@@ -29,11 +25,14 @@ public class CacheXConfig {
     // 是否开启缓存防击穿
     private Switch protect;
 
-    public CacheXConfig(Map<String, ICache> caches) {
-        this.caches = caches;
-        this.cachex = Switch.ON;
-        this.protect = Switch.OFF;
-        this.shootingMXBean = null;
+    public static CacheXConfig newConfig(Map<String, ICache> caches) {
+        CacheXConfig config = new CacheXConfig();
+        config.caches = caches;
+        config.cachex = Switch.ON;
+        config.protect = Switch.OFF;
+        config.shootingMXBean = null;
+
+        return config;
     }
 
     public enum Switch {

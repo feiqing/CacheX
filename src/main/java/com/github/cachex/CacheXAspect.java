@@ -24,7 +24,7 @@ public class CacheXAspect {
     private CacheXCore core;
 
     public CacheXAspect(Map<String, ICache> caches) {
-        this(new CacheXConfig(caches));
+        this(CacheXConfig.newConfig(caches));
     }
 
     public CacheXAspect(CacheXConfig config) {
