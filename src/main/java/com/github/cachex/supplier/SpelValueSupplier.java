@@ -1,10 +1,9 @@
 package com.github.cachex.supplier;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.ExpressionParser;
-import org.springframework.expression.ParserContext;
-import org.springframework.expression.common.TemplateParserContext;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 
@@ -20,29 +19,7 @@ public class SpelValueSupplier {
 
     private static final ExpressionParser parser = new SpelExpressionParser();
 
-    private static final ParserContext parserContext = new TemplateParserContext("${", "}");
-
-    // 利用Supplier延迟计算特性, 防止不必要的参数名获取、参数值计算
-    public static Object calcSpelValue(String spel, Supplier<String[]> keysSupplier, Supplier<Object[]> valuesSupplier, Object defaultValue) {
-
-        if (!Strings.isNullOrEmpty(spel)) {
-            // 将[参数名->参数值]导入spel环境
-            EvaluationContext context = new StandardEvaluationContext();
-
-            String[] argNames = keysSupplier.get();
-            Object[] argValues = valuesSupplier.get();
-            for (int i = 0; i < argValues.length; ++i) {
-                context.setVariable(argNames[i], argValues[i]);
-            }
-
-            // 计算
-            defaultValue = parser.parseExpression(spel, parserContext).getValue(context);
-        }
-
-        return defaultValue;
-    }
-
-    public static Object calcSpelValue(String spel, Supplier<String[]> keysSupplier, Object[] values, Object defaultValue) {
+    public static Object calcSpelWithLazyKey(String spel, Supplier<String[]> keysSupplier, Object[] values, Object defaultValue) {
         return calcSpelValue(spel, keysSupplier, () -> values, defaultValue);
     }
 
@@ -51,17 +28,33 @@ public class SpelValueSupplier {
     }
 
     public static Object calcSpelValue(String spel, String[] keys, Object[] values, Object defaultValue) {
-        return calcSpelValue(spel, () -> keys, values, defaultValue);
+        return calcSpelWithLazyKey(spel, () -> keys, values, defaultValue);
     }
 
-    public static Object calcSpelValue(String spel, Object object) {
-        Object value;
-        if (!Strings.isNullOrEmpty(spel)) {
-            value = parser.parseExpression(spel).getValue(object);
-        } else {
-            value = object;
+    // 利用Supplier延迟计算特性, 防止不必要的参数名获取/参数值计算
+    private static Object calcSpelValue(String spel, Supplier<String[]> keysSupplier, Supplier<Object[]> valuesSupplier, Object defaultValue) {
+        if (Strings.isNullOrEmpty(spel)) {
+            return defaultValue;
         }
 
-        return value;
+        // 将[参数名->参数值]导入spel环境
+        EvaluationContext context = new StandardEvaluationContext();
+
+        String[] argNames = keysSupplier.get();
+        Object[] argValues = valuesSupplier.get();
+        Preconditions.checkState(argNames.length == argValues.length);
+        for (int i = 0; i < argValues.length; ++i) {
+            context.setVariable(argNames[i], argValues[i]);
+        }
+
+        return parser.parseExpression(spel).getValue(context);
+    }
+
+    public static Object calcSpelWithNoContext(String spel, Object defaultValue) {
+        if (Strings.isNullOrEmpty(spel)) {
+            return defaultValue;
+        }
+
+        return parser.parseExpression(spel).getValue(defaultValue);
     }
 }

@@ -22,7 +22,6 @@ public class CacheKeyHolder {
 
     private int expire;
 
-    private String separator;
 
     // ****************** //
     // --- @CacheKey --- //
@@ -34,13 +33,12 @@ public class CacheKeyHolder {
     private String id;
 
     private CacheKeyHolder(Method method,
-                           String cache, String prefix, int expire, String separator,
+                           String cache, String prefix, int expire,
                            Map<Integer, CacheKey> cacheKeyMap, int multiIndex, String id) {
         this.method = method;
         this.cache = cache;
         this.prefix = prefix;
         this.expire = expire;
-        this.separator = separator;
         this.cacheKeyMap = cacheKeyMap;
         this.multiIndex = multiIndex;
         this.id = id;
@@ -60,10 +58,6 @@ public class CacheKeyHolder {
 
     public int getExpire() {
         return expire;
-    }
-
-    public String getSeparator() {
-        return separator;
     }
 
     public Map<Integer, CacheKey> getCacheKeyMap() {
@@ -91,8 +85,6 @@ public class CacheKeyHolder {
         private String prefix;
 
         private int expire;
-
-        private String separator;
 
         private Map<Integer, CacheKey> cacheKeyMap;
 
@@ -123,11 +115,6 @@ public class CacheKeyHolder {
             return this;
         }
 
-        public Builder setSeparator(String separator) {
-            this.separator = separator;
-            return this;
-        }
-
         public Builder setMultiIndex(int multiIndex) {
             this.multiIndex = multiIndex;
             return this;
@@ -144,7 +131,7 @@ public class CacheKeyHolder {
         }
 
         public CacheKeyHolder build() {
-            return new CacheKeyHolder(method, cache, prefix, expire, separator, cacheKeyMap, multiIndex, id);
+            return new CacheKeyHolder(method, cache, prefix, expire, cacheKeyMap, multiIndex, id);
         }
     }
 }

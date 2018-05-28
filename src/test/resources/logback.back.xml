@@ -8,10 +8,10 @@
         </encoder>
     </appender>
 
-    <appender name="cacherx" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${user.home}/logs/cacherx/cacherx.log</file>
+    <appender name="cachex" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${user.home}/logs/cachex/cachex.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${user.dir}/logs/cacherx/cacherx.log.%d{yyyy-MM-dd}</fileNamePattern>
+            <fileNamePattern>${user.dir}/logs/cachex/cachex.log.%d{yyyy-MM-dd}</fileNamePattern>
             <maxHistory>1</maxHistory>
         </rollingPolicy>
         <encoder>
@@ -23,8 +23,8 @@
         <appender-ref ref="STD_OUT"/>
     </root>
 
-    <logger name="com.github.cacherx">
-        <appender-ref ref="cacherx"/>
+    <logger name="com.github.cachex">
+        <appender-ref ref="cachex"/>
         <appender-ref ref="STD_OUT"/>
     </logger>
 

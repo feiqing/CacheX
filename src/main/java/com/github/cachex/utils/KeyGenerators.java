@@ -10,8 +10,6 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static com.github.cachex.utils.CacheXUtils.appendSeparator;
-
 /**
  * @author jifang
  * @since 16/7/21 上午11:34.
@@ -24,10 +22,6 @@ public class KeyGenerators {
         // -> "keyExp"
 
         cacheKeyHolder.getCacheKeyMap().forEach((index, cacheKey) -> {
-            // append key separator (like : "-")
-            appendSeparator(sb, cacheKeyHolder.getPrefix(), index, cacheKeyHolder.getSeparator());
-            // -> "keyExp-"
-
             // append key keyExp (like: "id:")
             sb.append(cacheKey.prefix());
             // -> "keyExp-id:"
@@ -50,11 +44,8 @@ public class KeyGenerators {
         // -- 准备要拼装key所需的原材料 -- //
         int multiIndex = cacheKeyHolder.getMultiIndex();
         String prefix = cacheKeyHolder.getPrefix();
-        String separator = cacheKeyHolder.getSeparator();
         Map<Integer, CacheKey> cacheKeyMap = cacheKeyHolder.getCacheKeyMap();
-        String[] parameterNames = (String[]) appendArray(
-                ParameterNamesSupplier.getParameterNames(cacheKeyHolder.getMethod()),
-                "index");
+        String[] parameterNames = (String[]) appendArray(ParameterNamesSupplier.getParameterNames(cacheKeyHolder.getMethod()), "index");
         Object multiArg = args[cacheKeyHolder.getMultiIndex()];
 
         // -- 开始拼装 -- //
@@ -63,7 +54,7 @@ public class KeyGenerators {
 
             int multiArgEntryIndex = 0;
             for (Object multiArgEntry : multiArgEntries) {
-                String key = doGenerateKey(multiIndex, prefix, separator, cacheKeyMap,
+                String key = doGenerateKey(multiIndex, prefix, cacheKeyMap,
                         parameterNames, args,
                         multiArgEntry, multiArgEntryIndex++);
 
@@ -75,7 +66,7 @@ public class KeyGenerators {
         return new Map[]{id2Key, key2Id};
     }
 
-    private static String doGenerateKey(int multiIndex, String prefix, String separator, Map<Integer, CacheKey> cacheKeyMap,
+    private static String doGenerateKey(int multiIndex, String prefix, Map<Integer, CacheKey> cacheKeyMap,
                                         String[] parameterNames, Object[] parameterValues,
                                         Object multiArgEntry, int multiArgEntryIndex) {
         StringBuilder sb = new StringBuilder(prefix);
@@ -85,11 +76,6 @@ public class KeyGenerators {
         for (Map.Entry<Integer, CacheKey> entry : cacheKeyMap.entrySet()) {
             int parameterIndex = entry.getKey();
             CacheKey cacheKey = entry.getValue();
-
-            // append key separator (like : "-")
-            appendSeparator(sb, prefix, parameterIndex, separator);
-            // -> "keyExp-"
-
             // append key keyExp (like: "id:")
             sb.append(cacheKey.prefix());
             // -> "keyExp-id:"

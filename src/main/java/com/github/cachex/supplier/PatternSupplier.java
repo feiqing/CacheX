@@ -26,10 +26,6 @@ public class PatternSupplier {
         // -> "keyExp"
 
         cacheKeyHolder.getCacheKeyMap().forEach((index, cacheKey) -> {
-            // append key separator (like : "-")
-            CacheXUtils.appendSeparator(sb, cacheKeyHolder.getPrefix(), index, cacheKeyHolder.getSeparator());
-            // -> "keyExp-"
-
             // append key keyExp (like: "id:")
             sb.append(cacheKey.prefix());
             // -> "keyExp-id:"

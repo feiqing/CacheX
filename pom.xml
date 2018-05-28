@@ -19,7 +19,7 @@
         <jbox.version>1.6.0-SNAPSHOT</jbox.version>
         <guava.version>20.0</guava.version>
         <guice.version>4.2.0</guice.version>
-        <spring.version>4.3.8.RELEASE</spring.version>
+        <spring.version>5.0.0.RELEASE</spring.version>
         <slf4j.version>1.7.25</slf4j.version>
         <aspectj.version>1.8.9</aspectj.version>
         <javassist.version>3.20.0-GA</javassist.version>
@@ -54,11 +54,6 @@
             <artifactId>lombok</artifactId>
             <version>${lombok.version}</version>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.github.jbox</groupId>
-            <artifactId>jbox</artifactId>
-            <version>${jbox.version}</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -118,6 +113,11 @@
         </dependency>
 
         <!-- optional: serialize -->
+        <dependency>
+            <groupId>com.github.jbox</groupId>
+            <artifactId>jbox</artifactId>
+            <version>${jbox.version}</version>
+        </dependency>
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>

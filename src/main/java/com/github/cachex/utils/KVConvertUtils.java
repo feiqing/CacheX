@@ -40,7 +40,7 @@ public class KVConvertUtils {
         Map<String, Object> keyValueMap = new HashMap<>(proceedCollection.size());
 
         for (Object value : proceedCollection) {
-            Object id = SpelValueSupplier.calcSpelValue(idSpel, value);
+            Object id = SpelValueSupplier.calcSpelWithNoContext(idSpel, value);
             String key = id2Key.get(id);
 
             if (!Strings.isNullOrEmpty(key)) {

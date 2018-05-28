@@ -51,6 +51,6 @@ public class SwitcherUtils {
             return true;
         }
 
-        return (boolean) SpelValueSupplier.calcSpelValue(condition, () -> ParameterNamesSupplier.getParameterNames(method), args, true);
+        return (boolean) SpelValueSupplier.calcSpelWithLazyKey(condition, () -> ParameterNamesSupplier.getParameterNames(method), args, true);
     }
 }

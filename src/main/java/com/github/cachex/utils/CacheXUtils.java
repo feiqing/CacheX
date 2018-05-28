@@ -1,7 +1,5 @@
 package com.github.cachex.utils;
 
-import com.google.common.base.Strings;
-
 import java.util.Map;
 
 /**
@@ -16,15 +14,5 @@ public class CacheXUtils {
 
     public static boolean isEmpty(Map<?, ?> map) {
         return map == null || map.isEmpty();
-    }
-
-    public static StringBuilder appendSeparator(StringBuilder sb, String prefix, int index, String separator) {
-        if (!Strings.isNullOrEmpty(separator)) {
-            if (!Strings.isNullOrEmpty(prefix) || index != 0) {
-                sb.append(separator);
-            }
-        }
-
-        return sb;
     }
 }

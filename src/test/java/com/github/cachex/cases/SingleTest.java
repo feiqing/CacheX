@@ -15,13 +15,13 @@ import java.util.Date;
 public class SingleTest extends TestBase {
 
     @Autowired
-    private UserService service;
+    private UserService userService;
 
     @Test
     public void testSingleKey() throws InterruptedException {
         int id = 1;
-        User user = service.singleKey(id, "ff-no-key", "no-key");
-        user = service.singleKey(id, "ff-no-key", "ls");
+        User user = userService.singleKey(id, "ff-no-key", "no-key");
+        user = userService.singleKey(id, "ff-no-key", "ls");
 
         //Thread.sleep(10000000);
     }
@@ -30,7 +30,10 @@ public class SingleTest extends TestBase {
     public void testRemoveSingleKey() {
         int id = 1;
         String name = "fq";
-        service.singleRemove(id, name, "not`non");
+        User user = userService.singleKey(id, "ff-no-key", "no-key");
+        userService.singleRemove(id, name, "not`non");
+        user = userService.singleKey(id, "ff-no-key", "ls");
+        user = userService.singleKey(id, "ff-no-key", "ls");
     }
 
     @Test
@@ -38,12 +41,12 @@ public class SingleTest extends TestBase {
         User user = new User();
         user.setId(1);
         String name = "fq";
-        service.updateUser(user, name, "not");
+        userService.updateUser(user, name, "not");
     }
 
     @Test
     public void testSpEL() {
         User user = new User(1, "feiqing", new Date(), 1, "hangz");
-        service.spelCompose(user);
+        userService.spelCompose(user);
     }
 }

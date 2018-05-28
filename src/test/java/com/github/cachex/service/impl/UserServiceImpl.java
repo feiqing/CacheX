@@ -78,7 +78,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Cached
-    public boolean spelCompose(@CacheKey(spel = "'id:'+id+'-name:'+name+'-address:'+getAddress()+'-time:'+getBirthday()") User user) {
+    public boolean spelCompose(@CacheKey(spel = "'id:'+#user.id+'-name:'+#user.name+'-address:'+#user.getAddress()+'-time:'+#user.getBirthday()") User user) {
         return false;
     }
 
