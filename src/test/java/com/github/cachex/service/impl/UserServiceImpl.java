@@ -23,7 +23,7 @@ public class UserServiceImpl implements UserService {
      ***/
     @Override
     @Cached(prefix = "map-", expire = Expire.TEN_MIN)
-    public Map<Integer, User> returnMap(@CacheKey(prefix = "app:") String app, @CacheKey(prefix = "id:", multi = true) List<Integer> ids, Object noKey) {
+    public Map<Integer, User> returnMap(@CacheKey String app, @CacheKey(multi = true) List<Integer> ids, Object noKey) {
         Map<Integer, User> map = new HashMap<>();
         for (Integer id : ids) {
             map.put(id, new User(id, "name" + id, new Date(), id, noKey.toString()));
@@ -33,20 +33,20 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Invalid(prefix = "map-")
-    public void invalidMap(@CacheKey(prefix = "app:") String apps, @CacheKey(prefix = "id:", multi = true) List<Integer> ids) {
+    public void invalidMap(@CacheKey String apps, @CacheKey(multi = true) List<Integer> ids) {
         System.out.println("method: " + ids);
     }
 
     @Override
     @Cached(prefix = "list-")
-    public List<User> returnList(@CacheKey(prefix = "id:", multi = true, id = "id") Collection<Integer> ids, String name, Object non) {
+    public List<User> returnList(@CacheKey(multi = true, id = "id") Collection<Integer> ids, String name, Object non) {
         User[] users = ids.stream().map((id) -> new User(id, name + id)).toArray(User[]::new);
         return Arrays.asList(users);
     }
 
     @Override
     @Invalid(prefix = "list-")
-    public void invalidList(@CacheKey(prefix = "id:", multi = true, spel = "#users[#forEachIndex].id") List<User> users) {
+    public void invalidList(@CacheKey(multi = true, value = "#users[#forEachIndex].id") List<User> users) {
         List<Integer> ids = new ArrayList<>(users.size());
         for (User user : users) {
             ids.add(user.getId());
@@ -60,23 +60,23 @@ public class UserServiceImpl implements UserService {
      */
 
     @Cached(prefix = "list", expire = Expire.TEN_SEC)
-    public User singleKey(@CacheKey(prefix = "id:") int id, String name, Object non) {
+    public User singleKey(@CacheKey int id, String name, Object non) {
         return new User(id, name, new Date(), 1, "山东-德州");
     }
 
     @Override
     @Invalid(prefix = "list")
-    public void singleRemove(@CacheKey(prefix = "id:") int id, String name, Object non) {
+    public void singleRemove(@CacheKey int id, String name, Object non) {
     }
 
     @Override
     @Invalid(prefix = "list")
-    public void updateUser(@CacheKey(prefix = "id:", spel = "id") User user, @CacheKey(prefix = "second:") String name, Object non) {
+    public void updateUser(@CacheKey(value = "id") User user, @CacheKey String name, Object non) {
     }
 
     @Override
     @Cached
-    public boolean spelCompose(@CacheKey(spel = "'id:'+#user.id+'-name:'+#user.name+'-address:'+#user.getAddress()+'-time:'+#user.getBirthday()") User user) {
+    public boolean spelCompose(@CacheKey(value = "'id:'+#user.id+'-name:'+#user.name+'-address:'+#user.getAddress()+'-time:'+#user.getBirthday()") User user) {
         return false;
     }
 
@@ -115,7 +115,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Cached
-    public List<User> correctIdentifier(@CacheKey(multi = true, id = "id", prefix = "id:") List<Integer> ids) {
+    public List<User> correctIdentifier(@CacheKey(multi = true, id = "id") List<Integer> ids) {
         List<User> users = new ArrayList<>(2);
         for (int id : ids) {
             users.add(new User(id, "name" + id, new Date(), id, "zj" + id));

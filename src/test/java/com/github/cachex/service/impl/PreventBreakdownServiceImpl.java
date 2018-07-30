@@ -17,7 +17,7 @@ import java.util.Map;
 public class PreventBreakdownServiceImpl {
 
     @Cached
-    public Map<Integer, User> getMap(@CacheKey(prefix = "id:", multi = true) List<Integer> ids) {
+    public Map<Integer, User> getMap(@CacheKey(multi = true) List<Integer> ids) {
         Map<Integer, User> map = new HashMap<>(ids.size());
         // 故意不返回第一个
         for (int i = 1; i < ids.size(); ++i) {

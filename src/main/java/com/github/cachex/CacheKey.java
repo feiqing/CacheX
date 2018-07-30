@@ -11,13 +11,11 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface CacheKey {
 
-    String prefix() default "";
-
     /**
      * @return use a part of param as a cache key part
      */
-    String spel() default "";
-
+    String value() default "";
+    
     /**
      * @return used when param is Collection instance,
      * read/write from/to ICache.multiRead/ICache.multiWrite

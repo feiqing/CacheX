@@ -23,7 +23,7 @@ public class PatternSupplier {
     private static String doPatternCombiner(CacheKeyHolder cacheKeyHolder) {
         StringBuilder sb = new StringBuilder(cacheKeyHolder.getPrefix());
         cacheKeyHolder.getCacheKeyMap().forEach((index, cacheKey) -> {
-            sb.append(cacheKey.prefix());
+            sb.append(cacheKey.value());
             sb.append(PATTERN_PLACEHOLDER);
         });
 

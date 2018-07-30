@@ -20,8 +20,7 @@ public class KeyGenerators {
         String[] parameterNames = ArgNameSupplier.getArgNames(cacheKeyHolder.getMethod());
         StringBuilder sb = new StringBuilder(cacheKeyHolder.getPrefix());
         cacheKeyHolder.getCacheKeyMap().forEach((index, cacheKey) -> {
-            sb.append(cacheKey.prefix());
-            Object argValue = SpelValueSupplier.calcSpelValue(cacheKey.spel(), parameterNames, args, args[index]);
+            Object argValue = SpelValueSupplier.calcSpelValue(cacheKey.value(), parameterNames, args, args[index]);
             sb.append(argValue);
         });
 
@@ -68,10 +67,8 @@ public class KeyGenerators {
 
         StringBuilder sb = new StringBuilder(prefix);
         index2Key.forEach((argIndex, argCacheKey) -> {
-            sb.append(argCacheKey.prefix());
-
             Object defaultValue = (argIndex != multiIndex ? argValues[argIndex] : multiArgElement);
-            Object argEntryValue = SpelValueSupplier.calcSpelValue(argCacheKey.spel(),
+            Object argEntryValue = SpelValueSupplier.calcSpelValue(argCacheKey.value(),
                     argNames, () -> appendArray(argValues, forEachIndex),
                     defaultValue);
 
