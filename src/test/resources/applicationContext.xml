@@ -31,7 +31,7 @@
             <bean class="com.github.cachex.core.CacheXConfig">
                 <property name="caches" ref="caches"/>
                 <property name="cachex" value="ON"/>
-                <property name="protect" value="ON"/>
+                <property name="prevent" value="ON"/>
                 <property name="shootingMXBean" ref="memoryShootingMXBean"/>
             </bean>
         </constructor-arg>

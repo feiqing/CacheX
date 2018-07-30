@@ -1,7 +1,7 @@
 package com.github.cachex.utils;
 
 import com.github.cachex.core.CacheXConfig;
-import com.github.cachex.supplier.ProtectObjects;
+import com.github.cachex.supplier.PreventObjects;
 import com.github.cachex.supplier.SpelValueSupplier;
 import com.google.common.base.Strings;
 
@@ -17,7 +17,7 @@ import java.util.Set;
 @SuppressWarnings("unchecked")
 public class KVConvertUtils {
 
-    public static Map<String, Object> mapToKeyValue(Map proceedMap, Set<String> missKeys, Map<Object, String> id2Key, CacheXConfig.Switch protect) {
+    public static Map<String, Object> mapToKeyValue(Map proceedMap, Set<String> missKeys, Map<Object, String> id2Key, CacheXConfig.Switch prevent) {
         Map<String, Object> keyValueMap = new HashMap<>(proceedMap.size());
 
         proceedMap.forEach((id, value) -> {
@@ -29,14 +29,14 @@ public class KVConvertUtils {
         });
 
         // 触发防击穿逻辑
-        if (protect == CacheXConfig.Switch.ON && !missKeys.isEmpty()) {
-            missKeys.forEach(key -> keyValueMap.put(key, ProtectObjects.getProtectObject()));
+        if (prevent == CacheXConfig.Switch.ON && !missKeys.isEmpty()) {
+            missKeys.forEach(key -> keyValueMap.put(key, PreventObjects.getPreventObject()));
         }
 
         return keyValueMap;
     }
 
-    public static Map<String, Object> collectionToKeyValue(Collection proceedCollection, String idSpel, Set<String> missKeys, Map<Object, String> id2Key, CacheXConfig.Switch protect) {
+    public static Map<String, Object> collectionToKeyValue(Collection proceedCollection, String idSpel, Set<String> missKeys, Map<Object, String> id2Key, CacheXConfig.Switch prevent) {
         Map<String, Object> keyValueMap = new HashMap<>(proceedCollection.size());
 
         for (Object value : proceedCollection) {
@@ -49,8 +49,8 @@ public class KVConvertUtils {
             }
         }
 
-        if (protect == CacheXConfig.Switch.ON && !missKeys.isEmpty()) {
-            missKeys.forEach(key -> keyValueMap.put(key, ProtectObjects.getProtectObject()));
+        if (prevent == CacheXConfig.Switch.ON && !missKeys.isEmpty()) {
+            missKeys.forEach(key -> keyValueMap.put(key, PreventObjects.getPreventObject()));
         }
 
         return keyValueMap;

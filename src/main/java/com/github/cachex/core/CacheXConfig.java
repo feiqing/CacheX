@@ -23,17 +23,17 @@ public class CacheXConfig {
     private Switch cachex;
 
     // 是否开启缓存防击穿
-    private Switch protect;
+    private Switch prevent;
 
-    public boolean isProtectOn() {
-        return protect != null && protect == Switch.ON;
+    public boolean isPreventOn() {
+        return prevent != null && prevent == Switch.ON;
     }
 
     public static CacheXConfig newConfig(Map<String, ICache> caches) {
         CacheXConfig config = new CacheXConfig();
         config.caches = caches;
         config.cachex = Switch.ON;
-        config.protect = Switch.OFF;
+        config.prevent = Switch.OFF;
         config.shootingMXBean = null;
 
         return config;

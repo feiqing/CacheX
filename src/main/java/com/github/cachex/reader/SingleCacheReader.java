@@ -7,7 +7,7 @@ import com.github.cachex.domain.CacheMethodHolder;
 import com.github.cachex.invoker.Invoker;
 import com.github.cachex.manager.CacheManager;
 import com.github.cachex.supplier.PatternSupplier;
-import com.github.cachex.supplier.ProtectObjects;
+import com.github.cachex.supplier.PreventObjects;
 import com.github.cachex.utils.CacheXLogger;
 import com.github.cachex.utils.KeyGenerators;
 import com.google.inject.Inject;
@@ -38,7 +38,7 @@ public class SingleCacheReader extends AbstractCacheReader {
         // 命中
         if (readResult != null) {
             // 是放击穿对象
-            if (ProtectObjects.isProtect(readResult)) {
+            if (PreventObjects.isPrevent(readResult)) {
                 return null;
             }
 
@@ -63,8 +63,8 @@ public class SingleCacheReader extends AbstractCacheReader {
         }
 
         // invokeResult is null
-        if (config.isProtectOn()) {
-            cacheManager.writeSingle(cacheKeyHolder.getCache(), key, ProtectObjects.getProtectObject(), cacheKeyHolder.getExpire());
+        if (config.isPreventOn()) {
+            cacheManager.writeSingle(cacheKeyHolder.getCache(), key, PreventObjects.getPreventObject(), cacheKeyHolder.getExpire());
         }
 
         return null;

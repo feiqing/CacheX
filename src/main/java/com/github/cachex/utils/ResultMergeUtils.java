@@ -2,7 +2,7 @@ package com.github.cachex.utils;
 
 import com.github.cachex.supplier.CollectionSupplier;
 import com.github.cachex.supplier.MapSuppliers;
-import com.github.cachex.supplier.ProtectObjects;
+import com.github.cachex.supplier.PreventObjects;
 
 import java.util.Collection;
 import java.util.Map;
@@ -20,7 +20,7 @@ public class ResultMergeUtils {
 
         Map mergedMap = MapSuppliers.newInstance(mapType, proceedMap);
         cacheMap.entrySet().stream()
-                .filter(entry -> !ProtectObjects.isProtect(entry.getValue()))  // 将防击穿Object过滤掉
+                .filter(entry -> !PreventObjects.isPrevent(entry.getValue()))  // 将防击穿Object过滤掉
                 .forEach(entry -> {
                     // 将key转换为id
                     Object id = keyIdMap.get(entry.getKey());
@@ -35,7 +35,7 @@ public class ResultMergeUtils {
                                              Map<String, Object> cacheMap) {
         Collection mergedCollection = CollectionSupplier.newInstance(collectionType, proceedCollection);
         cacheMap.values().stream()
-                .filter(value -> !ProtectObjects.isProtect(value)) // 将防击穿Object过滤掉
+                .filter(value -> !PreventObjects.isPrevent(value)) // 将防击穿Object过滤掉
                 .forEach(mergedCollection::add);
 
         return CollectionSupplier.convertInstanceType(collectionType, mergedCollection);
