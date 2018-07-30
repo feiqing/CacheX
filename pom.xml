@@ -8,7 +8,7 @@
 
     <groupId>com.github.cachex</groupId>
     <artifactId>cachex</artifactId>
-    <version>1.7.0-SNAPSHOT</version>
+    <version>1.7.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>cachex</name>
@@ -16,7 +16,7 @@
 
     <properties>
         <lombok.version>1.16.20</lombok.version>
-        <jbox.version>1.6.0-SNAPSHOT</jbox.version>
+        <jbox.version>1.7.1-SNAPSHOT</jbox.version>
         <guava.version>20.0</guava.version>
         <guice.version>4.2.0</guice.version>
         <spring.version>5.0.0.RELEASE</spring.version>
@@ -49,6 +49,11 @@
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>com.github.jbox</groupId>
+            <artifactId>jbox</artifactId>
+            <version>${jbox.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -113,11 +118,6 @@
         </dependency>
 
         <!-- optional: serialize -->
-        <dependency>
-            <groupId>com.github.jbox</groupId>
-            <artifactId>jbox</artifactId>
-            <version>${jbox.version}</version>
-        </dependency>
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>

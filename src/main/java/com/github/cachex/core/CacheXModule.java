@@ -6,6 +6,7 @@ import com.github.cachex.reader.AbstractCacheReader;
 import com.github.cachex.reader.MultiCacheReader;
 import com.github.cachex.reader.SingleCacheReader;
 import com.github.cachex.utils.CacheXUtils;
+import com.github.jbox.utils.Collections3;
 import com.google.common.base.Preconditions;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
@@ -39,7 +40,7 @@ public class CacheXModule extends AbstractModule {
     @Override
     protected void configure() {
         Preconditions.checkArgument(config != null, "config param can not be null.");
-        Preconditions.checkArgument(CacheXUtils.isNotEmpty(config.getCaches()), "caches param can not be empty.");
+        Preconditions.checkArgument(Collections3.isNotEmpty(config.getCaches()), "caches param can not be empty.");
 
         bind(CacheXConfig.class).toInstance(config);
 

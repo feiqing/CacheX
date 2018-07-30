@@ -1,5 +1,6 @@
 package com.github.cachex.utils;
 
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -8,5 +9,5 @@ import org.slf4j.LoggerFactory;
  * @since 2018-05-28 18:51:00.
  */
 public interface CacheXLogger {
-    org.slf4j.Logger CACHEX = LoggerFactory.getLogger("com.github.cachex");
+    Logger CACHEX = LoggerFactory.getLogger("com.github.cachex");
 }

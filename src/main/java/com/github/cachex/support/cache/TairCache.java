@@ -1,39 +1,34 @@
 package com.github.cachex.support.cache;
 
-import com.alibaba.fastjson.JSONObject;
 import com.github.cachex.ICache;
+import com.github.jbox.executor.AsyncExecutor;
 import com.taobao.tair.DataEntry;
 import com.taobao.tair.Result;
 import com.taobao.tair.ResultCode;
 import com.taobao.tair.impl.mc.MultiClusterTairManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.PreDestroy;
 import java.io.Serializable;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 /**
  * @author jifang.zjf
  * @since 2017/5/12 下午6:20.
  */
-@Deprecated
+@Slf4j
 public class TairCache implements ICache {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(TairCache.class);
-
-    private static final int MGET_PARALLEL_THRESHOLD = 100;
 
     private MultiClusterTairManager tairManager;
 
     private int namespace;
+
+    private long timeoutMs;
 
     private Executor mputExecutor;
 
@@ -43,6 +38,7 @@ public class TairCache implements ICache {
 
     public TairCache(String configId, int namespace, boolean dynamicConfig, int timeoutMS, int nThread) {
         this.namespace = namespace;
+        this.timeoutMs = timeoutMS;
         this.tairManager = new MultiClusterTairManager();
         tairManager.setConfigID(configId);
         tairManager.setDynamicConfig(dynamicConfig);
@@ -63,29 +59,23 @@ public class TairCache implements ICache {
 
     @Override
     public Object read(String key) {
-        Object value = null;
         Result<DataEntry> result = tairManager.get(namespace, key);
-        if (result.isSuccess()) {
-            DataEntry dataEntry = result.getValue();
-            if (dataEntry != null) {
-                value = getDeserializeObj(dataEntry.getValue());
-                if (value == null) {
-                    throw new RuntimeException("func");
-                }
-            }
+        DataEntry dataEntry;
+        if (result.isSuccess() && (dataEntry = result.getValue()) != null) {
+            return dataEntry.getValue();
         } else {
             ResultCode resultCode = result.getRc();
-            LOGGER.error("tair get error, code: {}, message: {}", resultCode.getCode(), resultCode.getMessage());
+            log.error("tair get error, code: {}, message: {}", resultCode.getCode(), resultCode.getMessage());
         }
 
-        return value;
+        return null;
     }
 
     @Override
     public void write(String key, Object value, long expire) {
-        ResultCode result = tairManager.put(namespace, key, getSerializableObj(value), 0, (int) expire);
+        ResultCode result = tairManager.put(namespace, key, (Serializable) value, 0, (int) expire);
         if (!result.isSuccess()) {
-            LOGGER.error("tair put error, code: {}, message: {}", result.getCode(), result.getMessage());
+            log.error("tair put error, code: {}, message: {}", result.getCode(), result.getMessage());
         }
     }
 
@@ -93,27 +83,18 @@ public class TairCache implements ICache {
     public Map<String, Object> read(Collection<String> keys) {
         Result<List<DataEntry>> results = tairManager.mget(namespace, new ArrayList<>(keys));
 
-        Map<String, Object> resultMap;
         List<DataEntry> entries;
         if ((entries = results.getValue()) != null) {
-            resultMap = new HashMap<>(entries.size());
-            Consumer<DataEntry> consumer = (entry) -> {
-                resultMap.put((String) entry.getKey(), getDeserializeObj(entry.getValue()));
-            };
+            Map<String, Object> resultMap = new HashMap<>(entries.size());
+            entries.forEach((entry) -> resultMap.put((String) entry.getKey(), entry.getValue()));
 
-            if (entries.size() >= MGET_PARALLEL_THRESHOLD) {
-                entries.parallelStream().forEach(consumer);
-            } else {
-                entries.forEach(consumer);
-            }
+            return resultMap;
         } else {
-            resultMap = Collections.emptyMap();
-
             ResultCode resultCode = results.getRc();
-            LOGGER.error("tair mget error, code: {}, message: {}", resultCode.getCode(), resultCode.getMessage());
+            log.error("tair mget error, code: {}, message: {}", resultCode.getCode(), resultCode.getMessage());
         }
 
-        return resultMap;
+        return Collections.emptyMap();
     }
 
 
@@ -125,18 +106,14 @@ public class TairCache implements ICache {
 
         // 并发写入
         if (this.mputExecutor != null) {
-            List<CompletableFuture<Void>> futures = new ArrayList<>(keyValueMap.size());
-
-            keyValueMap.forEach((key, value) -> {
-                CompletableFuture<Void> future = CompletableFuture.supplyAsync(() -> {
-                    writeConsumer.accept(key, value);
+            AsyncExecutor<Void> executor = new AsyncExecutor<>();
+            for (Map.Entry<String, Object> entry : keyValueMap.entrySet()) {
+                executor.addTask(() -> {
+                    write(entry.getKey(), entry.getValue(), expire);
                     return null;
-                }, this.mputExecutor);
-
-                futures.add(future);
-            });
-
-            CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()])).join();
+                });
+            }
+            executor.execute().waiting(timeoutMs, false);
         } else {
             keyValueMap.forEach(writeConsumer);
         }
@@ -146,7 +123,7 @@ public class TairCache implements ICache {
     public void remove(String... keys) {
         ResultCode resultCode = tairManager.mdelete(namespace, Arrays.asList(keys));
         if (!resultCode.isSuccess()) {
-            LOGGER.error("tair mdelete error, code: {}, message: {}", resultCode.getCode(), resultCode.getMessage());
+            log.error("tair mdelete error, code: {}, message: {}", resultCode.getCode(), resultCode.getMessage());
         }
     }
 
@@ -158,37 +135,5 @@ public class TairCache implements ICache {
         if (this.mputExecutor != null && this.mputExecutor instanceof ThreadPoolExecutor) {
             ((ThreadPoolExecutor) this.mputExecutor).shutdown();
         }
-    }
-
-    private Serializable getSerializableObj(Object obj) {
-        if (!(obj instanceof Serializable)) {
-
-            SerializableWrapper wrapper = new SerializableWrapper();
-            wrapper.json = JSONObject.toJSONString(obj);
-            wrapper.type = obj.getClass();
-
-            obj = wrapper;
-        }
-
-        return (Serializable) obj;
-    }
-
-    private Object getDeserializeObj(Object obj) {
-        if (obj instanceof SerializableWrapper) {
-            SerializableWrapper wrapper = (SerializableWrapper) obj;
-
-            obj = JSONObject.parseObject(wrapper.json, wrapper.type);
-        }
-
-        return obj;
-    }
-
-    private static final class SerializableWrapper implements Serializable {
-
-        private static final long serialVersionUID = 5180629139416743231L;
-
-        private String json;
-
-        private Class<?> type;
     }
 }
