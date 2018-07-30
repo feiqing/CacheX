@@ -5,7 +5,7 @@ import com.github.jbox.executor.AsyncExecutor;
 import com.taobao.tair.DataEntry;
 import com.taobao.tair.Result;
 import com.taobao.tair.ResultCode;
-import com.taobao.tair.impl.mc.MultiClusterTairManager;
+import com.taobao.tair.TairManager;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.PreDestroy;
@@ -24,7 +24,7 @@ import java.util.function.BiConsumer;
 @Slf4j
 public class TairCache implements ICache {
 
-    private MultiClusterTairManager tairManager;
+    private TairManager tairManager;
 
     private int namespace;
 
@@ -32,19 +32,14 @@ public class TairCache implements ICache {
 
     private Executor mputExecutor;
 
-    public TairCache(String configId, int namespace) {
-        this(configId, namespace, true, 500, 50);
+    public TairCache(TairManager tairManager, int namespace) {
+        this(tairManager, namespace, 1000, 10);
     }
 
-    public TairCache(String configId, int namespace, boolean dynamicConfig, int timeoutMS, int nThread) {
+    public TairCache(TairManager tairManager, int namespace, int timeoutMS, int nThread) {
         this.namespace = namespace;
         this.timeoutMs = timeoutMS;
-        this.tairManager = new MultiClusterTairManager();
-        tairManager.setConfigID(configId);
-        tairManager.setDynamicConfig(dynamicConfig);
-        tairManager.setTimeout(timeoutMS);
-        tairManager.init();
-
+        this.tairManager = tairManager;
         if (nThread > 0) {
             AtomicInteger counter = new AtomicInteger(0);
             this.mputExecutor = Executors.newFixedThreadPool(nThread, (runnable) -> {
