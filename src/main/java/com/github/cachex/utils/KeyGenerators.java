@@ -28,7 +28,6 @@ public class KeyGenerators {
         return sb.toString();
     }
 
-
     //array[]: {id2Key, key2Id}
     public static Map[] generateMultiKey(CacheKeyHolder cacheKeyHolder, Object[] args) {
         Map<Object/*这里就要求Multi-Collection内的元素必须实现的hashcode & equals方法*/, String> id2Key = new LinkedHashMap<>();
