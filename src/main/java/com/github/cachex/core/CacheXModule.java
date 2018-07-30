@@ -5,7 +5,6 @@ import com.github.cachex.ShootingMXBean;
 import com.github.cachex.reader.AbstractCacheReader;
 import com.github.cachex.reader.MultiCacheReader;
 import com.github.cachex.reader.SingleCacheReader;
-import com.github.cachex.utils.CacheXUtils;
 import com.github.jbox.utils.Collections3;
 import com.google.common.base.Preconditions;
 import com.google.inject.AbstractModule;
