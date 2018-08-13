@@ -11,7 +11,7 @@
 ---
 ## II. 简单使用
 ### 配置
-- pom.xml
+- pom
 ```xml
 <dependency>
       <groupId>com.github.cachex</groupId>
@@ -111,12 +111,12 @@ public @interface Cached {
 
 | 属性 | 描述 | Ext |
 :-------: | ------- | ------- 
-| `cache` | 指定使用的缓存产品, 值为`CacheXAspect.caches`参数的一个key | 选填: 默认为注入CacheX的第一个缓存实现, 即在`caches` Map的第一个Entry实例 |
-| `prefix` | 缓存**key**的统一前缀 | 选填: 默认为`""`, 即不添加前缀, 若方法没有参数 or 方法没有`@CacheKey`注解, 则必须在此配置一个`prefix`, 令其成为该方法的***静态常量key***, 以后每次执行都走这个唯一的key |
-| `condition` | SpEL表达式 | 选填: 默认为`""`, 即默认为`true`, 在CacheX执行前会首先计算该表达式的值, 只有当返回值为`true`时, 才会经过缓存, 在表达式执行前, CacheX会将方法的参数以`参数名` - `参数值`的**key-value**形式导入到表达式的环境中 |
-| `expire` |  缓存过期时间, 单位秒 | 选填: 默认为`Expire.FOREVER` 永不过期, `Expire`提供了一些推荐值 |
-| `separator` | 如果一个缓存Key由多个方法参数组成, 可由`separator`在中间作为分隔符 | 选填: 默认`-` |
+| `cache` | 指定缓存产品, 值为`caches`参数的一个key | 选填: 默认为注入CacheX的第一个实现(即`caches`的第一个Entry实例) |
+| `prefix` | 缓存**key**的统一前缀 | 选填: 默认为`""`, 若方法没有参数或没有`@CacheKey`注解, 则必须在此配置一个`prefix`, 令其成为***静态常量key*** |
+| `condition` | SpEL表达式 | 选填: 默认为`""`(`true`), 在CacheX执行前会首先计算该表达式的值, 只有当返回值为`true`时, 才会经过缓存, 在表达式执行前, CacheX会将方法的参数以`参数名` - `参数值`的**key-value**形式导入到表达式的环境中 |
+| `expire` |  缓存过期时间(秒) | 选填: 默认为`Expire.FOREVER` |
 
+> SpEL表达式执行环境: 
 
 ---
 
@@ -186,11 +186,14 @@ public @interface CacheKey {
 
 | 属性 | 描述 | Ext |
 :-------: | ------- | -------
-| `prefix` | (选填: 默认为`""`) 指定Key的前缀, 目的是防止key冲突, 且便于在在后台查看缓存内容.  | |
-| `spel` | (选填: 默认为`""`) 一段SpEL表达式, 如果方法形参为一个`JavaBean`, 且只希望将该Bean的一个属性(或一部分内容)作为缓存的Key时, 指定一段SpEL表达式, 框架会在拼装缓存Key时解析该表达式以及传入的参数对象, 拿到你指定的某一部分. | 曾经见过的高级用法`spel="'id:'+id+'-name:'+name+'-address:'+getAddress()+'-time:'+getBirthday()"` |
-| `multi` | (选填: 默认为`false`) 指明该方法是否走批量缓存(如调用Redis的`mget`而非`get`), 其具体含义可参考**why cachex**部分的批量版本的`getFromDBOrHttp()`方法 |
-| `id` | (选填: 默认为`""`) 也是一段SpEL表达式, `multi = true`时生效. 如果方法返回一个`Collection`实例, 需要由`id`来指定该`Collection`的单个元素的哪个属性与该`@CacheKey`参数关联 | |
+| `value` | 一段SpEL表达式 | 选填: 默认为`""` |
+| `multi` | 指明该方法是否走批量缓存(如调用Redis的`mget`而非`get`), 其具体含义可参考**why cachex**部分的批量版本的`getFromDBOrHttp()`方法 | 选填: 默认为`false` |
+| `id` | `multi = true`时生效, 指明该参数与返回值的哪个属性相关联. |  如果方法返回一个`Collection`实例, 需要由`id`来指定该`Collection`的单个元素的哪个属性与该`@CacheKey`参数关联, 选填: 默认为`""` |
 
+### SpEL执行环境
+- 如果方法形参为一个`JavaBean`, 且只希望将该Bean的一个属性(或一部分内容)作为缓存的Key时, 指定一段SpEL表达式, 框架会在拼装缓存Key时解析该表达式以及传入的参数对象, 拿到你指定的某一部分.
+
+![](https://img.alicdn.com/tfs/TB1U23qn7omBKNjSZFqXXXtqVXa-1206-440.png)
 
 ---
 ### 附
