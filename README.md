@@ -69,30 +69,26 @@
  * @since 2016/11/2 下午2:22.
  */
 @Documented
-@Repeatable(Cacheds.class)
 @Target(value = ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Cached {
 
     /**
      * @return Specifies the <b>Used cache implementation</b>,
-     * default the first {@code caches} config in {@codeCacheXAspect}
-     * @since 0.3
+     * default the first {@code caches} config in {@code CacheXAspect}
      */
     String cache() default "";
 
     /**
-     * @return Specifies keyExp
+     * @return Specifies the start prefix on every key,
      * if the {@code Method} have non {@code param},
-     * {@codekeyExp} is the <b>constant key</b> used by this {@code Method}
-     * @since 0.3
+     * {@code prefix} is the <b>constant key</b> used by this {@code Method}
      */
     String prefix() default "";
 
     /**
      * @return use <b>SpEL</b>,
-     * when this spel is {@code true}, this {@Code Method} will go through by cache
-     * @since 0.3
+     * when this spel is {@code true}, this {@code Method} will go through by cache
      */
     String condition() default "";
 
@@ -100,12 +96,6 @@ public @interface Cached {
      * @return expire time, time unit: <b>seconds</b>
      */
     int expire() default Expire.FOREVER;
-
-    /**
-     * @return multi part key`s separator
-     * like: <i>part1-part2-part3</i>
-     */
-    String separator() default "-";
 }
 ```
 
