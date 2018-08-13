@@ -49,8 +49,6 @@
 
 ![](https://img.alicdn.com/tfs/TB1QQd4n26TBKNjSZJiXXbKVFXa-626-144.png)
 
-> 附: [why cachex?](markdown/whycachex.md)
-
 ---
 #### 2. 缓存失效(`@Invalid` & `@CacheKey`)
 ![](https://img.alicdn.com/tfs/TB1FyI2n5AnBKNjSZFvXXaTKXXa-631-111.png)
@@ -196,7 +194,6 @@ CacheX目前版本支持的**缓存产品实现**、**序列化类型**、**命�
 - [why cachex?](markdown/whycachex.md)
 - [命中率分组统计](./markdown/shooting.md)
 - [使用限制](./markdown/limit.md)
-- [dependency](dependency.txt)
 
 ## 应用场景
 >  原服务于`feedcenter`动态中心的 ***redis-annotation*** Redis注解框架重构:
