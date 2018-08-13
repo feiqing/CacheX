@@ -12,7 +12,6 @@ import com.github.cachex.reader.AbstractCacheReader;
 import com.github.cachex.supplier.CacheXInfoSupplier;
 import com.github.cachex.utils.CacheXLogger;
 import com.github.cachex.utils.KeyGenerators;
-import com.github.cachex.utils.SwitcherUtils;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;

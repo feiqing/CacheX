@@ -19,21 +19,21 @@ import java.util.Map;
  * @author jifang
  * @since 2016/12/12 下午3:06.
  */
-public class RedisPoolCache implements ICache {
+public class RedisCache implements ICache {
 
     private ISerializer serializer;
 
     private JedisPool pool;
 
-    public RedisPoolCache(String host, int port) {
+    public RedisCache(String host, int port) {
         this(host, port, 8, 10);
     }
 
-    public RedisPoolCache(String host, int port, int maxTotal, int waitMillis) {
+    public RedisCache(String host, int port, int maxTotal, int waitMillis) {
         this(host, port, maxTotal, waitMillis, new Hession2Serializer());
     }
 
-    public RedisPoolCache(String host, int port, int maxTotal, int waitMillis, ISerializer serializer) {
+    public RedisCache(String host, int port, int maxTotal, int waitMillis, ISerializer serializer) {
         JedisPoolConfig config = new JedisPoolConfig();
         config.setMaxTotal(maxTotal);
         config.setMaxWaitMillis(waitMillis);
