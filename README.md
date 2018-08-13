@@ -114,9 +114,7 @@ public @interface Cached {
 | `cache` | 指定缓存产品, 值为`caches`参数的一个key | 选填: 默认为注入CacheX的第一个实现(即`caches`的第一个Entry实例) |
 | `prefix` | 缓存**key**的统一前缀 | 选填: 默认为`""`, 若方法没有参数或没有`@CacheKey`注解, 则必须在此配置一个`prefix`, 令其成为***静态常量key*** |
 | `condition` | SpEL表达式 | 选填: 默认为`""`(`true`), 在CacheX执行前会首先计算该表达式的值, 只有当返回值为`true`时, 才会经过缓存, 在表达式执行前, CacheX会将方法的参数以`参数名` - `参数值`的**key-value**形式导入到表达式的环境中 |
-| `expire` |  缓存过期时间(秒) | 选填: 默认为`Expire.FOREVER` |
-
-> SpEL表达式执行环境: 
+| `expire` |  缓存过期时间(秒) | 选填: 默认为`Expire.FOREVER` | 
 
 ---
 
