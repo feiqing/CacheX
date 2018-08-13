@@ -6,7 +6,7 @@
 ---
 
 ## I. 架构
-![架构模型](https://img.alicdn.com/tfs/TB1IOFlonCWBKNjSZFtXXaC3FXa-1206-1324.png)
+![架构模型](https://img.alicdn.com/tfs/TB1UooVn8jTBKNjSZFDXXbVgVXa-1206-1324.png)
 
 ---
 ## II. 简单使用
