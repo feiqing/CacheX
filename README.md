@@ -225,9 +225,9 @@ public @interface CachedGet {
 
 ---
 ## link
-- [命中率分组统计](./markdown/shooting.md)
-- [版本历史](./markdown/release.md)
-- [限制 & TODO](./markdown/limit.md)
+- [版本](./markdown/release.md)
+- [命中率统计](./markdown/shooting.md)
+- [其他](./markdown/limit.md)
 
 ---
 - *by* 菜鸟-翡青

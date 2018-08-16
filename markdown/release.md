@@ -1,4 +1,5 @@
-## 版本历史
+## 重大版本历史
+
 ### 0.0.x
 - 最初的redis-annotation, 作为一个RedisClusterClient的封装提供给如下应用使用
     - feedcenter
@@ -7,66 +8,33 @@
 - 文档
     - [redis-annotation 文档](https://github.com/feiqing/CacheX/wiki/redisCli-annotation-%E6%96%87%E6%A1%A3)
     - [redis-annotation 分享](https://github.com/feiqing/CacheX/wiki/redisCli-annotation-%E5%88%86%E4%BA%AB)
-## 应用场景
->  原服务于`feedcenter`动态中心的 ***redis-annotation*** Redis注解框架重构:
-- 0.X版本每天提供动态中心系统三个应用350W+次Dubbo调用, 2.6亿+次缓存读写, 单次查询(get/mget)耗时 0~2ms (1~200个key);
-- 1.0版本: 框架重构, 不再与具体缓存产品绑定, 提供更灵活的配置、更快的读写效率;
-- 1.3版本: 提供基于JMX暴露的分布命中率统计, 可以针对某一具体业务场景进行缓存&业务逻辑优化;
-- 1.4版本: 添加`TairCache`实现, 支持Tair **MDB/LDB**开箱即用(优化: 支持对象无`Serializable`接口).
+- 性能要求
+    - 动态中心系统三个应用350W+次Dubbo调用, 2.6亿+次缓存读写, 单次查询(get/mget)耗时 0~2ms (1~200个key);
 
 ---
 ### 1.0.x(0.1.x)
 - 1.0.0
-    - 重构为CacheX
-        - 开放`ICache`接口, 不再强依赖某一特定缓存产品, 而是作为`ICache`接口的一个具体实现, 以支持更多的缓存服务(如Memcached、Redis、Guava、`ConcurrentHashMap`...);
-    - 添加`NoOpCache`无操作缓存;
-    - 添加`GuavaCache`的LocalCache实现;
-    - 添加`RedisPoolCache`作为基于Pool模式Redis单机缓存实现
-    - 添加`RedisClusterCache`作为Redis分布式缓存实现;
+    - 重构为CacheX: 开放`ICache`接口, 不再强依赖某一特定缓存产品, 而是作为`ICache`接口的一个具体实现, 以支持更多的缓存服务(如Memcached、Redis、Guava、`ConcurrentHashMap`...);
 - 1.0.1
-    - 添加全局缓存开关`open`参数, 支持CacheX动态开关;
+    - 添加全局缓存开关`cachex` Switch, 支持CacheX动态开关;
 - 1.0.2
-    - 开放`com.github.cachex.IObjectSerializer`缓存序列化接口;
-    - 提供基于Hession2和Jdk的两种序列化实现;
-- 1.0.3
-    - 开放`RedisPoolCache`连接池设置策略;
-
----
-### 1.1.x
-- 1.1.0
-    - 添加`JdkConcurrentMapCache`内存缓存实现;
-    - 添加`MemcachedCache`基于Memcached的缓存实现;
-
+    - 开放`com.github.cachex.ISerializer`缓存序列化接口;
+   
 ---
 ### 1.2.x(0.3.x)
-- 1.2.0
-    - `@Cached`/`@Invalidate`添加`cache`属性, 使CacheX支持管理多个缓存实现;
-    - `@Cached`添加`condition`属性: 条件缓存, 支持SpEL表达式, 当表达式结果为`true`时缓存;
-    - `@Cached`添加`prefix`属性, 为为当前方法的所有缓存添加统一前缀, 且支持无参方法缓存;
-- 1.2.1
-    - 添加`EhCache`基于Ehcache缓存实现, 默认启用***in-heap***、***off-heap***、***disk***三级缓存;
-    - 添加`MapDBCache`, 专用的***off-heap***缓存实现;
-    - `RedisPoolCache`改进: 基于`Pipeline`实现带有超时时间的`mset`命令, 提高性能;
-- 1.2.2
-    - 使用`ConcurrentHashMap`替换Commons-Pool2实现的ICachePool, 并对其进行代理(commons-proxy), 同样可以实现在指定缓存产品配错的情况下给出提示的功能;
-- 1.2.3
-    - fix Single Cache clean bug;
+- `@Cached`/`@Invalidate`添加`value`属性, 使CacheX支持管理多个缓存实现;
+- `@Cached`添加`condition`属性: 条件缓存, 支持SpEL表达式, 当表达式结果为`true`时缓存;
+- `@Cached`添加`prefix`属性, 为为当前方法的所有缓存添加统一前缀, 且支持无参方法缓存;
 
 ---
 ### 1.3.x
-- 1.3.0
-    - 支持缓存命中率分组统计功能, 添加JMX支持, 可以详细查看各类业务缓存命中情况, 便于缓存优化, 提升系统吞吐:
-        - 支持查看/重置**全部**key命中率;
-        - 支持查看/重置**分组**key命中率;
-- 1.3.1
-    - fix `RedisClusterCache` `mset` 调用`exec()` bug, 改为`sync()`;
+- 支持缓存命中率分组统计功能, 添加JMX支持, 可以详细查看各类业务缓存命中情况, 便于缓存优化, 提升系统吞吐:
+    - 支持查看/重置**全部**key命中率;
+    - 支持查看/重置**分组**key命中率;
 
 ---
 ### 1.4.x
-- 1.4.0
-    - CacheX部分配置代码重构, 自定义IoC容器: 使`@Singleton`, `@Inject`生效;
-    - 添加`TairCache`缓存实现, 支持Tair **MDB/LDB**开箱即用;
-    - 添加`LevelDBCache`缓存实现, 集成LevelDB的高性能大数据量写入;
+- CacheX部分配置代码重构, 自定义IoC容器: 使`@Singleton`, `@Inject`生效;
 
 ---
 ### 1.5.x
@@ -76,9 +44,6 @@
 - 1.5.2
     - 添加`DerbyShootingMXBeanImpl`、`H2ShootingMXBeanImpl`实现, 支持基于嵌入式DB的缓存命中率统计(以机器为单位, 重启历史数据不丢失; 其中Derby实现可以动态加载jdk提供的derby.jar包, 实现0依赖配置)
     - 添加`ZKShootingMXBeanImpl`实现, 支持基于ZooKeeper的异步命中率统计, 可以做到统一应用共享计数器(以应用为单位, 重启历史数据不丢失);
-    - 添加`@Cacheds`、`@Invalids`两个注解, 使`@Cached`、`@Invalid`支持Java8重复注解, 定义多级缓存目标.
-- 1.5.3
-    - 添加`com.github.cachex.support.serialize.KryoSerializer`序列化实现
 - 1.5.4
     - 消除[限制4](limit.md#4-各类怪异的内部容器类调用), 支持:
     
@@ -109,6 +74,17 @@
     | | `Collections.checkedQueue()` |
 - 1.5.5
     - 删除`@Cached`/`@Invalid`/`@CachedGet`内的`seperator`属性, 似缓存key拼装更简单
-    - 添加缓存防击穿策略(开启后: 如果执行方法返回`null`, 则向缓存内写入一个空对象, 下次不走DB)
+
+### 1.6.x
+- 添加缓存防击穿策略(开启后: 如果执行方法返回`null`, 则向缓存内写入一个空对象, 下次不走DB)
+- `ISerializer`抽取为`com.github.jbox.serializer.ISerializer`, 放入jbox内, CacheX开始依赖jbox-1.6
+
+### 1.7.x
+- 将`CacheXAspect`拆分成为`CacheXAspect`与`CacheXCore`, 并添加`CacheXProxy`, 
+使CacheX的核心保持在`CacheXCore`至`ICache`以上:
+    - 在`CacheXCore`以上可以任意添加框架的门面;
+    - 在`ICache`以下可以任意添加缓存服务的实现;
+- 将自研IoC替换为Google Guice.
+- 专注于稳定、高性能的缓存框架.
 
 ---
