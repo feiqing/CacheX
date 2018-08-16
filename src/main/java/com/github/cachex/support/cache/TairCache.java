@@ -1,7 +1,7 @@
 package com.github.cachex.support.cache;
 
 import com.github.cachex.ICache;
-import com.github.jbox.executor.AsyncExecutor;
+import com.github.jbox.executor.AsyncJobExecutor;
 import com.taobao.tair.DataEntry;
 import com.taobao.tair.Result;
 import com.taobao.tair.ResultCode;
@@ -101,7 +101,7 @@ public class TairCache implements ICache {
 
         // 并发写入
         if (this.mputExecutor != null) {
-            AsyncExecutor<Void> executor = new AsyncExecutor<>();
+            AsyncJobExecutor<Void> executor = new AsyncJobExecutor<>();
             for (Map.Entry<String, Object> entry : keyValueMap.entrySet()) {
                 executor.addTask(() -> {
                     write(entry.getKey(), entry.getValue(), expire);

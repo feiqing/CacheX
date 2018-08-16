@@ -14,9 +14,9 @@
 - pom
 ```xml
 <dependency>
-      <groupId>com.github.cachex</groupId>
-      <artifactId>cachex</artifactId>
-      <version>1.7.1-SNAPSHOT</version>
+  <groupId>com.github.cachex</groupId>
+  <artifactId>cachex</artifactId>
+  <version>1.7.1-SNAPSHOT</version>
 </dependency>
 ```
 - Spring注册
@@ -26,11 +26,11 @@
 
 <!-- 配置CacheX切面 -->
 <bean class="com.github.cachex.CacheXAspect">
-    <constructor-arg name="caches">
-        <map>
-            <entry key="redis" value-ref="redisCache"/>
-        </map>
-    </constructor-arg>
+<constructor-arg name="caches">
+    <map>
+        <entry key="redis" value-ref="redisCache"/>
+    </map>
+</constructor-arg>
 </bean>
 
 <!-- com.github.cachex.ICache 接口实现 -->
@@ -180,6 +180,8 @@ public @interface CacheKey {
 - 如果方法形参为一个`JavaBean`, 且只希望将该Bean的一个属性(或一部分内容)作为缓存的Key时, 指定一段SpEL表达式, 框架会在拼装缓存Key时解析该表达式以及传入的参数对象, 拿到你指定的某一部分.
 
 ![](https://img.alicdn.com/tfs/TB1U23qn7omBKNjSZFqXXXtqVXa-1206-440.png)
+
+
 
 ---
 ### 附
