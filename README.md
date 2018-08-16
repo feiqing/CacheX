@@ -226,7 +226,7 @@ public @interface CachedGet {
 ---
 ## link
 - [版本](./markdown/release.md)
-- [命中率统计](./markdown/shooting.md)
+- [命中率](./markdown/shooting.md)
 - [其他](./markdown/limit.md)
 
 ---
