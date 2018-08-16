@@ -55,7 +55,8 @@
 
 ---
 ## III. 注解详解
-> CacheX一共提供三个注解`@Cached`、`@Invalid`、`@CacheKey`.
+> CacheX提供如下注解`@Cached`、`@Invalid`、`@CacheKey`.
+(ext: `@CachedGet`)
 
 ---
 ### @Cached
@@ -99,21 +100,17 @@ public @interface Cached {
 
 | 属性 | 描述 | Ext |
 :-------: | ------- | ------- 
-| `cache` | 指定缓存产品, 值为`caches`参数的一个key | 选填: 默认为注入CacheX的第一个实现(即`caches`的第一个Entry实例) |
-| `prefix` | 缓存**key**的统一前缀 | 选填: 默认为`""`, 若方法没有参数或没有`@CacheKey`注解, 则必须在此配置一个`prefix`, 令其成为***静态常量key*** |
-| `condition` | SpEL表达式 | 选填: 默认为`""`(`true`), 在CacheX执行前会首先计算该表达式的值, 只有当返回值为`true`时, 才会经过缓存, 在表达式执行前, CacheX会将方法的参数以`参数名` - `参数值`的**key-value**形式导入到表达式的环境中 |
+| `cache` | 指定缓存实现: `caches`参数的一个key | 选填: 默认为注入CacheX的第一个实现(即`caches`的第一个Entry实例) |
+| `prefix` | 缓存**key**的统一前缀 | 选填: 默认为`""`, 若方法无参或没有`@CacheKey`注解, 则必须在此配置一个`prefix`, 令其成为***缓存静态常量key*** |
+| `condition` | SpEL表达式 | 选填: 默认为`""`(`true`), 在CacheX执行前会先eval该表达式, 当表达式值为`true`才会执行缓存逻辑 |
 | `expire` |  缓存过期时间(秒) | 选填: 默认为`Expire.FOREVER` | 
 
 ---
 
 ### @Invalid
-- 在需要失效缓存的方法前添`@Invalid`注解.
+- 在需要失效缓存的方法前添加`@Invalid`注解.
 
 ```java
-/**
- * @author jifang
- * @since 16/7/19 下午4:21.
- */
 @Documented
 @Target(value = ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
@@ -138,7 +135,7 @@ public @interface Invalid {
     String condition() default "";
 }
 ```
-> 属性含义与`@Cached`相同.
+> 注解内属性含义与`@Cached`相同.
 
 ---
 
@@ -172,16 +169,55 @@ public @interface CacheKey {
 
 | 属性 | 描述 | Ext |
 :-------: | ------- | -------
-| `value` | 一段SpEL表达式 | 选填: 默认为`""` |
-| `multi` | 指明该方法是否走批量缓存(如调用Redis的`mget`而非`get`), 其具体含义可参考**why cachex**部分的批量版本的`getFromDBOrHttp()`方法 | 选填: 默认为`false` |
-| `id` | `multi = true`时生效, 指明该参数与返回值的哪个属性相关联. |  如果方法返回一个`Collection`实例, 需要由`id`来指定该`Collection`的单个元素的哪个属性与该`@CacheKey`参数关联, 选填: 默认为`""` |
+| `value` | SpEL表达式: 缓存key的拼装逻辑 | 选填: 默认为`""` |
+| `multi` | `true`/`false`: 指明该方法是否开启量缓存 | 选填: 默认为`false` |
+| `id` | `multi = true`时生效: 指明该参数与返回值的哪个属性相关联. |  选填: 默认为`""`, 如果方法返回一个`Collection`实例, 需要由`id`来指定该`Collection`的单个元素的哪个属性与该`@CacheKey`参数关联 |
 
-### SpEL执行环境
-- 如果方法形参为一个`JavaBean`, 且只希望将该Bean的一个属性(或一部分内容)作为缓存的Key时, 指定一段SpEL表达式, 框架会在拼装缓存Key时解析该表达式以及传入的参数对象, 拿到你指定的某一部分.
+---
 
+### Ext. @CachedGet
+- 在需要走缓存的方法前添加`@CachedGet`注解.
+> 与`@Cached`的不同在于`@CachedGet`只会从缓存内查询, 不会写入缓存(当缓存不存在时, 只是会取执行方法, 但不会讲方法返回内容写入缓存).
+
+```java
+@Documented
+@Target(value = ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface CachedGet {
+
+    /**
+     * @return Specifies the <b>Used cache implementation</b>,
+     * default the first {@code caches} config in {@code CacheXAspect}
+     * @since 0.3
+     */
+    String cache() default "";
+
+    /**
+     * @return Specifies the start keyExp on every key,
+     * if the {@code Method} have non {@code param},
+     * {@code keyExp} is the <b>constant key</b> used by this {@code Method}
+     * @since 0.3
+     */
+    String prefix() default "";
+
+    /**
+     * @return use <b>SpEL</b>,
+     * when this spel is {@code true}, this {@Code Method} will go through by cache
+     * @since 0.3
+     */
+    String condition() default "";
+}
+```
+
+> 注解内属性含义与`@Cached`相同.
+
+
+### Ext. SpEL执行环境
+对于`@CacheKey`内的`value`属性(SpEL), CacheX在将方法的参数组装为key时, 会将整个方法的参数导入到SpEL的执行环境内,
+所以在任一参数的`@CacheKey`的`value`属性内都可以自由的引用这些变量, 如:
+![](https://img.alicdn.com/tfs/TB1Mza0pcj_B1NjSZFHXXaDWpXa-1039-529.png)
+尽管在`arg0`我们可以引用整个方法的任意参数, 但为了可读性, 我们仍然建议对某个参数的引用放在该参数自己的`@CacheKey`内
 ![](https://img.alicdn.com/tfs/TB1U23qn7omBKNjSZFqXXXtqVXa-1206-440.png)
-
-
 
 ---
 ### 附
