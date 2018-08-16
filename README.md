@@ -225,11 +225,9 @@ public @interface CachedGet {
 
 ---
 ## link
-- [版本历史](./markdown/release.md)
-- [下一里程碑版本目标](./markdown/target.md)
-- [why cachex?](markdown/whycachex.md)
 - [命中率分组统计](./markdown/shooting.md)
-- [使用限制](./markdown/limit.md)
+- [版本历史](./markdown/release.md)
+- [限制 & TODO](./markdown/limit.md)
 
 ---
 - *by* 菜鸟-翡青
