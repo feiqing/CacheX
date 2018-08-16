@@ -7,6 +7,12 @@
 - 文档
     - [redis-annotation 文档](https://github.com/feiqing/CacheX/wiki/redisCli-annotation-%E6%96%87%E6%A1%A3)
     - [redis-annotation 分享](https://github.com/feiqing/CacheX/wiki/redisCli-annotation-%E5%88%86%E4%BA%AB)
+## 应用场景
+>  原服务于`feedcenter`动态中心的 ***redis-annotation*** Redis注解框架重构:
+- 0.X版本每天提供动态中心系统三个应用350W+次Dubbo调用, 2.6亿+次缓存读写, 单次查询(get/mget)耗时 0~2ms (1~200个key);
+- 1.0版本: 框架重构, 不再与具体缓存产品绑定, 提供更灵活的配置、更快的读写效率;
+- 1.3版本: 提供基于JMX暴露的分布命中率统计, 可以针对某一具体业务场景进行缓存&业务逻辑优化;
+- 1.4版本: 添加`TairCache`实现, 支持Tair **MDB/LDB**开箱即用(优化: 支持对象无`Serializable`接口).
 
 ---
 ### 1.0.x(0.1.x)

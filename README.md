@@ -219,26 +219,17 @@ public @interface CachedGet {
 尽管在`arg0`我们可以引用整个方法的任意参数, 但为了可读性, 我们仍然建议对某个参数的引用放在该参数自己的`@CacheKey`内
 ![](https://img.alicdn.com/tfs/TB1U23qn7omBKNjSZFqXXXtqVXa-1206-440.png)
 
+### Ext. CacheX当前默认支持的缓存实现
+![](https://img.alicdn.com/tfs/TB1Nb2hpbZnBKNjSZFGXXbt3FXa-246-229.png)
+
+
 ---
-### 附
-
-CacheX目前版本支持的**缓存产品实现**、**序列化类型**、**命中率统计实现**们 ~
-
-![support.png](http://7xrgh9.com1.z0.glb.clouddn.com/17-11-15/58610258.jpg) 
-
 ## link
 - [版本历史](./markdown/release.md)
 - [下一里程碑版本目标](./markdown/target.md)
 - [why cachex?](markdown/whycachex.md)
 - [命中率分组统计](./markdown/shooting.md)
 - [使用限制](./markdown/limit.md)
-
-## 应用场景
->  原服务于`feedcenter`动态中心的 ***redis-annotation*** Redis注解框架重构:
-- 0.X版本每天提供动态中心系统三个应用350W+次Dubbo调用, 2.6亿+次缓存读写, 单次查询(get/mget)耗时 0~2ms (1~200个key);
-- 1.0版本: 框架重构, 不再与具体缓存产品绑定, 提供更灵活的配置、更快的读写效率;
-- 1.3版本: 提供基于JMX暴露的分布命中率统计, 可以针对某一具体业务场景进行缓存&业务逻辑优化;
-- 1.4版本: 添加`TairCache`实现, 支持Tair **MDB/LDB**开箱即用(优化: 支持对象无`Serializable`接口).
 
 ---
 - *by* 菜鸟-翡青
