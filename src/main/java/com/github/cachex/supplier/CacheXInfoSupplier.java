@@ -90,7 +90,7 @@ public class CacheXInfoSupplier {
 
     private static CacheKeyHolder.Builder scanCached(CacheKeyHolder.Builder builder, Cached cached) {
         return builder
-                .setCache(cached.cache())
+                .setCache(cached.value())
                 .setPrefix(cached.prefix())
                 .setExpire(cached.expire());
         //.setSeparator(cached.separator());
@@ -98,7 +98,7 @@ public class CacheXInfoSupplier {
 
     private static CacheKeyHolder.Builder scanCachedGet(CacheKeyHolder.Builder builder, CachedGet cachedGet) {
         return builder
-                .setCache(cachedGet.cache())
+                .setCache(cachedGet.value())
                 .setPrefix(cachedGet.prefix())
                 .setExpire(Expire.NO);
         // .setSeparator(cachedGet.separator());
@@ -106,7 +106,7 @@ public class CacheXInfoSupplier {
 
     private static CacheKeyHolder.Builder scanInvalid(CacheKeyHolder.Builder builder, Invalid invalid) {
         return builder
-                .setCache(invalid.cache())
+                .setCache(invalid.value())
                 .setPrefix(invalid.prefix())
                 .setExpire(Expire.NO);
         //.setSeparator(invalid.separator());

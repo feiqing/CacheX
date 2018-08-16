@@ -16,7 +16,7 @@ public @interface Invalid {
      * @return as {@code @Cached}
      * @since 0.3
      */
-    String cache() default "";
+    String value() default "";
 
     /**
      * @return as {@code @Cached}

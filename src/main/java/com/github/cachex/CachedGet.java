@@ -17,7 +17,7 @@ public @interface CachedGet {
      * default the first {@code caches} config in {@code CacheXAspect}
      * @since 0.3
      */
-    String cache() default "";
+    String value() default "";
 
     /**
      * @return Specifies the start keyExp on every key,

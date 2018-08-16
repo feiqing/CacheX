@@ -78,12 +78,12 @@ public class CacheXCore {
             if (cacheKeyHolder.isMulti()) {
                 Map[] keyIdPair = KeyGenerators.generateMultiKey(cacheKeyHolder, args);
                 Set<String> keys = ((Map<String, Object>) keyIdPair[1]).keySet();
-                cacheManager.remove(invalid.cache(), keys.toArray(new String[keys.size()]));
+                cacheManager.remove(invalid.value(), keys.toArray(new String[keys.size()]));
 
                 CacheXLogger.CACHEX.info("multi cache clear, keys: {}", keys);
             } else {
                 String key = KeyGenerators.generateSingleKey(cacheKeyHolder, args);
-                cacheManager.remove(invalid.cache(), key);
+                cacheManager.remove(invalid.value(), key);
 
                 CacheXLogger.CACHEX.info("single cache clear, key: {}", key);
             }

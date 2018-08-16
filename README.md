@@ -76,7 +76,7 @@ public @interface Cached {
      * @return Specifies the <b>Used cache implementation</b>,
      * default the first {@code caches} config in {@code CacheXAspect}
      */
-    String cache() default "";
+    String value() default "";
 
     /**
      * @return Specifies the start prefix on every key,
@@ -100,7 +100,7 @@ public @interface Cached {
 
 | 属性 | 描述 | Ext |
 :-------: | ------- | ------- 
-| `cache` | 指定缓存实现: `caches`参数的一个key | 选填: 默认为注入CacheX的第一个实现(即`caches`的第一个Entry实例) |
+| `value` | 指定缓存实现: `caches`参数的一个key | 选填: 默认为注入CacheX的第一个实现(即`caches`的第一个Entry实例) |
 | `prefix` | 缓存**key**的统一前缀 | 选填: 默认为`""`, 若方法无参或没有`@CacheKey`注解, 则必须在此配置一个`prefix`, 令其成为***缓存静态常量key*** |
 | `condition` | SpEL表达式 | 选填: 默认为`""`(`true`), 在CacheX执行前会先eval该表达式, 当表达式值为`true`才会执行缓存逻辑 |
 | `expire` |  缓存过期时间(秒) | 选填: 默认为`Expire.FOREVER` | 
@@ -120,7 +120,7 @@ public @interface Invalid {
      * @return as {@code @Cached}
      * @since 0.3
      */
-    String cache() default "";
+    String value() default "";
 
     /**
      * @return as {@code @Cached}
@@ -190,7 +190,7 @@ public @interface CachedGet {
      * default the first {@code caches} config in {@code CacheXAspect}
      * @since 0.3
      */
-    String cache() default "";
+    String value() default "";
 
     /**
      * @return Specifies the start keyExp on every key,

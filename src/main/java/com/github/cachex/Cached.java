@@ -17,7 +17,7 @@ public @interface Cached {
      * @return Specifies the <b>Used cache implementation</b>,
      * default the first {@code caches} config in {@code CacheXAspect}
      */
-    String cache() default "";
+    String value() default "";
 
     /**
      * @return Specifies the start prefix on every key,
