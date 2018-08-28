@@ -68,7 +68,7 @@ public class TairCache implements ICache {
 
     @Override
     public void write(String key, Object value, long expire) {
-        ResultCode result = tairManager.put(namespace, key, (Serializable) value, 0, (int) expire);
+        ResultCode result = tairManager.put(namespace, key, (Serializable) value, 0, (int) expire/1000);
         if (!result.isSuccess()) {
             log.error("tair put error, code: {}, message: {}", result.getCode(), result.getMessage());
         }
