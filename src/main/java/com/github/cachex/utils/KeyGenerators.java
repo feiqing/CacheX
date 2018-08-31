@@ -36,7 +36,7 @@ public class KeyGenerators {
         int multiIndex = cacheKeyHolder.getMultiIndex();
         String prefix = cacheKeyHolder.getPrefix();
         Map<Integer, CacheKey> cacheKeyMap = cacheKeyHolder.getCacheKeyMap();
-        String[] parameterNames = (String[]) appendArray(ArgNameSupplier.getArgNames(cacheKeyHolder.getMethod()), "forEachIndex");
+        String[] parameterNames = (String[]) appendArray(ArgNameSupplier.getArgNames(cacheKeyHolder.getMethod()), "i");
         Object multiArg = args[cacheKeyHolder.getMultiIndex()];
 
         // -- 开始拼装 -- //
