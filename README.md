@@ -164,7 +164,7 @@ public @interface CacheKey {
 | 属性 | 描述 | Ext |
 :-------: | ------- | -------
 | `value` | SpEL表达式: 缓存key的拼装逻辑 | 选填: 默认为`""` |
-| `field` | **批量模式**(`value`参数包含`#i`索引)时生效: 指明该方法返回的`Collection`元素的哪个属性是与该参数是关联起来的 | 详件Ext.批量模式 |
+| `field` | **批量模式**(`value`参数包含`#i`索引)且方法返回值为`Collection`时生效: 指明该方法返回的`Collection`元素的哪个属性是与该参数是关联起来的 | 详件Ext.批量模式 |
 
 ---
 
@@ -207,7 +207,7 @@ public @interface CachedGet {
 ---
 ### Ext. 批量模式
 ![](https://img.alicdn.com/tfs/TB16uFgu8jTBKNjSZFNXXasFXXa-1042-133.png)
-> todo: 描述...
+> todo: 描述... 1. 方法返回值为Collection, 则`@CacheKey`必须包含`filed`参数, 2. 如果方法返回值为Map, 则使用key作为`field`
 
 ---
 ### Ext. SpEL执行环境
