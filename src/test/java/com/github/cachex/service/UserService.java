@@ -20,7 +20,7 @@ public interface UserService {
 
     void invalidMap(String apps, List<Integer> ids);
 
-    List<User> returnList(Collection<Integer> ids, String name, Object non);
+    List<User> getUsers(List<Integer> ids, String name, Object non);
 
     void invalidList(List<User> users);
 

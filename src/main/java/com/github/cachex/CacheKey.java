@@ -15,16 +15,10 @@ public @interface CacheKey {
      * @return use a part of param as a cache key part
      */
     String value() default "";
-    
-    /**
-     * @return used when param is Collection instance,
-     * read/write from/to ICache.multiRead/ICache.multiWrite
-     */
-    boolean multi() default false;
 
     /**
-     * @return used when multi is true and method return Collection instance,
-     * the method result is connected with that param
+     * @return used multi model(value has `#i` index) and method return {@code Collection},
+     * the {@code field} indicate which of the {@code Collection}'s entity field related with this param
      */
-    String id() default "";
+    String field() default "";
 }

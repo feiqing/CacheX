@@ -74,9 +74,9 @@ public class CacheXInfoSupplier {
                 if (annotation instanceof CacheKey) {
                     CacheKey cacheKey = (CacheKey) annotation;
                     cacheKeyMap.put(pIndex, cacheKey);
-                    if (cacheKey.multi()) {
+                    if (isMulti(cacheKey)) {
                         multiIndex = pIndex;
-                        id = cacheKey.id();
+                        id = cacheKey.field();
                     }
                 }
             }
@@ -93,7 +93,6 @@ public class CacheXInfoSupplier {
                 .setCache(cached.value())
                 .setPrefix(cached.prefix())
                 .setExpire(cached.expire());
-        //.setSeparator(cached.separator());
     }
 
     private static CacheKeyHolder.Builder scanCachedGet(CacheKeyHolder.Builder builder, CachedGet cachedGet) {
@@ -101,7 +100,6 @@ public class CacheXInfoSupplier {
                 .setCache(cachedGet.value())
                 .setPrefix(cachedGet.prefix())
                 .setExpire(Expire.NO);
-        // .setSeparator(cachedGet.separator());
     }
 
     private static CacheKeyHolder.Builder scanInvalid(CacheKeyHolder.Builder builder, Invalid invalid) {
@@ -109,7 +107,6 @@ public class CacheXInfoSupplier {
                 .setCache(invalid.value())
                 .setPrefix(invalid.prefix())
                 .setExpire(Expire.NO);
-        //.setSeparator(invalid.separator());
     }
 
     /***
@@ -131,19 +128,32 @@ public class CacheXInfoSupplier {
             throw new CacheXException("only one multi key");
         } else {
             cacheKeyHolder.getCacheKeyMap().forEach((keyIndex, cacheKey) -> {
-                if (cacheKey.multi() && isInvalidMulti(pTypes[keyIndex])) {
+                if (isMulti(cacheKey) && isInvalidMulti(pTypes[keyIndex])) {
                     throw new CacheXException("multi need a collection instance param");
                 }
 
-                if (cacheKey.multi() && isInvalidResult(isCollectionReturn, cacheKey.id())) {
+                if (isMulti(cacheKey) && isInvalidResult(isCollectionReturn, cacheKey.field())) {
                     throw new CacheXException("multi cache && collection method return need a result id");
                 }
 
-                if (isInvalidIdentifier(isCollectionReturn, cacheKey.id())) {
+                if (isInvalidIdentifier(isCollectionReturn, cacheKey.field())) {
                     throw new CacheXException("id method a collection return method");
                 }
             });
         }
+    }
+
+    private static boolean isMulti(CacheKey cacheKey) {
+        if (cacheKey == null) {
+            return false;
+        }
+
+        String value = cacheKey.value();
+        if (Strings.isNullOrEmpty(value)) {
+            return false;
+        }
+
+        return value.contains("#i");
     }
 
     private static boolean isInvalidParam(Class<?>[] pTypes, CacheKeyHolder cacheKeyHolder) {
@@ -159,7 +169,7 @@ public class CacheXInfoSupplier {
     private static boolean isInvalidMultiCount(Map<Integer, CacheKey> keyMap) {
         int multiCount = 0;
         for (CacheKey cacheKey : keyMap.values()) {
-            if (cacheKey.multi()) {
+            if (isMulti(cacheKey)) {
                 ++multiCount;
                 if (multiCount > 1) {
                     break;

@@ -152,26 +152,19 @@ public @interface CacheKey {
      * @return use a part of param as a cache key part
      */
     String value() default "";
-    
-    /**
-     * @return used when param is Collection instance,
-     * read/write from/to ICache.multiRead/ICache.multiWrite
-     */
-    boolean multi() default false;
 
     /**
-     * @return used when multi is true and method return Collection instance,
-     * the method result is connected with that param
+     * @return used multi model(value has `#i` index) and method return {@code Collection},
+     * the {@code field} indicate which of the {@code Collection}'s entity field related with this param
      */
-    String id() default "";
+    String field() default "";
 }
 ```
 
 | 属性 | 描述 | Ext |
 :-------: | ------- | -------
 | `value` | SpEL表达式: 缓存key的拼装逻辑 | 选填: 默认为`""` |
-| `multi` | `true`/`false`: 指明该方法是否开启量缓存 | 选填: 默认为`false` |
-| `id` | `multi = true`时生效: 指明该参数与返回值的哪个属性相关联. |  选填: 默认为`""`, 如果方法返回一个`Collection`实例, 需要由`id`来指定该`Collection`的单个元素的哪个属性与该`@CacheKey`参数关联 |
+| `field` | **批量模式**(`value`参数包含`#i`索引)时生效: 指明该方法返回的`Collection`元素的哪个属性是与该参数是关联起来的 | 详件Ext.批量模式 |
 
 ---
 
@@ -211,7 +204,11 @@ public @interface CachedGet {
 
 > 注解内属性含义与`@Cached`相同.
 
+---
+### Ext. 批量模式
+![](https://img.alicdn.com/tfs/TB16uFgu8jTBKNjSZFNXXasFXXa-1042-133.png)
 
+---
 ### Ext. SpEL执行环境
 对于`@CacheKey`内的`value`属性(SpEL), CacheX在将方法的参数组装为key时, 会将整个方法的参数导入到SpEL的执行环境内,
 所以在任一参数的`@CacheKey`的`value`属性内都可以自由的引用这些变量, 如:

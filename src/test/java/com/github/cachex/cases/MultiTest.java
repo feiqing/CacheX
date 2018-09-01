@@ -26,16 +26,16 @@ public class MultiTest extends TestBase {
     @Test
     public void testReturnList() {
         List<Integer> ids = Lists.newArrayList(1, 2, 3, 4);
-        service.returnList(ids, "ss", new Object());
+        service.getUsers(ids, "ss", new Object());
         System.out.println("---");
-        service.returnList(ids, "ss", new Object());
+        service.getUsers(ids, "ss", new Object());
         System.out.println("---");
         ids.add(new Random().nextInt());
-        List<User> users = service.returnList(ids, "ss", new Object());
+        List<User> users = service.getUsers(ids, "ss", new Object());
         System.out.println("---");
         service.invalidList(users);
         System.out.println("---");
-        service.returnList(ids, "ss", new Object());
+        service.getUsers(ids, "ss", new Object());
     }
 
     @Test
@@ -63,7 +63,7 @@ public class MultiTest extends TestBase {
         for (int i = 0; i < 1000; ++i) {
 //            List<Integer> ids = Stream.generate(this::nextRandom).limit(nextLitterRandom()).collect(Collectors.toList());
             List<Integer> collect = Stream.generate(this::nextRandom).limit(100).collect(toList());
-            service.returnList(collect, "name", new Object());
+            service.getUsers(collect, "name", new Object());
             // service.returnMap("app", ids, new Object());
 
             Utils.delay(1000);

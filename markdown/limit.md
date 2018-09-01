@@ -24,7 +24,7 @@ CacheX是个开放的产品, 如果有希望加入我们的同学可以邮箱联
 ### 1. `@CacheKey`为multi时, 入参list内的元素个数与返回值不一致:
 ```java
 @Cached
-public List<FeedUser> invalidMulti(@CacheKey(multi = true, id = "id") List<Long> feedIds) {
+public List<FeedUser> invalidMulti(@CacheKey(value = "#arg0[#i]", id = "id") List<Long> feedIds) {
    // ...
 }
 ```

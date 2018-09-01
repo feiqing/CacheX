@@ -23,7 +23,7 @@ public class UserServiceImpl implements UserService {
      ***/
     @Override
     @Cached(prefix = "map-", expire = Expire.TEN_MIN)
-    public Map<Integer, User> returnMap(@CacheKey String app, @CacheKey(multi = true) List<Integer> ids, Object noKey) {
+    public Map<Integer, User> returnMap(@CacheKey String app, @CacheKey List<Integer> ids, Object noKey) {
         Map<Integer, User> map = new HashMap<>();
         for (Integer id : ids) {
             map.put(id, new User(id, "name" + id, new Date(), id, noKey.toString()));
@@ -33,20 +33,20 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Invalid(prefix = "map-")
-    public void invalidMap(@CacheKey String apps, @CacheKey(multi = true) List<Integer> ids) {
+    public void invalidMap(@CacheKey String apps, @CacheKey List<Integer> ids) {
         System.out.println("method: " + ids);
     }
 
     @Override
-    @Cached(prefix = "list-")
-    public List<User> returnList(@CacheKey(multi = true, id = "id") Collection<Integer> ids, String name, Object non) {
+    @Cached(prefix = "[USER]:")
+    public List<User> getUsers(@CacheKey(value = "#arg0[#i]", field = "id") List<Integer> ids, String name, Object non) {
         User[] users = ids.stream().map((id) -> new User(id, name + id)).toArray(User[]::new);
         return Arrays.asList(users);
     }
 
     @Override
     @Invalid(prefix = "list-")
-    public void invalidList(@CacheKey(multi = true, value = "#users[#forEachIndex].id") List<User> users) {
+    public void invalidList(@CacheKey(value = "#users[#i].id") List<User> users) {
         List<Integer> ids = new ArrayList<>(users.size());
         for (User user : users) {
             ids.add(user.getId());
@@ -97,25 +97,25 @@ public class UserServiceImpl implements UserService {
 
     @Cached
     @Override
-    public void wrongMultiParam(@CacheKey(multi = true) Object o) {
+    public void wrongMultiParam(@CacheKey Object o) {
 
     }
 
     @Cached
     @Override
-    public Map<Integer, Object> wrongIdentifier(@CacheKey(multi = true, id = "id") List<Integer> ids) {
+    public Map<Integer, Object> wrongIdentifier(@CacheKey(field = "id") List<Integer> ids) {
         return null;
     }
 
     @Cached
     @Override
-    public List<User> wrongCollectionReturn(@CacheKey(multi = true) List<Integer> ids) {
+    public List<User> wrongCollectionReturn(@CacheKey List<Integer> ids) {
         return null;
     }
 
     @Override
     @Cached
-    public List<User> correctIdentifier(@CacheKey(multi = true, id = "id") List<Integer> ids) {
+    public List<User> correctIdentifier(@CacheKey(field = "id") List<Integer> ids) {
         List<User> users = new ArrayList<>(2);
         for (int id : ids) {
             users.add(new User(id, "name" + id, new Date(), id, "zj" + id));

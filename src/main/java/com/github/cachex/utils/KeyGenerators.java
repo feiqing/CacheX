@@ -43,16 +43,16 @@ public class KeyGenerators {
         if (multiArg != null) {
             Collection multiElements = multiArg instanceof Collection ? (Collection) multiArg : ((Map) multiArg).keySet();     // 被标记为multi的参数值
 
-            int forEachIndex = 0;
+            int i = 0;
             for (Object multiElement : multiElements) {
                 String key = doGenerateMultiKey(prefix,
-                        multiIndex, forEachIndex,
+                        multiIndex, i,
                         cacheKeyMap,
                         parameterNames, args, multiElement);
 
                 key2Id.put(key, multiElement);
                 id2Key.put(multiElement, key);
-                ++forEachIndex;
+                ++i;
             }
         }
 
@@ -60,7 +60,7 @@ public class KeyGenerators {
     }
 
     private static String doGenerateMultiKey(String prefix,
-                                             int multiIndex, int forEachIndex,
+                                             int multiIndex, int i,
                                              Map<Integer, CacheKey> index2Key,
                                              String[] argNames, Object[] argValues,
                                              Object multiArgElement) {
@@ -69,7 +69,7 @@ public class KeyGenerators {
         index2Key.forEach((argIndex, argCacheKey) -> {
             Object defaultValue = (argIndex != multiIndex ? argValues[argIndex] : multiArgElement);
             Object argEntryValue = SpelValueSupplier.calcSpelValue(argCacheKey.value(),
-                    argNames, () -> appendArray(argValues, forEachIndex),
+                    argNames, () -> appendArray(argValues, i),
                     defaultValue);
 
             sb.append(argEntryValue);
