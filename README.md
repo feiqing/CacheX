@@ -1,5 +1,5 @@
 # CacheX 注解缓存框架
-> 1.7.1-SNAPSHOT
+> 1.7.2-SNAPSHOT
 
 - 目前已接入10+应用, 欢迎同学们使用并提出宝贵建议~~
 
@@ -16,7 +16,7 @@
 <dependency>
   <groupId>com.github.cachex</groupId>
   <artifactId>cachex</artifactId>
-  <version>1.7.1-SNAPSHOT</version>
+  <version>1.7.2-SNAPSHOT</version>
 </dependency>
 ```
 - Spring注册
@@ -207,6 +207,7 @@ public @interface CachedGet {
 ---
 ### Ext. 批量模式
 ![](https://img.alicdn.com/tfs/TB16uFgu8jTBKNjSZFNXXasFXXa-1042-133.png)
+> todo: 描述...
 
 ---
 ### Ext. SpEL执行环境
