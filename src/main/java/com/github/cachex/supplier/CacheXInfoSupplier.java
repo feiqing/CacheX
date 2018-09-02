@@ -133,7 +133,7 @@ public class CacheXInfoSupplier {
                 }
 
                 if (isMulti(cacheKey) && isInvalidResult(isCollectionReturn, cacheKey.field())) {
-                    throw new CacheXException("multi cache && collection method return need a result id");
+                    throw new CacheXException("multi cache && collection method return need a result field");
                 }
 
                 if (isInvalidIdentifier(isCollectionReturn, cacheKey.field())) {

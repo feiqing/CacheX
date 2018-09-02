@@ -5,9 +5,7 @@ import com.github.cachex.Cached;
 import com.github.cachex.domain.User;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author jifang.zjf
@@ -25,5 +23,25 @@ public class PreventBreakdownServiceImpl {
         }
 
         return map;
+    }
+
+    @Cached
+    public List<User> getUsers(@CacheKey(value = "'id:' + #arg0[#i]") Set<Integer> ids) {
+        List<User> u = new ArrayList<>();
+        for (int i : ids) {
+            u.add(new User(i, "name" + i));
+        }
+
+        return u;
+    }
+
+    @Cached
+    public List<User> getUsers2(@CacheKey(value = "'id:' + #arg0.keySet()[#i]", field = "id") Map<Integer, Object> ids) {
+        List<User> u = new ArrayList<>();
+        for (int i : ids.keySet()) {
+            u.add(new User(i, "name" + i));
+        }
+
+        return u;
     }
 }

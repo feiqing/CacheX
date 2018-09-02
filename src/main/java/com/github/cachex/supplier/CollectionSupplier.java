@@ -24,26 +24,11 @@ public class CollectionSupplier {
 
     private static final Class EMPTY_CLASS = EMPTY_OBJ.getClass();
 
-    private static final Function<Optional<Collection>, Collection> arrayListSupplier = (optional) -> {
-        if (optional.isPresent()) {
-            return new ArrayList(optional.get());
-        }
-        return new ArrayList();
-    };
+    private static final Function<Optional<Collection>, Collection> arrayListSupplier = (optional) -> optional.map((Function<Collection, ArrayList>) ArrayList::new).orElseGet(ArrayList::new);
 
-    private static final Function<Optional<Collection>, Collection> hashSetSupplier = (optional) -> {
-        if (optional.isPresent()) {
-            return new HashSet(optional.get());
-        }
-        return new HashSet();
-    };
+    private static final Function<Optional<Collection>, Collection> hashSetSupplier = (optional) -> optional.map((Function<Collection, HashSet>) HashSet::new).orElseGet(HashSet::new);
 
-    private static final Function<Optional<Collection>, Collection> treeSetSupplier = (optional) -> {
-        if (optional.isPresent()) {
-            return new TreeSet(optional.get());
-        }
-        return new TreeSet();
-    };
+    private static final Function<Optional<Collection>, Collection> treeSetSupplier = (optional) -> optional.map((Function<Collection, TreeSet>) TreeSet::new).orElseGet(TreeSet::new);
 
     private static final ConcurrentMap<Class<?>, Function<Optional<Collection>, Collection>> collectionSuppliers
             = new ConcurrentHashMap<Class<?>, Function<Optional<Collection>, Collection>>() {
