@@ -33,9 +33,6 @@ public class PreventBreakdownTest extends TestBase {
         ids.add(4);
         map = service.getMap(ids, "-feiqing");
         System.out.println("second map.size() = " + map.size());
-
-
-        Thread.sleep(100000);
     }
 
     @Test
@@ -48,8 +45,6 @@ public class PreventBreakdownTest extends TestBase {
         System.out.println(service.getUsers(sets));
         sets.add(10);
         System.out.println(service.getUsers(sets));
-
-        Thread.sleep(100000);
     }
 
 }

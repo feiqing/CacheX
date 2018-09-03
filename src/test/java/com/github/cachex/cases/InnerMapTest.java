@@ -19,7 +19,7 @@ public class InnerMapTest extends TestBase {
     @Resource
     private InnerMapService service;
 
-    @Test
+    @Test(expected = CacheXException.class)
     public void unmodifiableMap() {
         List<Integer> list = Lists.newArrayList(1, 2, 3);
 
@@ -29,7 +29,7 @@ public class InnerMapTest extends TestBase {
         service.unmodifiableMap(list);
     }
 
-    @Test
+    @Test(expected = CacheXException.class)
     public void synchronizedMap() {
         List<Integer> list = Lists.newArrayList(1, 2, 3);
 
@@ -39,7 +39,7 @@ public class InnerMapTest extends TestBase {
         service.synchronizedMap(list);
     }
 
-    @Test
+    @Test(expected = CacheXException.class)
     public void checkedMap() {
         List<Integer> list = Lists.newArrayList(1, 2, 3);
 

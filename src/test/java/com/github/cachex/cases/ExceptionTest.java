@@ -36,14 +36,14 @@ public class ExceptionTest extends TestBase {
         service.wrongMultiParam(new Object());
     }
 
-    @Test(expected = CacheXException.class)
+    @Test
     public void test4() {
-        Map<Integer, Object> map = service.wrongIdentifier(Lists.newArrayList(1, 2));
+        service.wrongIdentifier(Lists.newArrayList(1, 2));
     }
 
     @Test(expected = CacheXException.class)
     public void test41() {
-        List<User> map = service.wrongCollectionReturn(Lists.newArrayList(1, 2));
+        service.wrongCollectionReturn(Lists.newArrayList(1, 2));
     }
 
     @Test(expected = NullPointerException.class)

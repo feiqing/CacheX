@@ -1,10 +1,8 @@
 package com.github.cachex.shooting;
 
 import com.github.cachex.ShootingMXBean;
-import com.github.cachex.Utils;
 import com.github.cachex.support.shooting.DerbyShootingMXBeanImpl;
 import com.github.cachex.support.shooting.H2ShootingMXBeanImpl;
-import com.github.cachex.support.shooting.ZKShootingMXBeanImpl;
 import org.junit.Test;
 
 import javax.management.*;
@@ -24,7 +22,7 @@ public class MxBeanTest {
         mxBean.hitIncr("nihao", 1);
         mxBean.requireIncr("nihao", 2);
 
-        Thread.sleep(1000000);
+//        Thread.sleep(1000000);
         //mxBean.reset("nihao");
 
         //mxBean.requireIncr("testDerby", 88);
@@ -39,17 +37,6 @@ public class MxBeanTest {
         mxBean.hitIncr("nihao", 1);
         mxBean.requireIncr("nihao", 2);
 
-        Thread.sleep(1000000);
-    }
-
-    @Test
-    public void testZK() throws MalformedObjectNameException, NotCompliantMBeanException, InstanceAlreadyExistsException, MBeanRegistrationException {
-        ZKShootingMXBeanImpl zkShootingMXBean = new ZKShootingMXBeanImpl("139.129.9.166:2181", "cacherx-tester");
-        ManagementFactory.getPlatformMBeanServer().registerMBean(zkShootingMXBean, new ObjectName("com.github.cacherx:name=shooting"));
-        zkShootingMXBean.hitIncr("nihao", 1);
-        zkShootingMXBean.hitIncr("tahao", 2);
-        zkShootingMXBean.requireIncr("nihao", 88);
-        zkShootingMXBean.requireIncr("tahao", 99);
-        Utils.delay(100000000);
+//        Thread.sleep(1000000);
     }
 }

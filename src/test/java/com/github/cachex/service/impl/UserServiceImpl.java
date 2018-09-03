@@ -10,6 +10,7 @@ import com.github.cachex.service.UserService;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author jifang
@@ -22,31 +23,31 @@ public class UserServiceImpl implements UserService {
      * multi
      ***/
     @Override
-    @Cached(prefix = "map-", expire = Expire.TEN_MIN)
-    public Map<Integer, User> returnMap(@CacheKey String app, @CacheKey List<Integer> ids, Object noKey) {
+    @Cached(prefix = "map:", expire = Expire.TEN_MIN)
+    public Map<Integer, User> returnMap(@CacheKey String app, @CacheKey("'-' + #arg1[#i]") List<Integer> ids, Object noKey) {
         Map<Integer, User> map = new HashMap<>();
         for (Integer id : ids) {
             map.put(id, new User(id, "name" + id, new Date(), id, noKey.toString()));
         }
-        return Collections.synchronizedMap(map);
+        return map;
     }
 
     @Override
-    @Invalid(prefix = "map-")
-    public void invalidMap(@CacheKey String apps, @CacheKey List<Integer> ids) {
+    @Invalid(prefix = "map:")
+    public void invalidMap(@CacheKey String apps, @CacheKey("'-' + #arg1[#i]") List<Integer> ids) {
         System.out.println("method: " + ids);
     }
 
     @Override
     @Cached(prefix = "[USER]:")
-    public List<User> getUsers(@CacheKey(value = "#arg0[#i]", field = "id") List<Integer> ids, String name, Object non) {
-        User[] users = ids.stream().map((id) -> new User(id, name + id)).toArray(User[]::new);
-        return Arrays.asList(users);
+    public List<User> getUsers(@CacheKey(value = "#arg0[#i]", field = "id") List<Integer> ids,
+                               @CacheKey("'-' + #arg1") String name, Object non) {
+        return ids.stream().map((id) -> new User(id, name)).collect(Collectors.toList());
     }
 
     @Override
-    @Invalid(prefix = "list-")
-    public void invalidList(@CacheKey(value = "#users[#i].id") List<User> users) {
+    @Invalid(prefix = "[USER]:")
+    public void invalidList(@CacheKey(value = "#arg0[#i].id + '-' + #arg0[#i].name") List<User> users) {
         List<Integer> ids = new ArrayList<>(users.size());
         for (User user : users) {
             ids.add(user.getId());
@@ -59,13 +60,13 @@ public class UserServiceImpl implements UserService {
      * single
      */
 
-    @Cached(prefix = "list", expire = Expire.TEN_SEC)
+    @Cached(prefix = "list:", expire = Expire.TEN_SEC)
     public User singleKey(@CacheKey int id, String name, Object non) {
         return new User(id, name, new Date(), 1, "山东-德州");
     }
 
     @Override
-    @Invalid(prefix = "list")
+    @Invalid(prefix = "list:")
     public void singleRemove(@CacheKey int id, String name, Object non) {
     }
 
@@ -76,28 +77,28 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Cached
-    public boolean spelCompose(@CacheKey(value = "'id:'+#user.id+'-name:'+#user.name+'-address:'+#user.getAddress()+'-time:'+#user.getBirthday()") User user) {
+    public boolean spelCompose(@CacheKey(value = "'id:'+#arg0.id+'-name:'+#arg0.name+'-address:'+#arg0.getAddress()+'-time:'+#arg0.getBirthday()") User user) {
         return false;
     }
 
     /**
      * ops
      */
-    @Cached(prefix = "total")
     @Override
+    @Cached(prefix = "total")
     public void noParam() {
 
     }
 
-    @Cached(prefix = "total")
     @Override
+    @Cached(prefix = "total")
     public void noCacheKey(Object o) {
 
     }
 
     @Cached
     @Override
-    public void wrongMultiParam(@CacheKey Object o) {
+    public void wrongMultiParam(@CacheKey("#arg0[#i]") Object o) {
 
     }
 
@@ -109,13 +110,13 @@ public class UserServiceImpl implements UserService {
 
     @Cached
     @Override
-    public List<User> wrongCollectionReturn(@CacheKey List<Integer> ids) {
+    public List<User> wrongCollectionReturn(@CacheKey(value = "#arg0[#i]") List<Integer> ids) {
         return null;
     }
 
     @Override
     @Cached
-    public List<User> correctIdentifier(@CacheKey(field = "id") List<Integer> ids) {
+    public List<User> correctIdentifier(@CacheKey(value = "#arg0[#i]", field = "id") List<Integer> ids) {
         List<User> users = new ArrayList<>(2);
         for (int id : ids) {
             users.add(new User(id, "name" + id, new Date(), id, "zj" + id));

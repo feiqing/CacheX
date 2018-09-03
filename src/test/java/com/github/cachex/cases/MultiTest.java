@@ -25,6 +25,7 @@ public class MultiTest extends TestBase {
 
     @Test
     public void testReturnList() {
+        System.out.println("#########---");
         List<Integer> ids = Lists.newArrayList(1, 2, 3, 4);
         service.getUsers(ids, "ss", new Object());
         System.out.println("---");
@@ -36,10 +37,12 @@ public class MultiTest extends TestBase {
         service.invalidList(users);
         System.out.println("---");
         service.getUsers(ids, "ss", new Object());
+        System.out.println("#########---");
     }
 
     @Test
     public void testReturnMap() {
+        System.out.println("#########---");
         List<Integer> ids = Lists.newArrayList(0, 1, 2);
         service.returnMap("name", ids, "ok");
         System.out.println("---");
@@ -53,20 +56,20 @@ public class MultiTest extends TestBase {
         service.returnMap("name", ids, "ok");
         System.out.println("---");
         service.returnMap("name", ids, "ok");
+        System.out.println("#########---");
     }
 
     @Test
     public void testRandomGet() {
 
 
-
-        for (int i = 0; i < 1000; ++i) {
+        for (int i = 0; i < 50; ++i) {
 //            List<Integer> ids = Stream.generate(this::nextRandom).limit(nextLitterRandom()).collect(Collectors.toList());
             List<Integer> collect = Stream.generate(this::nextRandom).limit(100).collect(toList());
             service.getUsers(collect, "name", new Object());
             // service.returnMap("app", ids, new Object());
 
-            Utils.delay(1000);
+            Utils.delay(100);
         }
     }
 
