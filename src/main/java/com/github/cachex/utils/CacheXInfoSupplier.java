@@ -1,11 +1,11 @@
-package com.github.cachex.supplier;
+package com.github.cachex.utils;
 
 import com.github.cachex.CacheKey;
 import com.github.cachex.Cached;
 import com.github.cachex.CachedGet;
 import com.github.cachex.Invalid;
-import com.github.cachex.domain.CacheKeyHolder;
-import com.github.cachex.domain.CacheMethodHolder;
+import com.github.cachex.domain.CacheXAnnoHolder;
+import com.github.cachex.domain.CacheXMethodHolder;
 import com.github.cachex.domain.Pair;
 import com.github.cachex.enums.Expire;
 import com.github.cachex.exception.CacheXException;
@@ -27,26 +27,26 @@ import java.util.concurrent.ConcurrentMap;
  */
 public class CacheXInfoSupplier {
 
-    private static final ConcurrentMap<Method, Pair<CacheKeyHolder, CacheMethodHolder>> cacheMap = new ConcurrentHashMap<>();
+    private static final ConcurrentMap<Method, Pair<CacheXAnnoHolder, CacheXMethodHolder>> cacheMap = new ConcurrentHashMap<>();
 
-    public static Pair<CacheKeyHolder, CacheMethodHolder> getMethodInfo(Method method) {
+    public static Pair<CacheXAnnoHolder, CacheXMethodHolder> getCacheXInfo(Method method) {
         return cacheMap.computeIfAbsent(method, CacheXInfoSupplier::doGetMethodInfo);
     }
 
-    private static Pair<CacheKeyHolder, CacheMethodHolder> doGetMethodInfo(Method method) {
-        CacheKeyHolder cacheKeyHolder = supplyKeyHolder(method);
-        CacheMethodHolder cacheMethodHolder = supplyMethodHolder(method, cacheKeyHolder);
+    private static Pair<CacheXAnnoHolder, CacheXMethodHolder> doGetMethodInfo(Method method) {
+        CacheXAnnoHolder cacheXAnnoHolder = getAnnoHolder(method);
+        CacheXMethodHolder cacheXMethodHolder = getMethodHolder(method, cacheXAnnoHolder);
 
-        return Pair.of(cacheKeyHolder, cacheMethodHolder);
+        return Pair.of(cacheXAnnoHolder, cacheXMethodHolder);
     }
 
     /****
      * cache key doGetMethodInfo
      ****/
 
-    private static CacheKeyHolder supplyKeyHolder(Method method) {
+    private static CacheXAnnoHolder getAnnoHolder(Method method) {
 
-        CacheKeyHolder.Builder builder = CacheKeyHolder.Builder.newBuilder(method);
+        CacheXAnnoHolder.Builder builder = CacheXAnnoHolder.Builder.newBuilder(method);
 
         Annotation[][] pAnnotations = method.getParameterAnnotations();
         scanKeys(builder, pAnnotations);
@@ -62,7 +62,7 @@ public class CacheXInfoSupplier {
         return builder.build();
     }
 
-    private static CacheKeyHolder.Builder scanKeys(CacheKeyHolder.Builder builder, Annotation[][] pAnnotations) {
+    private static CacheXAnnoHolder.Builder scanKeys(CacheXAnnoHolder.Builder builder, Annotation[][] pAnnotations) {
         int multiIndex = -1;
         String id = "";
         Map<Integer, CacheKey> cacheKeyMap = new LinkedHashMap<>(pAnnotations.length);
@@ -88,21 +88,21 @@ public class CacheXInfoSupplier {
                 .setId(id);
     }
 
-    private static CacheKeyHolder.Builder scanCached(CacheKeyHolder.Builder builder, Cached cached) {
+    private static CacheXAnnoHolder.Builder scanCached(CacheXAnnoHolder.Builder builder, Cached cached) {
         return builder
                 .setCache(cached.value())
                 .setPrefix(cached.prefix())
                 .setExpire(cached.expire());
     }
 
-    private static CacheKeyHolder.Builder scanCachedGet(CacheKeyHolder.Builder builder, CachedGet cachedGet) {
+    private static CacheXAnnoHolder.Builder scanCachedGet(CacheXAnnoHolder.Builder builder, CachedGet cachedGet) {
         return builder
                 .setCache(cachedGet.value())
                 .setPrefix(cachedGet.prefix())
                 .setExpire(Expire.NO);
     }
 
-    private static CacheKeyHolder.Builder scanInvalid(CacheKeyHolder.Builder builder, Invalid invalid) {
+    private static CacheXAnnoHolder.Builder scanInvalid(CacheXAnnoHolder.Builder builder, Invalid invalid) {
         return builder
                 .setCache(invalid.value())
                 .setPrefix(invalid.prefix())
@@ -113,22 +113,31 @@ public class CacheXInfoSupplier {
      * cache method doGetMethodInfo
      ***/
 
-    private static CacheMethodHolder supplyMethodHolder(Method method, CacheKeyHolder cacheKeyHolder) {
+    private static CacheXMethodHolder getMethodHolder(Method method, CacheXAnnoHolder cacheXAnnoHolder) {
         boolean isCollectionReturn = Collection.class.isAssignableFrom(method.getReturnType());
+        boolean isMapReturn = Map.class.isAssignableFrom(method.getReturnType());
 
-        staticAnalyze(method.getParameterTypes(), cacheKeyHolder, isCollectionReturn);
+        staticAnalyze(method.getParameterTypes(),
+                cacheXAnnoHolder,
+                isCollectionReturn,
+                isMapReturn);
 
-        return new CacheMethodHolder(isCollectionReturn);
+        return new CacheXMethodHolder(isCollectionReturn);
     }
 
-    private static void staticAnalyze(Class<?>[] pTypes, CacheKeyHolder cacheKeyHolder, boolean isCollectionReturn) {
-        if (isInvalidParam(pTypes, cacheKeyHolder)) {
+    private static void staticAnalyze(Class<?>[] pTypes, CacheXAnnoHolder cacheXAnnoHolder,
+                                      boolean isCollectionReturn, boolean isMapReturn) {
+        if (isInvalidParam(pTypes, cacheXAnnoHolder)) {
             throw new CacheXException("cache need at least one param key");
-        } else if (isInvalidMultiCount(cacheKeyHolder.getCacheKeyMap())) {
+        } else if (isInvalidMultiCount(cacheXAnnoHolder.getCacheKeyMap())) {
             throw new CacheXException("only one multi key");
         } else {
-            cacheKeyHolder.getCacheKeyMap().forEach((keyIndex, cacheKey) -> {
-                if (isMulti(cacheKey) && isInvalidMulti(pTypes[keyIndex])) {
+            Map<Integer, CacheKey> cacheKeyMap = cacheXAnnoHolder.getCacheKeyMap();
+            for (Map.Entry<Integer, CacheKey> entry : cacheKeyMap.entrySet()) {
+                Integer argIndex = entry.getKey();
+                CacheKey cacheKey = entry.getValue();
+
+                if (isMulti(cacheKey) && isInvalidMulti(pTypes[argIndex])) {
                     throw new CacheXException("multi need a collection instance param");
                 }
 
@@ -136,10 +145,10 @@ public class CacheXInfoSupplier {
                     throw new CacheXException("multi cache && collection method return need a result field");
                 }
 
-                if (isInvalidIdentifier(isCollectionReturn, cacheKey.field())) {
+                if (isInvalidIdentifier(isMapReturn, isCollectionReturn, cacheKey.field())) {
                     throw new CacheXException("id method a collection return method");
                 }
-            });
+            }
         }
     }
 
@@ -156,9 +165,9 @@ public class CacheXInfoSupplier {
         return value.contains("#i");
     }
 
-    private static boolean isInvalidParam(Class<?>[] pTypes, CacheKeyHolder cacheKeyHolder) {
-        Map<Integer, CacheKey> cacheKeyMap = cacheKeyHolder.getCacheKeyMap();
-        String prefix = cacheKeyHolder.getPrefix();
+    private static boolean isInvalidParam(Class<?>[] pTypes, CacheXAnnoHolder cacheXAnnoHolder) {
+        Map<Integer, CacheKey> cacheKeyMap = cacheXAnnoHolder.getCacheKeyMap();
+        String prefix = cacheXAnnoHolder.getPrefix();
 
         return (pTypes == null
                 || pTypes.length == 0
@@ -180,8 +189,17 @@ public class CacheXInfoSupplier {
         return multiCount > 1;
     }
 
-    private static boolean isInvalidIdentifier(boolean isCollectionReturn, String identifier) {
-        return !Strings.isNullOrEmpty(identifier) && !isCollectionReturn;
+    private static boolean isInvalidIdentifier(boolean isMapReturn,
+                                               boolean isCollectionReturn,
+                                               String field) {
+        if (isMapReturn && !Strings.isNullOrEmpty(field)) {
+
+            CacheXLogger.warn("@CacheKey's 'field = \"{}\"' is useless.", field);
+
+            return false;
+        }
+
+        return !Strings.isNullOrEmpty(field) && !isCollectionReturn;
     }
 
     private static boolean isInvalidResult(boolean isCollectionReturn, String id) {
@@ -189,7 +207,8 @@ public class CacheXInfoSupplier {
     }
 
     private static boolean isInvalidMulti(Class<?> paramType) {
-        return !Collection.class.isAssignableFrom(paramType);
-        //暂时还不能放开  && !Map.class.isAssignableFrom(paramType);
+        return !Collection.class.isAssignableFrom(paramType)
+                && !paramType.isArray();
+        // 永久不能放开  && !Map.class.isAssignableFrom(paramType);
     }
 }

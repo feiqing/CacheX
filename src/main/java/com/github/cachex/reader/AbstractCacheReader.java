@@ -1,7 +1,7 @@
 package com.github.cachex.reader;
 
-import com.github.cachex.domain.CacheKeyHolder;
-import com.github.cachex.domain.CacheMethodHolder;
+import com.github.cachex.domain.CacheXAnnoHolder;
+import com.github.cachex.domain.CacheXMethodHolder;
 import com.github.cachex.invoker.Invoker;
 import com.github.cachex.utils.CacheXLogger;
 
@@ -11,21 +11,15 @@ import com.github.cachex.utils.CacheXLogger;
  */
 public abstract class AbstractCacheReader {
 
-    public abstract Object read(CacheKeyHolder cacheKeyHolder, CacheMethodHolder cacheMethodHolder, Invoker invoker, boolean needWrite) throws Throwable;
+    public abstract Object read(CacheXAnnoHolder cacheXAnnoHolder, CacheXMethodHolder cacheXMethodHolder, Invoker invoker, boolean needWrite) throws Throwable;
 
     Object doLogInvoke(ThrowableSupplier<Object> throwableSupplier) throws Throwable {
-        long start = 0;
-        if (CacheXLogger.CACHEX.isDebugEnabled()) {
-            start = System.currentTimeMillis();
+        long start = System.currentTimeMillis();
+        try {
+            return throwableSupplier.get();
+        } finally {
+            CacheXLogger.debug("method invoke total cost [{}] ms", (System.currentTimeMillis() - start));
         }
-
-        Object result = throwableSupplier.get();
-
-        if (CacheXLogger.CACHEX.isDebugEnabled()) {
-            CacheXLogger.CACHEX.debug("method invoke total cost [{}] ms", (System.currentTimeMillis() - start));
-        }
-
-        return result;
     }
 
     @FunctionalInterface

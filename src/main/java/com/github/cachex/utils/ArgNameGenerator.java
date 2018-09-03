@@ -1,6 +1,4 @@
-package com.github.cachex.supplier;
-
-import com.github.cachex.utils.CacheXLogger;
+package com.github.cachex.utils;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -12,14 +10,14 @@ import java.util.concurrent.ConcurrentMap;
  * @author jifang.zjf
  * @since 2017/6/23 上午10:17.
  */
-public class ArgNameSupplier {
+public class ArgNameGenerator {
 
     private static boolean isFirst = true;
 
     private static final ConcurrentMap<Method, String[]> methodParameterNames = new ConcurrentHashMap<>();
 
     public static String[] getArgNames(Method method) {
-        return methodParameterNames.computeIfAbsent(method, ArgNameSupplier::doGetArgNamesWithJava8);
+        return methodParameterNames.computeIfAbsent(method, ArgNameGenerator::doGetArgNamesWithJava8);
     }
 
     // Java1.8之后提供了获取参数名方法, 但需要编译时添加`–parameters`参数支持, 如`javac –parameters`, 不然参数名为'arg0'
@@ -27,7 +25,7 @@ public class ArgNameSupplier {
         Parameter[] parameters = method.getParameters();
         String[] argNames = Arrays.stream(parameters).map(Parameter::getName).toArray(String[]::new);
         if (isFirst && argNames.length != 0 && argNames[0].equals("arg0")) {
-            CacheXLogger.CACHEX.warn("compile not set '–parameters', used default method parameter names");
+            CacheXLogger.warn("compile not set '–parameters', used default method parameter names");
             isFirst = false;
         }
 

@@ -2,7 +2,6 @@ package com.github.cachex.support.cache;
 
 import com.github.cachex.ICache;
 import com.github.cachex.enums.Expire;
-import com.github.cachex.utils.SerializeUtils;
 import com.github.jbox.serializer.ISerializer;
 import com.github.jbox.serializer.support.Hession2Serializer;
 import redis.clients.jedis.Jedis;
@@ -14,6 +13,9 @@ import javax.annotation.PreDestroy;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+
+import static com.github.cachex.support.cache.RedisHelpers.toByteArray;
+import static com.github.cachex.support.cache.RedisHelpers.toObjectMap;
 
 /**
  * @author jifang
@@ -65,15 +67,15 @@ public class RedisCache implements ICache {
     @Override
     public Map<String, Object> read(Collection<String> keys) {
         try (Jedis client = pool.getResource()) {
-            List<byte[]> bytesValues = client.mget(SerializeUtils.toByteArray(keys));
-            return SerializeUtils.toObjectMap(keys, bytesValues, this.serializer);
+            List<byte[]> bytesValues = client.mget(toByteArray(keys));
+            return toObjectMap(keys, bytesValues, this.serializer);
         }
     }
 
     @Override
     public void write(Map<String, Object> keyValueMap, long expire) {
         try (Jedis client = pool.getResource()) {
-            byte[][] kvs = SerializeUtils.toByteArray(keyValueMap, serializer);
+            byte[][] kvs = toByteArray(keyValueMap, serializer);
             if (expire == Expire.FOREVER) {
                 client.mset(kvs);
             } else {

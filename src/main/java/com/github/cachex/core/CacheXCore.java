@@ -3,13 +3,13 @@ package com.github.cachex.core;
 import com.github.cachex.Cached;
 import com.github.cachex.CachedGet;
 import com.github.cachex.Invalid;
-import com.github.cachex.domain.CacheKeyHolder;
-import com.github.cachex.domain.CacheMethodHolder;
+import com.github.cachex.domain.CacheXAnnoHolder;
+import com.github.cachex.domain.CacheXMethodHolder;
 import com.github.cachex.domain.Pair;
 import com.github.cachex.invoker.Invoker;
 import com.github.cachex.manager.CacheManager;
 import com.github.cachex.reader.AbstractCacheReader;
-import com.github.cachex.supplier.CacheXInfoSupplier;
+import com.github.cachex.utils.CacheXInfoSupplier;
 import com.github.cachex.utils.CacheXLogger;
 import com.github.cachex.utils.KeyGenerators;
 import com.google.inject.Inject;
@@ -69,51 +69,41 @@ public class CacheXCore {
     public void remove(Invalid invalid, Method method, Object[] args) {
         if (isSwitchOn(config, invalid, method, args)) {
 
-            long start = 0;
-            if (CacheXLogger.CACHEX.isDebugEnabled()) {
-                start = System.currentTimeMillis();
-            }
+            long start = System.currentTimeMillis();
 
-            CacheKeyHolder cacheKeyHolder = CacheXInfoSupplier.getMethodInfo(method).getLeft();
-            if (cacheKeyHolder.isMulti()) {
-                Map[] keyIdPair = KeyGenerators.generateMultiKey(cacheKeyHolder, args);
-                Set<String> keys = ((Map<String, Object>) keyIdPair[1]).keySet();
+            CacheXAnnoHolder cacheXAnnoHolder = CacheXInfoSupplier.getCacheXInfo(method).getLeft();
+            if (cacheXAnnoHolder.isMulti()) {
+                Map[] pair = KeyGenerators.generateMultiKey(cacheXAnnoHolder, args);
+                Set<String> keys = ((Map<String, Object>) pair[1]).keySet();
                 cacheManager.remove(invalid.value(), keys.toArray(new String[keys.size()]));
 
-                CacheXLogger.CACHEX.info("multi cache clear, keys: {}", keys);
+                CacheXLogger.info("multi cache clear, keys: {}", keys);
             } else {
-                String key = KeyGenerators.generateSingleKey(cacheKeyHolder, args);
+                String key = KeyGenerators.generateSingleKey(cacheXAnnoHolder, args);
                 cacheManager.remove(invalid.value(), key);
 
-                CacheXLogger.CACHEX.info("single cache clear, key: {}", key);
+                CacheXLogger.info("single cache clear, key: {}", key);
             }
 
-            if (CacheXLogger.CACHEX.isDebugEnabled()) {
-                CacheXLogger.CACHEX.info("cachex clear total cost [{}] ms", (System.currentTimeMillis() - start));
-            }
+            CacheXLogger.debug("cachex clear total cost [{}] ms", (System.currentTimeMillis() - start));
         }
     }
 
     private Object doReadWrite(Method method, Invoker invoker, boolean needWrite) throws Throwable {
-        long start = 0;
-        if (CacheXLogger.CACHEX.isDebugEnabled()) {
-            start = System.currentTimeMillis();
-        }
+        long start = System.currentTimeMillis();
 
-        Pair<CacheKeyHolder, CacheMethodHolder> pair = CacheXInfoSupplier.getMethodInfo(method);
-        CacheKeyHolder cacheKeyHolder = pair.getLeft();
-        CacheMethodHolder cacheMethodHolder = pair.getRight();
+        Pair<CacheXAnnoHolder, CacheXMethodHolder> pair = CacheXInfoSupplier.getCacheXInfo(method);
+        CacheXAnnoHolder cacheXAnnoHolder = pair.getLeft();
+        CacheXMethodHolder cacheXMethodHolder = pair.getRight();
 
         Object result;
-        if (cacheKeyHolder.isMulti()) {
-            result = multiCacheReader.read(cacheKeyHolder, cacheMethodHolder, invoker, needWrite);
+        if (cacheXAnnoHolder.isMulti()) {
+            result = multiCacheReader.read(cacheXAnnoHolder, cacheXMethodHolder, invoker, needWrite);
         } else {
-            result = singleCacheReader.read(cacheKeyHolder, cacheMethodHolder, invoker, needWrite);
+            result = singleCacheReader.read(cacheXAnnoHolder, cacheXMethodHolder, invoker, needWrite);
         }
 
-        if (CacheXLogger.CACHEX.isDebugEnabled()) {
-            CacheXLogger.CACHEX.debug("cachex read total cost [{}] ms", (System.currentTimeMillis() - start));
-        }
+        CacheXLogger.debug("cachex read total cost [{}] ms", (System.currentTimeMillis() - start));
 
         return result;
     }

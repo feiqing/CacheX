@@ -1,4 +1,4 @@
-package com.github.cachex.supplier;
+package com.github.cachex.utils;
 
 import java.io.Serializable;
 

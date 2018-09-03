@@ -9,7 +9,7 @@ import java.util.Map;
  * @author jifang
  * @since 2016/11/29 下午10:43.
  */
-public class CacheKeyHolder {
+public class CacheXAnnoHolder {
 
     private Method method;
 
@@ -32,9 +32,9 @@ public class CacheKeyHolder {
 
     private String id;
 
-    private CacheKeyHolder(Method method,
-                           String cache, String prefix, int expire,
-                           Map<Integer, CacheKey> cacheKeyMap, int multiIndex, String id) {
+    private CacheXAnnoHolder(Method method,
+                             String cache, String prefix, int expire,
+                             Map<Integer, CacheKey> cacheKeyMap, int multiIndex, String id) {
         this.method = method;
         this.cache = cache;
         this.prefix = prefix;
@@ -130,8 +130,8 @@ public class CacheKeyHolder {
             return this;
         }
 
-        public CacheKeyHolder build() {
-            return new CacheKeyHolder(method, cache, prefix, expire, cacheKeyMap, multiIndex, id);
+        public CacheXAnnoHolder build() {
+            return new CacheXAnnoHolder(method, cache, prefix, expire, cacheKeyMap, multiIndex, id);
         }
     }
 }

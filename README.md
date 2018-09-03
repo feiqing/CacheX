@@ -209,6 +209,9 @@ public @interface CachedGet {
 ![](https://img.alicdn.com/tfs/TB16uFgu8jTBKNjSZFNXXasFXXa-1042-133.png)
 > todo: 描述... 1. 方法返回值为Collection, 则`@CacheKey`必须包含`filed`参数, 2. 如果方法返回值为Map, 则使用key作为`field`
 
+#### `#i`批量模式指示器
+> todo: 描述.... `#i`只能用来遍历参数, 开启批量模式
+
 ---
 ### Ext. SpEL执行环境
 对于`@CacheKey`内的`value`属性(SpEL), CacheX在将方法的参数组装为key时, 会将整个方法的参数导入到SpEL的执行环境内,

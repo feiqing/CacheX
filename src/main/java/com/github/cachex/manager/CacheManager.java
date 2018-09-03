@@ -43,14 +43,14 @@ public class CacheManager {
 
             long start = System.currentTimeMillis();
             Object result = cacheImpl.getRight().read(key);
-            CacheXLogger.CACHEX.info("cache [{}] read single cost: [{}] ms",
+            CacheXLogger.info("cache [{}] read single cost: [{}] ms",
                     cacheImpl.getLeft(),
                     (System.currentTimeMillis() - start));
 
             return result;
         } catch (Throwable e) {
             logger.error("read single cache failed, key: {} ", key, e);
-            CacheXLogger.CACHEX.error("read single cache failed, key: {} ", key, e);
+            CacheXLogger.error("read single cache failed, key: {} ", key, e);
             return null;
         }
     }
@@ -62,13 +62,13 @@ public class CacheManager {
 
                 long start = System.currentTimeMillis();
                 cacheImpl.getRight().write(key, value, expire);
-                CacheXLogger.CACHEX.info("cache [{}] write single cost: [{}] ms",
+                CacheXLogger.info("cache [{}] write single cost: [{}] ms",
                         cacheImpl.getLeft(),
                         (System.currentTimeMillis() - start));
 
             } catch (Throwable e) {
                 logger.error("write single cache failed, key: {} ", key, e);
-                CacheXLogger.CACHEX.error("write single cache failed, key: {} ", key, e);
+                CacheXLogger.error("write single cache failed, key: {} ", key, e);
             }
         }
     }
@@ -83,7 +83,7 @@ public class CacheManager {
 
                 long start = System.currentTimeMillis();
                 Map<String, Object> cacheMap = cacheImpl.getRight().read(keys);
-                CacheXLogger.CACHEX.info("cache [{}] read batch cost: [{}] ms",
+                CacheXLogger.info("cache [{}] read batch cost: [{}] ms",
                         cacheImpl.getLeft(),
                         (System.currentTimeMillis() - start));
 
@@ -103,7 +103,7 @@ public class CacheManager {
                 cacheReadResult = new CacheReadResult(hitValueMap, notHitKeys);
             } catch (Throwable e) {
                 logger.error("read multi cache failed, keys: {}", keys, e);
-                CacheXLogger.CACHEX.error("read multi cache failed, keys: {}", keys, e);
+                CacheXLogger.error("read multi cache failed, keys: {}", keys, e);
                 cacheReadResult = new CacheReadResult();
             }
         }
@@ -117,13 +117,13 @@ public class CacheManager {
 
             long start = System.currentTimeMillis();
             cacheImpl.getRight().write(keyValueMap, expire);
-            CacheXLogger.CACHEX.info("cache [{}] write batch cost: [{}] ms",
+            CacheXLogger.info("cache [{}] write batch cost: [{}] ms",
                     cacheImpl.getLeft(),
                     (System.currentTimeMillis() - start));
 
         } catch (Exception e) {
             logger.error("write map multi cache failed, keys: {}", keyValueMap.keySet(), e);
-            CacheXLogger.CACHEX.error("write map multi cache failed, keys: {}", keyValueMap.keySet(), e);
+            CacheXLogger.error("write map multi cache failed, keys: {}", keyValueMap.keySet(), e);
         }
     }
 
@@ -134,13 +134,13 @@ public class CacheManager {
 
                 long start = System.currentTimeMillis();
                 cacheImpl.getRight().remove(keys);
-                CacheXLogger.CACHEX.info("cache [{}] remove cost: [{}] ms",
+                CacheXLogger.info("cache [{}] remove cost: [{}] ms",
                         cacheImpl.getLeft(),
                         (System.currentTimeMillis() - start));
 
             } catch (Throwable e) {
                 logger.error("remove cache failed, keys: {}: ", keys, e);
-                CacheXLogger.CACHEX.error("remove cache failed, keys: {}: ", keys, e);
+                CacheXLogger.error("remove cache failed, keys: {}: ", keys, e);
             }
         }
     }

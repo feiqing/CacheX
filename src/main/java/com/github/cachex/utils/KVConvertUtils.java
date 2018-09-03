@@ -1,8 +1,6 @@
 package com.github.cachex.utils;
 
 import com.github.cachex.core.CacheXConfig;
-import com.github.cachex.supplier.PreventObjects;
-import com.github.cachex.supplier.SpelValueSupplier;
 import com.google.common.base.Strings;
 
 import java.util.Collection;
@@ -17,15 +15,19 @@ import java.util.Set;
 @SuppressWarnings("unchecked")
 public class KVConvertUtils {
 
-    public static Map<String, Object> mapToKeyValue(Map proceedMap, Set<String> missKeys, Map<Object, String> id2Key, CacheXConfig.Switch prevent) {
-        Map<String, Object> keyValueMap = new HashMap<>(proceedMap.size());
-
-        proceedMap.forEach((id, value) -> {
-            String key = id2Key.get(id);
-            if (!Strings.isNullOrEmpty(key)) {
-                missKeys.remove(key);
-                keyValueMap.put(key, value);
+    public static Map<String, Object> mapToKeyValue(Map proceedEntryValueMap,
+                                                    Set<String> missKeys,
+                                                    Map<Object, String> multiEntry2Key,
+                                                    CacheXConfig.Switch prevent) {
+        Map<String, Object> keyValueMap = new HashMap<>(proceedEntryValueMap.size());
+        proceedEntryValueMap.forEach((multiArgEntry, value) -> {
+            String key = multiEntry2Key.get(multiArgEntry);
+            if (Strings.isNullOrEmpty(key)) {
+                return;
             }
+
+            missKeys.remove(key);
+            keyValueMap.put(key, value);
         });
 
         // 触发防击穿逻辑
@@ -40,7 +42,7 @@ public class KVConvertUtils {
         Map<String, Object> keyValueMap = new HashMap<>(proceedCollection.size());
 
         for (Object value : proceedCollection) {
-            Object id = SpelValueSupplier.calcSpelWithNoContext(idSpel, value);
+            Object id = SpelCalculator.calcSpelWithNoContext(idSpel, value);
             String key = id2Key.get(id);
 
             if (!Strings.isNullOrEmpty(key)) {

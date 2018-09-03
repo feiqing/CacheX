@@ -4,7 +4,7 @@ package com.github.cachex.domain;
  * @author jifang
  * @since 2016/11/29 下午10:41.
  */
-public class CacheMethodHolder {
+public class CacheXMethodHolder {
 
     private Class<?> innerReturnType;
 
@@ -12,7 +12,7 @@ public class CacheMethodHolder {
 
     private boolean collection;
 
-    public CacheMethodHolder(boolean collection) {
+    public CacheXMethodHolder(boolean collection) {
         this.collection = collection;
     }
 

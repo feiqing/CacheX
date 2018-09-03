@@ -5,9 +5,6 @@ import com.github.cachex.CachedGet;
 import com.github.cachex.Invalid;
 import com.github.cachex.core.CacheXConfig;
 import com.github.cachex.enums.Expire;
-import com.github.cachex.supplier.ArgNameSupplier;
-import com.github.cachex.supplier.SpelValueSupplier;
-import com.google.common.base.Strings;
 
 import java.lang.reflect.Method;
 
@@ -47,10 +44,6 @@ public class SwitcherUtils {
             return false;
         }
 
-        if (Strings.isNullOrEmpty(condition)) {
-            return true;
-        }
-
-        return (boolean) SpelValueSupplier.calcSpelWithLazyKey(condition, () -> ArgNameSupplier.getArgNames(method), args, true);
+        return (boolean) SpelCalculator.calcSpelValueWithContext(condition, ArgNameGenerator.getArgNames(method), args, true);
     }
 }

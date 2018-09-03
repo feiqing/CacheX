@@ -1,14 +1,10 @@
 package com.github.cachex.utils;
 
 import com.github.cachex.CacheKey;
-import com.github.cachex.domain.CacheKeyHolder;
-import com.github.cachex.supplier.ArgNameSupplier;
-import com.github.cachex.supplier.SpelValueSupplier;
+import com.github.cachex.domain.CacheXAnnoHolder;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author jifang
@@ -16,66 +12,96 @@ import java.util.Map;
  */
 public class KeyGenerators {
 
-    public static String generateSingleKey(CacheKeyHolder cacheKeyHolder, Object[] args) {
-        String[] parameterNames = ArgNameSupplier.getArgNames(cacheKeyHolder.getMethod());
-        StringBuilder sb = new StringBuilder(cacheKeyHolder.getPrefix());
-        cacheKeyHolder.getCacheKeyMap().forEach((index, cacheKey) -> {
-            Object argValue = SpelValueSupplier.calcSpelValue(cacheKey.value(), parameterNames, args, args[index]);
-            sb.append(argValue);
-        });
+    public static String generateSingleKey(CacheXAnnoHolder cacheXAnnoHolder, Object[] argValues) {
+        String[] argNames = ArgNameGenerator.getArgNames(cacheXAnnoHolder.getMethod());
+        Map<Integer, CacheKey> cacheKeyMap = cacheXAnnoHolder.getCacheKeyMap();
+        String prefix = cacheXAnnoHolder.getPrefix();
 
-        return sb.toString();
+        return doGenerateKey(cacheKeyMap, prefix, argNames, argValues);
     }
 
-    //array[]: {id2Key, key2Id}
-    public static Map[] generateMultiKey(CacheKeyHolder cacheKeyHolder, Object[] args) {
-        Map<Object/*这里就要求Multi-Collection内的元素必须实现的hashcode & equals方法*/, String> id2Key = new LinkedHashMap<>();
-        Map<String, Object> key2Id = new LinkedHashMap<>();
+    //array[]: {multiEntry2Key, key2MultiEntry}
+    public static Map[] generateMultiKey(CacheXAnnoHolder cacheXAnnoHolder, Object[] argValues) {
+        /*由于要将Collection内的元素作为Map的Key, 因此就要求元素必须实现的hashcode & equals方法*/
+        Map<Object, String> multiEntry2Key = new LinkedHashMap<>();
+        Map<String, Object> key2MultiEntry = new LinkedHashMap<>();
 
         // -- 准备要拼装key所需的原材料 -- //
-        int multiIndex = cacheKeyHolder.getMultiIndex();
-        String prefix = cacheKeyHolder.getPrefix();
-        Map<Integer, CacheKey> cacheKeyMap = cacheKeyHolder.getCacheKeyMap();
-        String[] parameterNames = (String[]) appendArray(ArgNameSupplier.getArgNames(cacheKeyHolder.getMethod()), "i");
-        Object multiArg = args[cacheKeyHolder.getMultiIndex()];
+        // 标记为multi的参数
+        Collection multiArgEntries = getMultiArgEntries(argValues[cacheXAnnoHolder.getMultiIndex()]);
+        // 参数索引 -> CacheKey
+        Map<Integer, CacheKey> argIndex2CacheKey = cacheXAnnoHolder.getCacheKeyMap();
+        // 全局prefix
+        String prefix = cacheXAnnoHolder.getPrefix();
 
         // -- 开始拼装 -- //
-        if (multiArg != null) {
-            Collection multiElements = multiArg instanceof Collection ? (Collection) multiArg : ((Map) multiArg).entrySet();     // 被标记为multi的参数值
 
-            int i = 0;
-            for (Object multiElement : multiElements) {
-                String key = doGenerateMultiKey(prefix,
-                        multiIndex, i,
-                        cacheKeyMap,
-                        parameterNames, args, multiElement);
+        // 根据方法获取原始的参数名
+        String[] argNames = ArgNameGenerator.getArgNames(cacheXAnnoHolder.getMethod());
+        // 给参数名添加一个`#i`遍历指令
+        String[] appendArgNames = (String[]) appendArray(argNames, "i");
 
-                key2Id.put(key, multiElement);
-                id2Key.put(multiElement, key);
-                ++i;
-            }
+        int i = 0;
+        for (Object multiElement : multiArgEntries) {
+
+            // 给参数值数组的`#i`指令赋值
+            Object[] appendArgValues = appendArray(argValues, i);
+
+            String key = doGenerateKey(argIndex2CacheKey, prefix, appendArgNames, appendArgValues);
+
+            key2MultiEntry.put(key, multiElement);
+            multiEntry2Key.put(multiElement, key);
+            ++i;
         }
 
-        return new Map[]{id2Key, key2Id};
+        return new Map[]{multiEntry2Key, key2MultiEntry};
     }
 
-    private static String doGenerateMultiKey(String prefix,
-                                             int multiIndex, int i,
-                                             Map<Integer, CacheKey> index2CacheKey,
-                                             String[] argNames, Object[] argValues,
-                                             Object theMultiEntity) {
+    private static String doGenerateKey(Map<Integer, CacheKey> parameterIndex2CacheKey,
+                                        String prefix, String[] argNames, Object[] argValues) {
 
         StringBuilder sb = new StringBuilder(prefix);
-        index2CacheKey.forEach((argIndex, argCacheKey) -> {
-            Object defaultValue = (argIndex != multiIndex ? argValues[argIndex] : theMultiEntity);
-            Object argEntryValue = SpelValueSupplier.calcSpelValue(argCacheKey.value(),
-                    argNames, () -> appendArray(argValues, i),
-                    defaultValue);
+        for (Map.Entry<Integer, CacheKey> entry : parameterIndex2CacheKey.entrySet()) {
+            int argIndex = entry.getKey();
+            String argSpel = entry.getValue().value();
 
-            sb.append(argEntryValue);
-        });
+            Object defaultValue = getDefaultValue(argValues, argIndex);
+            Object keyPart = SpelCalculator.calcSpelValueWithContext(argSpel, argNames, argValues, defaultValue);
+
+            sb.append(keyPart);
+
+        }
 
         return sb.toString();
+    }
+
+    /**
+     * 获取当spel表达式为空(null or '')时, 默认的拼装keyPart
+     * 注意: 当multi的spel表达式为空时, 这时会将整个`Collection`实例作为keyPart(当然, 这种情况不会发生)...
+     */
+    private static Object getDefaultValue(Object[] argValues, int argIndex) {
+        return argValues[argIndex];
+    }
+
+    /**
+     * 将标记为`multi`的参数转成`Collection`实例
+     *
+     * @param multiArg
+     * @return
+     */
+    private static Collection getMultiArgEntries(Object multiArg) {
+        if (multiArg == null) {
+            return Collections.emptyList();
+        }
+
+        if (multiArg instanceof Collection) {
+            return (Collection) multiArg;
+        } else if (multiArg instanceof Map) {
+            return ((Map) multiArg).keySet();
+        } else {
+            // 此处应该在multi参数校验的时候确保只能为Collection、Map、Object[]三种类型
+            return Arrays.stream((Object[]) multiArg).collect(Collectors.toList());
+        }
     }
 
     private static Object[] appendArray(Object[] origin, Object append) {

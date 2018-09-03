@@ -2,7 +2,6 @@ package com.github.cachex.support.cache;
 
 import com.github.cachex.ICache;
 import com.github.cachex.enums.Expire;
-import com.github.cachex.utils.SerializeUtils;
 import com.github.jbox.serializer.ISerializer;
 import com.google.common.base.Splitter;
 import org.slf4j.Logger;
@@ -16,6 +15,9 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.github.cachex.support.cache.RedisHelpers.toByteArray;
+import static com.github.cachex.support.cache.RedisHelpers.toObjectMap;
 
 /**
  * @author jifang
@@ -99,8 +101,8 @@ public class RedisClusterCache implements ICache {
     }
 
     private Map<String, Object> singleKeyMGet(Collection<String> key) {
-        List<byte[]> bytesValues = jedisCluster.mget(SerializeUtils.toByteArray(key));
-        return SerializeUtils.toObjectMap(key, bytesValues, this.serializer);
+        List<byte[]> bytesValues = jedisCluster.mget(toByteArray(key));
+        return toObjectMap(key, bytesValues, this.serializer);
     }
 
     private Map<String, Object> multiThreadsMGet(Collection<String> keys) {
@@ -160,7 +162,7 @@ public class RedisClusterCache implements ICache {
     }
 
     private void singleKeyValueMSet(Map<String, Object> keyValue, long expire) {
-        byte[][] bytes = SerializeUtils.toByteArray(keyValue, this.serializer);
+        byte[][] bytes = toByteArray(keyValue, this.serializer);
         if (expire == Expire.FOREVER) {
             jedisCluster.mset(bytes);
         } else {
