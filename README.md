@@ -220,6 +220,8 @@ public @interface CachedGet {
 尽管在`arg0`我们可以引用整个方法的任意参数, 但为了可读性, 我们仍然建议对某个参数的引用放在该参数自己的`@CacheKey`内
 ![](https://img.alicdn.com/tfs/TB1U23qn7omBKNjSZFqXXXtqVXa-1206-440.png)
 
+> 注意: 在Java8环境中, 如果编译时没有指定`-parameters`参数, 则参数名默认为`arg0`、`arg1`、...、`argN`, 如果指定了该参数, 则在`spel`中使用实际的参数名即可, 如:`#source.name()`
+
 ### Ext. CacheX当前默认支持的缓存实现
 ![](https://img.alicdn.com/tfs/TB1Nb2hpbZnBKNjSZFGXXbt3FXa-246-229.png)
 
