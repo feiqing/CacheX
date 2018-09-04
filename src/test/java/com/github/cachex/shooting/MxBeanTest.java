@@ -20,12 +20,12 @@ public class MxBeanTest {
 
         ManagementFactory.getPlatformMBeanServer().registerMBean(mxBean, new ObjectName("com.github.cacherx:name=hit"));
         mxBean.hitIncr("nihao", 1);
-        mxBean.requireIncr("nihao", 2);
+        mxBean.reqIncr("nihao", 2);
 
 //        Thread.sleep(1000000);
         //mxBean.reset("nihao");
 
-        //mxBean.requireIncr("testDerby", 88);
+        //mxBean.reqIncr("testDerby", 88);
         //mxBean.resetAll();
     }
 
@@ -35,7 +35,7 @@ public class MxBeanTest {
 
         ManagementFactory.getPlatformMBeanServer().registerMBean(mxBean, new ObjectName("com.github.cacherx:name=shooting"));
         mxBean.hitIncr("nihao", 1);
-        mxBean.requireIncr("nihao", 2);
+        mxBean.reqIncr("nihao", 2);
 
 //        Thread.sleep(1000000);
     }

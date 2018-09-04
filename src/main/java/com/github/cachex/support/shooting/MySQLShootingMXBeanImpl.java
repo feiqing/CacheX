@@ -1,6 +1,5 @@
 package com.github.cachex.support.shooting;
 
-import com.github.cachex.utils.StringFormatter;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
@@ -10,6 +9,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 /**
@@ -57,7 +58,7 @@ public class MySQLShootingMXBeanImpl extends AbstractDBShootingMXBean {
             context.put("database", dbPath);
             SingleConnectionDataSource dataSource = new SingleConnectionDataSource();
             dataSource.setDriverClassName(DRIVER_MYSQL);
-            dataSource.setUrl(StringFormatter.format(URL_MYSQL, context));
+            dataSource.setUrl(format(URL_MYSQL, context));
             dataSource.setUsername((String) context.get("username"));
             dataSource.setPassword((String) context.get("password"));
 
@@ -96,5 +97,43 @@ public class MySQLShootingMXBeanImpl extends AbstractDBShootingMXBean {
         }
 
         return map;
+    }
+
+    private static final Pattern pattern = Pattern.compile("\\$\\{(\\w)+}");
+
+    private static String format(String template, Map<String, Object> argMap) {
+        Matcher matcher = pattern.matcher(template);
+
+        while (matcher.find()) {
+            String exp = matcher.group();
+            Object value = argMap.get(trim(exp));
+            String expStrValue = getStringValue(value);
+
+            template = template.replace(exp, expStrValue);
+        }
+
+        return template;
+    }
+
+    private static String getStringValue(Object obj) {
+        String string;
+
+        if (obj instanceof String) {
+            string = (String) obj;
+        } else {
+            string = String.valueOf(obj);
+        }
+
+        return string;
+    }
+
+    private static String trim(String string) {
+        if (string.startsWith("${"))
+            string = string.substring("${".length());
+
+        if (string.endsWith("}"))
+            string = string.substring(0, string.length() - "}".length());
+
+        return string;
     }
 }

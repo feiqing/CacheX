@@ -8,9 +8,9 @@ import java.util.Map;
  */
 public interface ShootingMXBean {
 
-    void hitIncr(String pattern, int count);
+    void reqIncr(String pattern, int count);
 
-    void requireIncr(String pattern, int count);
+    void hitIncr(String pattern, int count);
 
     Map<String, ShootingDO> getShooting();
 

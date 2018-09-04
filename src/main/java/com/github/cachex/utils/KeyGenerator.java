@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
  * @author jifang
  * @since 16/7/21 上午11:34.
  */
-public class KeyGenerators {
+public class KeyGenerator {
 
     public static String generateSingleKey(CacheXAnnoHolder cacheXAnnoHolder, Object[] argValues) {
         String[] argNames = ArgNameGenerator.getArgNames(cacheXAnnoHolder.getMethod());

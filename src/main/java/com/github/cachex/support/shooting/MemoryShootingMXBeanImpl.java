@@ -27,7 +27,7 @@ public class MemoryShootingMXBeanImpl implements ShootingMXBean {
     }
 
     @Override
-    public void requireIncr(String pattern, int count) {
+    public void reqIncr(String pattern, int count) {
         requireMap.computeIfAbsent(
                 pattern,
                 (k) -> new AtomicLong()

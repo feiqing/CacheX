@@ -25,12 +25,12 @@ import java.util.concurrent.ConcurrentMap;
  * @author jifang
  * @since 16/7/20 上午11:49.
  */
-public class CacheXInfoSupplier {
+public class CacheXInfoContainer {
 
     private static final ConcurrentMap<Method, Pair<CacheXAnnoHolder, CacheXMethodHolder>> cacheMap = new ConcurrentHashMap<>();
 
     public static Pair<CacheXAnnoHolder, CacheXMethodHolder> getCacheXInfo(Method method) {
-        return cacheMap.computeIfAbsent(method, CacheXInfoSupplier::doGetMethodInfo);
+        return cacheMap.computeIfAbsent(method, CacheXInfoContainer::doGetMethodInfo);
     }
 
     private static Pair<CacheXAnnoHolder, CacheXMethodHolder> doGetMethodInfo(Method method) {

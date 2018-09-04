@@ -105,7 +105,7 @@ public class ZKShootingMXBeanImpl implements ShootingMXBean {
     }
 
     @Override
-    public void requireIncr(String pattern, int count) {
+    public void reqIncr(String pattern, int count) {
         if (count != 0)
             requireQueue.add(Pair.of(pattern, count));
     }

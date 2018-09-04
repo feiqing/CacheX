@@ -22,10 +22,6 @@
     </bean>
     -->
 
-    <util:map id="caches" map-class="java.util.LinkedHashMap">
-        <entry key="guava" value-ref="guavaCache"/>
-    </util:map>
-
     <bean class="com.github.cachex.CacheXAspect">
         <constructor-arg name="config">
             <bean class="com.github.cachex.core.CacheXConfig">
@@ -36,6 +32,10 @@
             </bean>
         </constructor-arg>
     </bean>
+
+    <util:map id="caches" map-class="java.util.LinkedHashMap">
+        <entry key="guava" value-ref="guavaCache"/>
+    </util:map>
 
     <bean id="guavaCache" class="com.github.cachex.support.cache.GuavaCache" lazy-init="true">
         <constructor-arg name="size" value="1000"/>

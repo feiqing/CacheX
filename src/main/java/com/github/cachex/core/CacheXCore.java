@@ -9,9 +9,9 @@ import com.github.cachex.domain.Pair;
 import com.github.cachex.invoker.Invoker;
 import com.github.cachex.manager.CacheManager;
 import com.github.cachex.reader.AbstractCacheReader;
-import com.github.cachex.utils.CacheXInfoSupplier;
+import com.github.cachex.utils.CacheXInfoContainer;
 import com.github.cachex.utils.CacheXLogger;
-import com.github.cachex.utils.KeyGenerators;
+import com.github.cachex.utils.KeyGenerator;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
@@ -71,15 +71,15 @@ public class CacheXCore {
 
             long start = System.currentTimeMillis();
 
-            CacheXAnnoHolder cacheXAnnoHolder = CacheXInfoSupplier.getCacheXInfo(method).getLeft();
+            CacheXAnnoHolder cacheXAnnoHolder = CacheXInfoContainer.getCacheXInfo(method).getLeft();
             if (cacheXAnnoHolder.isMulti()) {
-                Map[] pair = KeyGenerators.generateMultiKey(cacheXAnnoHolder, args);
+                Map[] pair = KeyGenerator.generateMultiKey(cacheXAnnoHolder, args);
                 Set<String> keys = ((Map<String, Object>) pair[1]).keySet();
                 cacheManager.remove(invalid.value(), keys.toArray(new String[keys.size()]));
 
                 CacheXLogger.info("multi cache clear, keys: {}", keys);
             } else {
-                String key = KeyGenerators.generateSingleKey(cacheXAnnoHolder, args);
+                String key = KeyGenerator.generateSingleKey(cacheXAnnoHolder, args);
                 cacheManager.remove(invalid.value(), key);
 
                 CacheXLogger.info("single cache clear, key: {}", key);
@@ -92,7 +92,7 @@ public class CacheXCore {
     private Object doReadWrite(Method method, Invoker invoker, boolean needWrite) throws Throwable {
         long start = System.currentTimeMillis();
 
-        Pair<CacheXAnnoHolder, CacheXMethodHolder> pair = CacheXInfoSupplier.getCacheXInfo(method);
+        Pair<CacheXAnnoHolder, CacheXMethodHolder> pair = CacheXInfoContainer.getCacheXInfo(method);
         CacheXAnnoHolder cacheXAnnoHolder = pair.getLeft();
         CacheXMethodHolder cacheXMethodHolder = pair.getRight();
 

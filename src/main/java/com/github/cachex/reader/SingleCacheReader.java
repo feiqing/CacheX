@@ -9,7 +9,7 @@ import com.github.cachex.manager.CacheManager;
 import com.github.cachex.utils.PatternGenerator;
 import com.github.cachex.utils.PreventObjects;
 import com.github.cachex.utils.CacheXLogger;
-import com.github.cachex.utils.KeyGenerators;
+import com.github.cachex.utils.KeyGenerator;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -31,7 +31,7 @@ public class SingleCacheReader extends AbstractCacheReader {
 
     @Override
     public Object read(CacheXAnnoHolder cacheXAnnoHolder, CacheXMethodHolder cacheXMethodHolder, Invoker invoker, boolean needWrite) throws Throwable {
-        String key = KeyGenerators.generateSingleKey(cacheXAnnoHolder, invoker.getArgs());
+        String key = KeyGenerator.generateSingleKey(cacheXAnnoHolder, invoker.getArgs());
         Object readResult = cacheManager.readSingle(cacheXAnnoHolder.getCache(), key);
 
         doRecord(readResult, key, cacheXAnnoHolder);
@@ -73,12 +73,12 @@ public class SingleCacheReader extends AbstractCacheReader {
     private void doRecord(Object result, String key, CacheXAnnoHolder cacheXAnnoHolder) {
         CacheXLogger.info("single cache hit rate: {}/1, key: {}", result == null ? 0 : 1, key);
         if (this.shootingMXBean != null) {
-            String pattern = PatternGenerator.getPattern(cacheXAnnoHolder);
+            String pattern = PatternGenerator.generatePattern(cacheXAnnoHolder);
 
             if (result != null) {
                 this.shootingMXBean.hitIncr(pattern, 1);
             }
-            this.shootingMXBean.requireIncr(pattern, 1);
+            this.shootingMXBean.reqIncr(pattern, 1);
         }
     }
 }

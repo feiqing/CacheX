@@ -34,7 +34,7 @@ public class MultiCacheReader extends AbstractCacheReader {
     @Override
     public Object read(CacheXAnnoHolder cacheXAnnoHolder, CacheXMethodHolder cacheXMethodHolder, Invoker invoker, boolean needWrite) throws Throwable {
         // compose keys
-        Map[] pair = KeyGenerators.generateMultiKey(cacheXAnnoHolder, invoker.getArgs());
+        Map[] pair = KeyGenerator.generateMultiKey(cacheXAnnoHolder, invoker.getArgs());
         Map<String, Object> key2MultiEntry = pair[1];
 
         // request cache
@@ -80,7 +80,7 @@ public class MultiCacheReader extends AbstractCacheReader {
                 // @since 1.5.4 为了兼容@CachedGet注解, 客户端缓存
                 if (needWrite) {
                     // 将方法调用返回的map转换成key_value_map写入Cache
-                    Map<String, Object> keyValueMap = KVConvertUtils.mapToKeyValue(proceedEntryValueMap, missKeys, multiEntry2Key, config.getPrevent());
+                    Map<String, Object> keyValueMap = KeyValueUtils.mapToKeyValue(proceedEntryValueMap, missKeys, multiEntry2Key, config.getPrevent());
                     cacheManager.writeBatch(cacheXAnnoHolder.getCache(), keyValueMap, cacheXAnnoHolder.getExpire());
                 }
                 // 将方法调用返回的map与从Cache中读取的key_value_map合并返回
@@ -91,7 +91,7 @@ public class MultiCacheReader extends AbstractCacheReader {
                 // @since 1.5.4 为了兼容@CachedGet注解, 客户端缓存
                 if (needWrite) {
                     // 将方法调用返回的collection转换成key_value_map写入Cache
-                    Map<String, Object> keyValueMap = KVConvertUtils.collectionToKeyValue(proceedCollection, cacheXAnnoHolder.getId(), missKeys, multiEntry2Key, config.getPrevent());
+                    Map<String, Object> keyValueMap = KeyValueUtils.collectionToKeyValue(proceedCollection, cacheXAnnoHolder.getId(), missKeys, multiEntry2Key, config.getPrevent());
                     cacheManager.writeBatch(cacheXAnnoHolder.getCache(), keyValueMap, cacheXAnnoHolder.getExpire());
                 }
                 // 将方法调用返回的collection与从Cache中读取的key_value_map合并返回
@@ -174,10 +174,10 @@ public class MultiCacheReader extends AbstractCacheReader {
 
         if (this.shootingMXBean != null) {
             // 分组模板
-            String pattern = PatternGenerator.getPattern(cacheXAnnoHolder);
+            String pattern = PatternGenerator.generatePattern(cacheXAnnoHolder);
 
             this.shootingMXBean.hitIncr(pattern, hitCount);
-            this.shootingMXBean.requireIncr(pattern, totalCount);
+            this.shootingMXBean.reqIncr(pattern, totalCount);
         }
     }
 }

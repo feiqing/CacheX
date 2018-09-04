@@ -13,7 +13,7 @@ import java.util.Set;
  * @since 2016/11/18 下午3:21.
  */
 @SuppressWarnings("unchecked")
-public class KVConvertUtils {
+public class KeyValueUtils {
 
     public static Map<String, Object> mapToKeyValue(Map proceedEntryValueMap,
                                                     Set<String> missKeys,
