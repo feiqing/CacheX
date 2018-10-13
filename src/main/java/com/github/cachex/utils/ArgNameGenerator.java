@@ -12,12 +12,50 @@ import java.util.concurrent.ConcurrentMap;
  */
 public class ArgNameGenerator {
 
+    private static String[] X_ARGS = {
+            "xArg0",
+            "xArg1",
+            "xArg2",
+            "xArg3",
+            "xArg4",
+            "xArg5",
+            "xArg6",
+            "xArg7",
+            "xArg8",
+            "xArg9",
+            "xArg10",
+            "xArg11",
+            "xArg12",
+            "xArg13",
+            "xArg14",
+            "xArg15",
+            "xArg16",
+            "xArg17",
+            "xArg18",
+            "xArg19"
+    };
+
     private static boolean isFirst = true;
 
     private static final ConcurrentMap<Method, String[]> methodParameterNames = new ConcurrentHashMap<>();
 
     public static String[] getArgNames(Method method) {
         return methodParameterNames.computeIfAbsent(method, ArgNameGenerator::doGetArgNamesWithJava8);
+    }
+
+    // 由于编译参数–parameters的影响, 开启了该参数, 获取到的参数名为真是的方法参数Name; 没有开启: 则是获取到argN这种.
+    // 为了方便用户, 我们统一生成xArgN这种方式来填充, 同时也兼容原先的这种生成方式¬
+    public static String[] getXArgNames(int valueSize) {
+        if (valueSize == 0) {
+            return new String[0];
+        }
+
+        String[] xArgs = new String[valueSize];
+        for (int i = 0; i < valueSize; ++i) {
+            xArgs[i] = i < X_ARGS.length ? X_ARGS[i] : "xArg" + i;
+        }
+
+        return xArgs;
     }
 
     // Java1.8之后提供了获取参数名方法, 但需要编译时添加`–parameters`参数支持, 如`javac –parameters`, 不然参数名为'arg0'

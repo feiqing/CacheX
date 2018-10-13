@@ -30,6 +30,12 @@ public class SpelCalculator {
             context.setVariable(argNames[i], argValues[i]);
         }
 
+        // todo: 先将xArg放到这儿, 后面可以再想下可以放到哪儿?
+        String[] xArgNames = ArgNameGenerator.getXArgNames(argValues.length);
+        for (int i = 0; i < argValues.length; ++i) {
+            context.setVariable(xArgNames[i], argValues[i]);
+        }
+
         return parser.parseExpression(spel).getValue(context);
     }
 
