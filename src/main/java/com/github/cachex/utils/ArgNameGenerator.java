@@ -12,27 +12,29 @@ import java.util.concurrent.ConcurrentMap;
  */
 public class ArgNameGenerator {
 
+    private static final String X_ARGS_PREFIX = "args";
+
     private static String[] X_ARGS = {
-            "xArg0",
-            "xArg1",
-            "xArg2",
-            "xArg3",
-            "xArg4",
-            "xArg5",
-            "xArg6",
-            "xArg7",
-            "xArg8",
-            "xArg9",
-            "xArg10",
-            "xArg11",
-            "xArg12",
-            "xArg13",
-            "xArg14",
-            "xArg15",
-            "xArg16",
-            "xArg17",
-            "xArg18",
-            "xArg19"
+            X_ARGS_PREFIX + 0,
+            X_ARGS_PREFIX + 1,
+            X_ARGS_PREFIX + 2,
+            X_ARGS_PREFIX + 3,
+            X_ARGS_PREFIX + 4,
+            X_ARGS_PREFIX + 5,
+            X_ARGS_PREFIX + 6,
+            X_ARGS_PREFIX + 7,
+            X_ARGS_PREFIX + 8,
+            X_ARGS_PREFIX + 9,
+            X_ARGS_PREFIX + 10,
+            X_ARGS_PREFIX + 11,
+            X_ARGS_PREFIX + 12,
+            X_ARGS_PREFIX + 13,
+            X_ARGS_PREFIX + 14,
+            X_ARGS_PREFIX + 15,
+            X_ARGS_PREFIX + 16,
+            X_ARGS_PREFIX + 17,
+            X_ARGS_PREFIX + 18,
+            X_ARGS_PREFIX + 19
     };
 
     private static boolean isFirst = true;
@@ -52,7 +54,7 @@ public class ArgNameGenerator {
 
         String[] xArgs = new String[valueSize];
         for (int i = 0; i < valueSize; ++i) {
-            xArgs[i] = i < X_ARGS.length ? X_ARGS[i] : "xArg" + i;
+            xArgs[i] = i < X_ARGS.length ? X_ARGS[i] : X_ARGS_PREFIX + i;
         }
 
         return xArgs;
