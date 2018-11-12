@@ -2,6 +2,7 @@ package com.github.cachex.support.cache;
 
 import com.github.cachex.ICache;
 import com.github.jbox.executor.AsyncJobExecutor;
+import com.github.jbox.executor.ExecutorManager;
 import com.taobao.tair.DataEntry;
 import com.taobao.tair.Result;
 import com.taobao.tair.ResultCode;
@@ -11,11 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import javax.annotation.PreDestroy;
 import java.io.Serializable;
 import java.util.*;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BiConsumer;
+import java.util.concurrent.ExecutorService;
 
 /**
  * @author jifang.zjf
@@ -28,28 +25,16 @@ public class TairCache implements ICache {
 
     private int namespace;
 
-    private long timeoutMs;
-
-    private Executor mputExecutor;
+    private ExecutorService worker;
 
     public TairCache(TairManager tairManager, int namespace) {
-        this(tairManager, namespace, 1000, 10);
+        this(tairManager, namespace, ExecutorManager.newFixedThreadPool("cachex-tair-thread-", Runtime.getRuntime().availableProcessors()));
     }
 
-    public TairCache(TairManager tairManager, int namespace, int timeoutMS, int nThread) {
+    public TairCache(TairManager tairManager, int namespace, ExecutorService worker) {
         this.namespace = namespace;
-        this.timeoutMs = timeoutMS;
         this.tairManager = tairManager;
-        if (nThread > 0) {
-            AtomicInteger counter = new AtomicInteger(0);
-            this.mputExecutor = Executors.newFixedThreadPool(nThread, (runnable) -> {
-                Thread thread = new Thread(runnable);
-                thread.setName("cachex-tair-mput-thread-" + counter.getAndIncrement());
-                // thread.setDaemon(true);
-
-                return thread;
-            });
-        }
+        this.worker = worker;
     }
 
     @Override
@@ -68,7 +53,7 @@ public class TairCache implements ICache {
 
     @Override
     public void write(String key, Object value, long expire) {
-        ResultCode result = tairManager.put(namespace, key, (Serializable) value, 0, (int) expire/1000);
+        ResultCode result = tairManager.put(namespace, key, (Serializable) value, 0, (int) (expire / 1000));
         if (!result.isSuccess()) {
             log.error("tair put error, code: {}, message: {}", result.getCode(), result.getMessage());
         }
@@ -97,21 +82,18 @@ public class TairCache implements ICache {
     // 新版本的Tair不再支持mput命令, 因此当key数量过多时建议使用并发方式 Write Tair
     @Override
     public void write(Map<String, Object> keyValueMap, long expire) {
-        BiConsumer<String, Object> writeConsumer = (key, value) -> write(key, value, expire);
+        if (this.worker == null) {
+            keyValueMap.forEach((key, value) -> this.write(key, value, expire));
+            return;
+        }
 
         // 并发写入
-        if (this.mputExecutor != null) {
-            AsyncJobExecutor<Void> executor = new AsyncJobExecutor<>();
-            for (Map.Entry<String, Object> entry : keyValueMap.entrySet()) {
-                executor.addTask(() -> {
-                    write(entry.getKey(), entry.getValue(), expire);
-                    return null;
-                });
-            }
-            executor.execute().waiting(timeoutMs, false);
-        } else {
-            keyValueMap.forEach(writeConsumer);
-        }
+        AsyncJobExecutor job = new AsyncJobExecutor(worker);
+        keyValueMap.forEach((key, value) -> job.addTask(() -> {
+            this.write(key, value, expire);
+            return null;
+        }));
+        job.execute().waiting();
     }
 
     @Override
@@ -126,9 +108,6 @@ public class TairCache implements ICache {
     public void tearDown() {
         if (this.tairManager != null) {
             this.tairManager.close();
-        }
-        if (this.mputExecutor != null && this.mputExecutor instanceof ThreadPoolExecutor) {
-            ((ThreadPoolExecutor) this.mputExecutor).shutdown();
         }
     }
 }

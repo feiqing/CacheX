@@ -22,7 +22,7 @@ import java.util.concurrent.TimeoutException;
  */
 public class MemcachedCache implements ICache {
 
-    private static final int _30_DAYS = 60 * 60 * 24 * 30;
+    private static final int _30_DAYS = 30 * 24 * 60 * 60;
 
     private MemcachedClient client;
 
@@ -54,7 +54,7 @@ public class MemcachedCache implements ICache {
             if (expire == Expire.FOREVER) {
                 client.set(key, _30_DAYS, byteValue);
             } else {
-                client.set(key, (int) expire, byteValue);
+                client.set(key, (int) (expire/1000), byteValue);
             }
         } catch (TimeoutException | InterruptedException | MemcachedException e) {
             throw new CacheXException(e);

@@ -10,7 +10,7 @@ public interface Expire {
 
     int FOREVER = 0;
 
-    int ONE_SEC = 1;
+    int ONE_SEC = 1000;
 
     int FIVE_SEC = 4 * ONE_SEC;
 

@@ -22,10 +22,10 @@ public class GuavaCache implements ICache {
         guavaCache = CacheBuilder
                 .newBuilder()
                 .maximumSize(size)
-                .expireAfterWrite(expire, TimeUnit.SECONDS)
+                .expireAfterWrite(expire, TimeUnit.MILLISECONDS)
                 .build(new CacheLoader<String, Object>() {
                     @Override
-                    public Object load(String key) throws Exception {
+                    public Object load(String key) {
                         return null;
                     }
                 });

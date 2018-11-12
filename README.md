@@ -34,7 +34,7 @@
 </bean>
 
 <!-- com.github.cachex.ICache 接口实现 -->
-<bean id="redisCache" class="com.github.cachex.support.cache.RedisCache">
+<bean id="redisCache" class="com.github.cachex.support.cache.RedisPoolCache">
     <constructor-arg name="host" value="${redis.server.host}"/>
     <constructor-arg name="port" value="${redis.server.port}"/>
 </bean>

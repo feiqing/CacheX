@@ -9,10 +9,10 @@ import java.util.*;
  * @version 1.0
  * @since 2018-09-03 14:15:00.
  */
-public class RedisHelpers {
+class RedisHelpers {
 
     /* For Write */
-    public static byte[][] toByteArray(Map<String, Object> keyValueMap, ISerializer serializer) {
+    static byte[][] toByteArray(Map<String, Object> keyValueMap, ISerializer serializer) {
         byte[][] kvs = new byte[keyValueMap.size() * 2][];
         int index = 0;
         for (Map.Entry<String, Object> entry : keyValueMap.entrySet()) {
@@ -23,7 +23,7 @@ public class RedisHelpers {
     }
 
     /* For Read */
-    public static byte[][] toByteArray(Collection<String> keys) {
+    static byte[][] toByteArray(Collection<String> keys) {
         byte[][] array = new byte[keys.size()][];
         int index = 0;
         for (String str : keys) {
@@ -32,7 +32,7 @@ public class RedisHelpers {
         return array;
     }
 
-    public static Map<String, Object> toObjectMap(Collection<String> keys, List<byte[]> bytesValues, ISerializer serializer) {
+    static Map<String, Object> toObjectMap(Collection<String> keys, List<byte[]> bytesValues, ISerializer serializer) {
 
         int index = 0;
         Map<String, Object> result = new HashMap<>(keys.size());

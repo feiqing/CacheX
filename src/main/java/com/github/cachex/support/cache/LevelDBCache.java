@@ -65,9 +65,7 @@ public class LevelDBCache implements ICache {
     @Override
     public Map<String, Object> read(Collection<String> keys) {
         Map<String, Object> result = new HashMap<>(keys.size());
-        keys.forEach((key) -> {
-            result.put(key, read(key));
-        });
+        keys.forEach((key) -> result.put(key, read(key)));
 
         return result;
     }
@@ -76,9 +74,7 @@ public class LevelDBCache implements ICache {
     public void write(Map<String, Object> keyValueMap, long expire) {
         WriteBatch updates = levelDB.createWriteBatch();
 
-        keyValueMap.forEach((key, value) -> {
-            updates.put(key.getBytes(), serializer.serialize(value));
-        });
+        keyValueMap.forEach((key, value) -> updates.put(key.getBytes(), serializer.serialize(value)));
 
         levelDB.write(updates);
     }

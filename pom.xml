@@ -8,7 +8,7 @@
 
     <groupId>com.github.cachex</groupId>
     <artifactId>cachex</artifactId>
-    <version>1.7.3-SNAPSHOT</version>
+    <version>1.7.3-rds-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>${project.groupId}:${project.artifactId}</name>
@@ -88,7 +88,7 @@
         <tair.version>2.2.8</tair.version>
         <level.db.version>0.9</level.db.version>
         <snappy.version>0.4</snappy.version>
-        <jedis.version>2.8.0</jedis.version>
+        <jedis.version>2.9.0</jedis.version>
         <memcached.version>2.0.0</memcached.version>
         <ehcache.version>3.3.1</ehcache.version>
         <mapdb.version>2.0-beta13</mapdb.version>
