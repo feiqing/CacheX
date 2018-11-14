@@ -28,7 +28,7 @@ public class TairCache implements ICache {
     private ExecutorService worker;
 
     public TairCache(TairManager tairManager, int namespace) {
-        this(tairManager, namespace, ExecutorManager.newFixedThreadPool("cachex-tair-thread-", Runtime.getRuntime().availableProcessors()));
+        this(tairManager, namespace, ExecutorManager.newFixedThreadPool("CacheXTairWriter", Runtime.getRuntime().availableProcessors()));
     }
 
     public TairCache(TairManager tairManager, int namespace, ExecutorService worker) {
