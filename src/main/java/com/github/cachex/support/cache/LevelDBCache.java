@@ -2,7 +2,7 @@ package com.github.cachex.support.cache;
 
 import com.github.cachex.ICache;
 import com.github.jbox.serializer.ISerializer;
-import com.github.jbox.serializer.support.Hession2Serializer;
+import com.github.jbox.serializer.support.Hessian2Serializer;
 import org.iq80.leveldb.CompressionType;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.Options;
@@ -33,11 +33,11 @@ public class LevelDBCache implements ICache {
     private ISerializer serializer;
 
     public LevelDBCache() throws IOException {
-        this(new Hession2Serializer());
+        this(new Hessian2Serializer());
     }
 
     public LevelDBCache(String levelFilePath) throws IOException {
-        this(levelFilePath, new Hession2Serializer());
+        this(levelFilePath, new Hessian2Serializer());
     }
 
     public LevelDBCache(ISerializer serializer) throws IOException {

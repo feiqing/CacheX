@@ -4,7 +4,7 @@ import com.github.cachex.ICache;
 import com.github.cachex.enums.Expire;
 import com.github.cachex.exception.CacheXException;
 import com.github.jbox.serializer.ISerializer;
-import com.github.jbox.serializer.support.Hession2Serializer;
+import com.github.jbox.serializer.support.Hessian2Serializer;
 import net.rubyeye.xmemcached.MemcachedClient;
 import net.rubyeye.xmemcached.XMemcachedClientBuilder;
 import net.rubyeye.xmemcached.exception.MemcachedException;
@@ -29,7 +29,7 @@ public class MemcachedCache implements ICache {
     private ISerializer serializer;
 
     public MemcachedCache(String ipPorts) throws IOException {
-        this(ipPorts, new Hession2Serializer());
+        this(ipPorts, new Hessian2Serializer());
     }
 
     public MemcachedCache(String addressList, ISerializer serializer) throws IOException {

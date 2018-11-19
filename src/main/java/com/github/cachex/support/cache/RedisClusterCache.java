@@ -3,7 +3,7 @@ package com.github.cachex.support.cache;
 import com.github.cachex.ICache;
 import com.github.cachex.enums.Expire;
 import com.github.jbox.serializer.ISerializer;
-import com.github.jbox.serializer.support.Hession2Serializer;
+import com.github.jbox.serializer.support.Hessian2Serializer;
 import redis.clients.jedis.JedisCluster;
 
 import javax.annotation.PreDestroy;
@@ -27,7 +27,7 @@ public class RedisClusterCache implements ICache {
     private JedisCluster jedisCluster;
 
     public RedisClusterCache(JedisCluster jedisCluster) {
-        this(jedisCluster, new Hession2Serializer());
+        this(jedisCluster, new Hessian2Serializer());
     }
 
     public RedisClusterCache(JedisCluster jedisCluster, ISerializer serializer) {
